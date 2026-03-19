@@ -1,0 +1,80 @@
+[
+  {
+    "slug": "easy-homemade-chicken-wings-recipe",
+    "title": "Easy Homemade Chicken Wings Recipe",
+    "description": "This easy homemade chicken wings recipe gives you perfectly crispy oven-baked wings without the mess of deep frying. Just 4 ingredients, 10 minutes of prep, and 50 minutes in the oven — then toss with your favorite Buffalo or BBQ sauce and dig in.",
+    "image": "",
+    "category": "Appetizer",
+    "cuisine": "American",
+    "totalTime": "1 hour",
+    "servings": "8",
+    "keyword": "easy homemade chicken wings recipe",
+    "date": "2018-03-27",
+    "legacy": true
+  },
+  {
+    "slug": "bacon-egg-and-cheese-sandwich-on-a-croissant",
+    "title": "Bacon Egg and Cheese Sandwich on a Croissant",
+    "description": "The best bacon egg and cheese sandwich recipe is the one you can make at home in 10 minutes flat. We use fresh croissants instead of a bagel or biscuit — buttery, flaky, and the perfect vessel for crispy bacon, fluffy scrambled eggs, and melted cheddar.",
+    "image": "",
+    "category": "Breakfast",
+    "cuisine": "American",
+    "totalTime": "15 mins",
+    "servings": "2",
+    "keyword": "bacon egg and cheese sandwich recipe",
+    "date": "2018-02-07",
+    "legacy": true
+  },
+  {
+    "slug": "potato-lasagna-with-creamy-white-sauce",
+    "title": "Potato Lasagna With Creamy White Sauce",
+    "description": "This potato lasagna with creamy white sauce is a brilliant gluten-free lasagna recipe that replaces pasta noodles with thinly sliced potatoes. Layered with ricotta, mozzarella, sausage, and a rich homemade white sauce — it's hearty, filling, and totally unexpected.",
+    "image": "",
+    "category": "Entree",
+    "cuisine": "Italian",
+    "totalTime": "50 mins",
+    "servings": "4",
+    "keyword": "gluten free lasagna recipe with potatoes",
+    "date": "2018-04-02",
+    "legacy": true
+  },
+  {
+    "slug": "venezuelan-teque-os-fried-cheese-sticks-recipe",
+    "title": "Venezuelan Tequeños — Fried Cheese Sticks Recipe",
+    "description": "This Venezuelan tequeños recipe brings the best fried cheese sticks you'll ever taste straight from Miami's Latin food scene to your kitchen. Crispy homemade dough wrapped around queso blanco, fried until golden — we discovered these at Casabe 305 Bistro in Coral Gables and had to recreate them.",
+    "image": "",
+    "category": "Appetizer",
+    "cuisine": "Venezuelan",
+    "totalTime": "50 mins",
+    "servings": "12",
+    "keyword": "venezuelan tequenos recipe fried cheese sticks",
+    "date": "2016-08-27",
+    "legacy": true
+  },
+  {
+    "slug": "easy-baked-salmon-recipe-2-ingredients",
+    "title": "Easy Baked Salmon Recipe — 2 Ingredients",
+    "description": "This easy baked salmon recipe is almost too simple — just 2 ingredients, one oven, and 30 minutes. Italian dressing acts as both a marinade and a glaze, keeping the salmon incredibly moist and flavorful. One of the easiest weeknight dinners you'll ever make.",
+    "image": "",
+    "category": "Entree",
+    "cuisine": "American",
+    "totalTime": "35 mins",
+    "servings": "4",
+    "keyword": "easy baked salmon recipe simple ingredients",
+    "date": "2016-04-27",
+    "legacy": true
+  },
+  {
+    "slug": "easy-egg-white-omelette-recipe",
+    "title": "Easy Egg White Omelette Recipe",
+    "description": "This easy egg white omelette recipe is the quickest healthy breakfast you can make — just 2 eggs, a little cheese, and your choice of meat, ready in under 2 minutes. Light, fluffy, and endlessly customizable.",
+    "image": "",
+    "category": "Breakfast",
+    "cuisine": "American",
+    "totalTime": "5 mins",
+    "servings": "1",
+    "keyword": "easy egg white omelette recipe",
+    "date": "2016-06-22",
+    "legacy": true
+  }
+]
