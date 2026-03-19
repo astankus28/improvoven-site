@@ -329,64 +329,37 @@ function downloadBinary(url, destPath) {
   });
 }
 
-const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
-
-function httpsGetUnsplash(query) {
-  return new Promise((resolve, reject) => {
-    const searchQuery = encodeURIComponent(query);
-    const options = {
-      hostname: 'api.unsplash.com',
-      path: `/search/photos?query=${searchQuery}&orientation=landscape&per_page=10&order_by=relevant`,
-      method: 'GET',
-      headers: {
-        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-        'Accept-Version': 'v1'
-      }
-    };
-    const req = https.request(options, (res) => {
-      let chunks = '';
-      res.on('data', d => chunks += d);
-      res.on('end', () => {
-        try { resolve(JSON.parse(chunks)); }
-        catch(e) { reject(new Error('Unsplash parse error: ' + chunks.slice(0, 300))); }
-      });
-    });
-    req.on('error', reject);
-    req.end();
-  });
-}
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 async function getImage(recipe, slug) {
-  console.log('Fetching food photo from Unsplash...');
+  console.log('Generating food photo with Gemini Imagen...');
 
-  // Build a search query from the recipe title and cuisine
-  const searchTerms = [
-    recipe.title.split(' ').slice(0, 4).join(' '),
-    recipe.cuisine + ' food',
-    'food photography'
-  ];
+  const prompt = recipe.imagePrompt || `Professional food photography of ${recipe.title}, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing`;
 
-  let photoUrl = null;
-
-  for (const term of searchTerms) {
-    const result = await httpsGetUnsplash(term);
-    if (result.results && result.results.length > 0) {
-      // Pick a random photo from top results for variety
-      const idx = Math.floor(Math.random() * Math.min(5, result.results.length));
-      const photo = result.results[idx];
-      photoUrl = photo.urls.regular;
-      console.log(`✓ Found photo: "${term}" by ${photo.user.name}`);
-      break;
+  const response = await httpsPost(
+    'generativelanguage.googleapis.com',
+    `/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_API_KEY}`,
+    { 'Content-Type': 'application/json' },
+    {
+      instances: [{ prompt }],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: '16:9',
+        safetyFilterLevel: 'block_few',
+        personGeneration: 'dont_allow'
+      }
     }
+  );
+
+  if (!response.predictions || !response.predictions[0]) {
+    throw new Error('No image from Gemini: ' + JSON.stringify(response));
   }
 
-  if (!photoUrl) throw new Error('No Unsplash photo found');
-
-  // Download and save permanently
+  const base64Image = response.predictions[0].bytesBase64Encoded;
   const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
   fs.mkdirSync(imgDir, { recursive: true });
   const imgPath = path.join(imgDir, 'hero.jpg');
-  await downloadBinary(photoUrl, imgPath);
+  fs.writeFileSync(imgPath, Buffer.from(base64Image, 'base64'));
   console.log('✓ Image saved locally');
 
   return '/recipes/' + slug + '/images/hero.jpg';
