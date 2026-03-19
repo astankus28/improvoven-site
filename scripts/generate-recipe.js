@@ -329,51 +329,67 @@ function downloadBinary(url, destPath) {
   });
 }
 
-async function generateImage(prompt, slug) {
-  console.log('Generating food photo...');
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
-  const prediction = await httpsPost(
-    'api.replicate.com',
-    '/v1/models/black-forest-labs/flux-schnell/predictions',
-    {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-    },
-    {
-      input: {
-        prompt: prompt,
-        num_outputs: 1,
-        aspect_ratio: "16:9",
-        output_format: "webp",
-        output_quality: 85
+function httpsGetUnsplash(query) {
+  return new Promise((resolve, reject) => {
+    const searchQuery = encodeURIComponent(query);
+    const options = {
+      hostname: 'api.unsplash.com',
+      path: `/search/photos?query=${searchQuery}&orientation=landscape&per_page=10&order_by=relevant`,
+      method: 'GET',
+      headers: {
+        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+        'Accept-Version': 'v1'
       }
+    };
+    const req = https.request(options, (res) => {
+      let chunks = '';
+      res.on('data', d => chunks += d);
+      res.on('end', () => {
+        try { resolve(JSON.parse(chunks)); }
+        catch(e) { reject(new Error('Unsplash parse error: ' + chunks.slice(0, 300))); }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+async function getImage(recipe, slug) {
+  console.log('Fetching food photo from Unsplash...');
+
+  // Build a search query from the recipe title and cuisine
+  const searchTerms = [
+    recipe.title.split(' ').slice(0, 4).join(' '),
+    recipe.cuisine + ' food',
+    'food photography'
+  ];
+
+  let photoUrl = null;
+
+  for (const term of searchTerms) {
+    const result = await httpsGetUnsplash(term);
+    if (result.results && result.results.length > 0) {
+      // Pick a random photo from top results for variety
+      const idx = Math.floor(Math.random() * Math.min(5, result.results.length));
+      const photo = result.results[idx];
+      photoUrl = photo.urls.regular;
+      console.log(`✓ Found photo: "${term}" by ${photo.user.name}`);
+      break;
     }
-  );
-
-  if (!prediction.urls?.get) {
-    throw new Error('No polling URL: ' + JSON.stringify(prediction));
   }
 
-  let result;
-  for (let i = 0; i < 30; i++) {
-    await new Promise(r => setTimeout(r, 3000));
-    result = await httpsGet(prediction.urls.get);
-    console.log(`Image: ${result.status}`);
-    if (result.status === 'succeeded') break;
-    if (result.status === 'failed') throw new Error('Image failed: ' + JSON.stringify(result.error));
-  }
+  if (!photoUrl) throw new Error('No Unsplash photo found');
 
-  if (!result?.output?.[0]) throw new Error('No image output');
-
-  // Download and save image permanently in repo
+  // Download and save permanently
   const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
   fs.mkdirSync(imgDir, { recursive: true });
-  const imgPath = path.join(imgDir, 'hero.webp');
-  await downloadBinary(result.output[0], imgPath);
+  const imgPath = path.join(imgDir, 'hero.jpg');
+  await downloadBinary(photoUrl, imgPath);
   console.log('✓ Image saved locally');
 
-  // Return local path for use in HTML
-  return '/recipes/' + slug + '/images/hero.webp';
+  return '/recipes/' + slug + '/images/hero.jpg';
 }
 
 function slugify(title) {
@@ -600,7 +616,7 @@ async function main() {
     const recipeDir = path.join(process.cwd(), 'recipes', slug);
     fs.mkdirSync(recipeDir, { recursive: true });
 
-    const imageUrl = await generateImage(recipe.imagePrompt, slug);
+    const imageUrl = await getImage(recipe, slug);
 
     const html = buildRecipePage(recipe, imageUrl, slug, date);
     fs.writeFileSync(path.join(recipeDir, 'index.html'), html);
