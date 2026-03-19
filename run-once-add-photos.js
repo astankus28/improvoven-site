@@ -1,8 +1,6 @@
 // run-once-add-photos.js
-// Run this once from the root of your improvoven-site folder:
-// node run-once-add-photos.js
-//
-// Requires REPLICATE_API_TOKEN in your environment:
+// Generates food photos and saves them directly into the repo as files
+// Run from the root of improvoven-site:
 // REPLICATE_API_TOKEN=your_token node run-once-add-photos.js
 
 const https = require('https');
@@ -17,11 +15,10 @@ if (!REPLICATE_API_TOKEN) {
   process.exit(1);
 }
 
-// Image prompts for each legacy recipe
 const LEGACY_RECIPES = [
   {
     slug: 'easy-homemade-chicken-wings-recipe',
-    imagePrompt: 'Professional food photography of crispy homemade chicken wings on a wooden cutting board, some tossed in buffalo sauce, some plain, with ranch dipping sauce on the side, warm golden lighting, shallow depth of field, appetizing and vibrant'
+    imagePrompt: 'Professional food photography of crispy homemade chicken wings on a wooden cutting board, some tossed in buffalo sauce, with ranch dipping sauce on the side, warm golden lighting, shallow depth of field, appetizing and vibrant'
   },
   {
     slug: 'bacon-egg-and-cheese-sandwich-on-a-croissant',
@@ -48,17 +45,11 @@ const LEGACY_RECIPES = [
 function httpsPost(hostname, pathStr, headers, body) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
-    const options = {
-      hostname, path: pathStr, method: 'POST',
-      headers: { ...headers, 'Content-Length': Buffer.byteLength(data) }
-    };
+    const options = { hostname, path: pathStr, method: 'POST', headers: { ...headers, 'Content-Length': Buffer.byteLength(data) } };
     const req = https.request(options, (res) => {
       let chunks = '';
       res.on('data', d => chunks += d);
-      res.on('end', () => {
-        try { resolve(JSON.parse(chunks)); }
-        catch(e) { reject(new Error('Parse error: ' + chunks.slice(0, 300))); }
-      });
+      res.on('end', () => { try { resolve(JSON.parse(chunks)); } catch(e) { reject(new Error('Parse error: ' + chunks.slice(0, 300))); } });
     });
     req.on('error', reject);
     req.write(data);
@@ -66,152 +57,132 @@ function httpsPost(hostname, pathStr, headers, body) {
   });
 }
 
-function httpsGet(url) {
+function httpsGetJson(url) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
-    const options = {
-      hostname: urlObj.hostname,
-      path: urlObj.pathname + urlObj.search,
-      method: 'GET',
-      headers: { 'Authorization': `Token ${REPLICATE_API_TOKEN}` }
-    };
+    const options = { hostname: urlObj.hostname, path: urlObj.pathname + urlObj.search, method: 'GET', headers: { 'Authorization': `Token ${REPLICATE_API_TOKEN}` } };
     const req = https.request(options, (res) => {
       let chunks = '';
       res.on('data', d => chunks += d);
-      res.on('end', () => {
-        try { resolve(JSON.parse(chunks)); }
-        catch(e) { reject(new Error('Parse error: ' + chunks.slice(0, 300))); }
-      });
+      res.on('end', () => { try { resolve(JSON.parse(chunks)); } catch(e) { reject(new Error('Parse error: ' + chunks.slice(0, 300))); } });
     });
     req.on('error', reject);
     req.end();
   });
 }
 
-async function generateImage(prompt) {
+function downloadBinary(url, destPath) {
+  return new Promise((resolve, reject) => {
+    const follow = (u) => {
+      const urlObj = new URL(u);
+      const req = https.request({ hostname: urlObj.hostname, path: urlObj.pathname + urlObj.search, method: 'GET' }, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) { return follow(res.headers.location); }
+        const chunks = [];
+        res.on('data', d => chunks.push(d));
+        res.on('end', () => { fs.writeFileSync(destPath, Buffer.concat(chunks)); resolve(destPath); });
+      });
+      req.on('error', reject);
+      req.end();
+    };
+    follow(url);
+  });
+}
+
+async function generateAndSaveImage(prompt, slug) {
+  console.log('  Generating image...');
   const prediction = await httpsPost(
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
-    {
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${REPLICATE_API_TOKEN}`,
-    },
-    {
-      input: {
-        prompt,
-        num_outputs: 1,
-        aspect_ratio: "16:9",
-        output_format: "webp",
-        output_quality: 85
-      }
-    }
+    { 'Content-Type': 'application/json', 'Authorization': `Token ${REPLICATE_API_TOKEN}` },
+    { input: { prompt, num_outputs: 1, aspect_ratio: "16:9", output_format: "webp", output_quality: 85 } }
   );
 
-  if (!prediction.urls?.get) {
-    throw new Error('No polling URL: ' + JSON.stringify(prediction));
-  }
+  if (!prediction.urls?.get) throw new Error('No polling URL: ' + JSON.stringify(prediction));
 
   let result;
   for (let i = 0; i < 30; i++) {
     await new Promise(r => setTimeout(r, 3000));
-    result = await httpsGet(prediction.urls.get);
-    process.stdout.write(`  Status: ${result.status}\r`);
+    result = await httpsGetJson(prediction.urls.get);
+    process.stdout.write(`  Status: ${result.status}   \r`);
     if (result.status === 'succeeded') break;
-    if (result.status === 'failed') throw new Error('Image failed');
+    if (result.status === 'failed') throw new Error('Image generation failed');
   }
 
   if (!result?.output?.[0]) throw new Error('No image output');
-  return result.output[0];
+
+  // Save image as a local file in the repo
+  const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
+  fs.mkdirSync(imgDir, { recursive: true });
+  const imgPath = path.join(imgDir, 'hero.webp');
+  await downloadBinary(result.output[0], imgPath);
+  console.log(`\n  ✓ Saved: recipes/${slug}/images/hero.webp`);
+
+  return '/recipes/' + slug + '/images/hero.webp';
 }
 
-function updateHtmlWithImage(htmlPath, imageUrl, recipeTitle) {
+function updateHtml(htmlPath, localImagePath, altText) {
   let html = fs.readFileSync(htmlPath, 'utf8');
 
-  // Check if there's already a hero image section
-  if (html.includes('class="recipe-hero"')) {
-    // Replace existing broken image
-    html = html.replace(
-      /<div class="recipe-hero">[\s\S]*?<\/div>/,
-      `<div class="recipe-hero">\n  <img src="${imageUrl}" alt="${recipeTitle}" fetchpriority="high">\n</div>`
-    );
-  } else {
-    // Insert hero image after <body> and nav
-    html = html.replace(
-      '</nav>\n<div class="recipe-wrap">',
-      `</nav>\n<div class="recipe-hero">\n  <img src="${imageUrl}" alt="${recipeTitle}" fetchpriority="high">\n</div>\n<div class="recipe-wrap">`
-    );
+  // Add CSS if missing
+  if (!html.includes('.recipe-hero{')) {
+    html = html.replace('.back-link{',
+      `.recipe-hero{width:100%;aspect-ratio:16/9;max-height:520px;overflow:hidden}\n.recipe-hero img{width:100%;height:100%;object-fit:cover}\n.back-link{`);
   }
 
-  // Add recipe-hero CSS if not present
-  if (!html.includes('.recipe-hero')) {
-    html = html.replace(
-      '.back-link{',
-      `.recipe-hero{width:100%;aspect-ratio:16/9;max-height:520px;overflow:hidden;margin-bottom:0}
-.recipe-hero img{width:100%;height:100%;object-fit:cover}
-.back-link{`
-    );
-  }
+  // Remove any existing broken hero div
+  html = html.replace(/<div class="recipe-hero">[\s\S]*?<\/div>\n?/, '');
 
-  // Update og:image meta tag
-  html = html.replace(
-    /<meta property="og:image" content="[^"]*">/,
-    `<meta property="og:image" content="${imageUrl}">`
-  );
+  // Insert hero after </nav>
+  html = html.replace('</nav>\n<div class="recipe-wrap">',
+    `</nav>\n<div class="recipe-hero">\n  <img src="${localImagePath}" alt="${altText}" fetchpriority="high">\n</div>\n<div class="recipe-wrap">`);
+
+  // Update og:image
+  html = html.replace(/<meta property="og:image" content="[^"]*">/,
+    `<meta property="og:image" content="https://www.improvoven.com${localImagePath}">`);
 
   fs.writeFileSync(htmlPath, html);
+  console.log(`  ✓ HTML updated`);
 }
 
-function updateRecipesData(slug, imageUrl) {
+function updateRecipesData(slug, localImagePath) {
   const dataPath = path.join(process.cwd(), 'recipes-data.json');
-  if (!fs.existsSync(dataPath)) {
-    console.log('  ⚠️  recipes-data.json not found — skipping data update');
-    return;
-  }
+  if (!fs.existsSync(dataPath)) return;
   const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
   const idx = data.findIndex(r => r.slug === slug);
   if (idx !== -1) {
-    data[idx].image = imageUrl;
+    data[idx].image = localImagePath;
     fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-    console.log('  ✓ Updated recipes-data.json');
+    console.log(`  ✓ recipes-data.json updated`);
   }
 }
 
 async function main() {
-  console.log('🍳 Improv Oven — Legacy Recipe Photo Generator');
-  console.log('================================================');
-  console.log(`Generating photos for ${LEGACY_RECIPES.length} recipes...\n`);
+  console.log('🍳 Improv Oven — Legacy Recipe Photo Generator (Local Save)');
+  console.log('=============================================================');
+  console.log(`Generating and saving ${LEGACY_RECIPES.length} photos locally...\n`);
 
   for (const recipe of LEGACY_RECIPES) {
     console.log(`📸 ${recipe.slug}`);
-
     const htmlPath = path.join(process.cwd(), 'recipes', recipe.slug, 'index.html');
-
-    if (!fs.existsSync(htmlPath)) {
-      console.log(`  ⚠️  Not found: recipes/${recipe.slug}/index.html — skipping\n`);
-      continue;
-    }
+    if (!fs.existsSync(htmlPath)) { console.log(`  ⚠️  File not found — skipping\n`); continue; }
 
     try {
-      const imageUrl = await generateImage(recipe.imagePrompt);
-      console.log(`  ✓ Image: ${imageUrl.slice(0, 60)}...`);
-
-      updateHtmlWithImage(htmlPath, imageUrl, recipe.slug.replace(/-/g, ' '));
-      console.log(`  ✓ HTML updated`);
-
-      updateRecipesData(recipe.slug, imageUrl);
+      const localPath = await generateAndSaveImage(recipe.imagePrompt, recipe.slug);
+      updateHtml(htmlPath, localPath, recipe.slug.replace(/-/g, ' '));
+      updateRecipesData(recipe.slug, localPath);
       console.log(`  ✓ Done\n`);
-
-      // Small pause between requests
-      await new Promise(r => setTimeout(r, 1000));
-
+      await new Promise(r => setTimeout(r, 15000));
     } catch (err) {
       console.error(`  ❌ Error: ${err.message}\n`);
     }
   }
 
-  console.log('================================================');
-  console.log('✅ All done! Now commit and push in GitHub Desktop.');
-  console.log('   Summary → "add photos to legacy recipes" → Commit → Push');
+  console.log('=============================================================');
+  console.log('✅ All done! Images are saved permanently in the repo.');
+  console.log('');
+  console.log('Now in GitHub Desktop:');
+  console.log('  Summary: "add permanent photos to legacy recipes"');
+  console.log('  Commit → Push');
 }
 
 main();
