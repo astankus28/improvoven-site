@@ -1,0 +1,33 @@
+name: Daily Recipe Generator
+
+on:
+  schedule:
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+jobs:
+  generate-recipe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Generate recipe and image
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+        run: node scripts/generate-recipe.js
+      - name: Commit and push new recipe
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Improv Oven Bot"
+          git add -A
+          git diff --staged --quiet || git commit -m "🍳 Daily recipe: $(date +'%Y-%m-%d')"
+          git push
