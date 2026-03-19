@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Improv Oven — Cure Refrigerator Blindness</title>
+<meta name="description" content="Improv Oven is a food blog about improvising with simple pantry ingredients. Budget-friendly, quick weeknight recipes with Miami and Latin American influence.">
+<meta property="og:title" content="Improv Oven — Cure Refrigerator Blindness">
+<meta property="og:description" content="Simple recipes using pantry staples. Budget-friendly meals with Miami influence.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.improvoven.com/">
+<link rel="canonical" href="https://www.improvoven.com/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Improv Oven",
+  "url": "https://www.improvoven.com",
+  "description": "A food blog about improvising with simple pantry ingredients. Budget-friendly, quick weeknight recipes.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://www.improvoven.com/recipes/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#2d6a4f;
+  --green-light:#52b788;
+  --green-pale:#d8f3dc;
+  --cream:#faf7f2;
+  --text:#1a1a1a;
+  --muted:#666;
+  --border:#e8e0d0;
+}
+body{background:var(--cream);color:var(--text);font-family:'Lato',sans-serif;font-size:17px;line-height:1.7}
+a{color:var(--green);text-decoration:none}
+a:hover{color:var(--green-light)}
+
+/* Nav */
+nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--green)}
+.nav-logo span{font-style:italic;font-weight:400}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center}
+.nav-links a{font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);font-weight:700;transition:color .2s}
+.nav-links a:hover{color:var(--green)}
+
+/* Hero */
+.hero{background:#fff;border-bottom:1px solid var(--border);padding:5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(82,183,136,0.08) 0%,transparent 70%)}
+.hero-eyebrow{font-size:0.75rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--green-light);font-weight:700;margin-bottom:1.5rem}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;line-height:1.1;color:var(--text);max-width:700px;margin:0 auto 1.5rem}
+.hero-title em{font-style:italic;color:var(--green)}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.8}
+.hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--green);color:#fff;font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:0.9rem 2rem;transition:background .2s,transform .2s;display:inline-block}
+.btn-primary:hover{background:#1f4f3a;color:#fff;transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--green);border:2px solid var(--green);font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:0.85rem 2rem;transition:all .2s;display:inline-block}
+.btn-ghost:hover{background:var(--green);color:#fff}
+
+/* Features strip */
+.features{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:#fff}
+.feature{padding:2rem;text-align:center;border-right:1px solid var(--border)}
+.feature:last-child{border-right:none}
+.feature-icon{font-size:1.8rem;margin-bottom:0.8rem}
+.feature h3{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:0.4rem}
+.feature p{font-size:0.88rem;color:var(--muted);line-height:1.6}
+
+/* Latest recipes */
+.latest{max-width:1100px;margin:0 auto;padding:4rem 2rem}
+.section-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2.5rem}
+.section-header h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700}
+.section-header a{font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--green)}
+.recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
+.recipe-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
+.recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+.card-img{aspect-ratio:16/9;overflow:hidden;background:var(--green-pale)}
+.card-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.recipe-card:hover .card-img img{transform:scale(1.04)}
+.card-body{padding:1.2rem 1.4rem;flex:1;display:flex;flex-direction:column}
+.card-tags{display:flex;gap:0.4rem;margin-bottom:0.7rem;flex-wrap:wrap}
+.ctag{font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--green);color:#fff;padding:0.2rem 0.5rem}
+.card-body h3{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;color:var(--text);line-height:1.3}
+.card-body p{font-size:0.88rem;color:var(--muted);line-height:1.6;flex:1;margin-bottom:0.8rem}
+.card-meta{font-size:0.75rem;color:var(--green);font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+
+/* About strip */
+.about-strip{background:var(--green);color:#fff;padding:4rem 2rem;text-align:center}
+.about-strip h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin-bottom:1rem}
+.about-strip p{max-width:580px;margin:0 auto 2rem;opacity:0.85;line-height:1.8}
+.btn-white{background:#fff;color:var(--green);font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:0.9rem 2rem;transition:all .2s;display:inline-block}
+.btn-white:hover{background:var(--green-pale);color:var(--green)}
+
+/* Empty state */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.8rem;color:var(--text)}
+
+footer{background:#fff;border-top:1px solid var(--border);padding:2.5rem 2rem;text-align:center;font-size:0.82rem;color:var(--muted)}
+footer a{color:var(--green);font-weight:700}
+
+@media(max-width:768px){
+  .features{grid-template-columns:1fr}
+  .feature{border-right:none;border-bottom:1px solid var(--border)}
+  .feature:last-child{border-bottom:none}
+  .nav-links{display:none}
+  .recipes-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Improv <span>Oven</span></a>
+  <ul class="nav-links">
+    <li><a href="/recipes/">Recipes</a></li>
+    <li><a href="/about/">About</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">A Simple Food Blog</div>
+  <h1 class="hero-title">Cure your <em>refrigerator blindness</em></h1>
+  <p class="hero-sub">Fridge full but nothing to eat? Improv Oven is about taking simple pantry ingredients and turning them into delicious, budget-friendly meals — fast.</p>
+  <div class="hero-actions">
+    <a href="/recipes/" class="btn-primary">Browse all recipes</a>
+    <a href="/about/" class="btn-ghost">Our story</a>
+  </div>
+</section>
+
+<div class="features">
+  <div class="feature">
+    <div class="feature-icon">🕐</div>
+    <h3>Quick & Easy</h3>
+    <p>Most recipes are ready in 30 minutes or less. No culinary school required.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">💰</div>
+    <h3>Budget Friendly</h3>
+    <p>Real meals using pantry staples and affordable ingredients you already have.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">🌴</div>
+    <h3>Miami Influenced</h3>
+    <p>Latin American and Caribbean flavors woven into everyday home cooking.</p>
+  </div>
+</div>
+
+<section class="latest">
+  <div class="section-header">
+    <h2>Latest Recipes</h2>
+    <a href="/recipes/">View all →</a>
+  </div>
+  <div class="recipes-grid" id="recipes-grid">
+    <div class="empty-state" style="grid-column:1/-1">
+      <h3>First recipe coming tomorrow!</h3>
+      <p>The kitchen is heating up. Check back soon — new recipes publish daily.</p>
+    </div>
+  </div>
+</section>
+
+<div class="about-strip">
+  <h2>What is Improv Oven?</h2>
+  <p>How often do you make a trip to your full refrigerator to find nothing to eat — then go back 5 minutes later and stare at that same fridge? This site is about showing you how to turn those dull ingredients into something delicious.</p>
+  <a href="/about/" class="btn-white">Read our story</a>
+</div>
+
+<footer>
+  © <span id="year"></span> Improv Oven · Simple recipes, simple ingredients · <a href="/recipes/">All Recipes</a>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+// Load latest recipes from recipes-data.json if available
+fetch('/recipes-data.json')
+  .then(r => r.json())
+  .then(recipes => {
+    if (!recipes || recipes.length === 0) return;
+    const grid = document.getElementById('recipes-grid');
+    const latest = recipes.slice(0, 6);
+    grid.innerHTML = latest.map(r => `
+      <a href="/recipes/${r.slug}/" class="recipe-card">
+        <div class="card-img"><img src="${r.image}" alt="${r.title}" loading="lazy"></div>
+        <div class="card-body">
+          <div class="card-tags">
+            <span class="ctag">${r.category}</span>
+            <span class="ctag">${r.cuisine}</span>
+          </div>
+          <h3>${r.title}</h3>
+          <p>${r.description}</p>
+          <div class="card-meta">${r.totalTime} · Serves ${r.servings}</div>
+        </div>
+      </a>`).join('');
+  })
+  .catch(() => {}); // Keep empty state if no recipes yet
+</script>
+</body>
+</html>
