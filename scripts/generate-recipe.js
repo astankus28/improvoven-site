@@ -305,10 +305,7 @@ Return ONLY valid JSON, no markdown, no backticks:
     }
   );
 
-  console.log('API Response:', JSON.stringify(response, null, 2));
-  if (!response.content || !response.content[0]) {
-    throw new Error('Bad API response: ' + JSON.stringify(response));
-  }
+ 
   const text = response.content[0].text.trim()
     .replace(/^```json?\n?/, '').replace(/\n?```$/, '');
   const recipe = JSON.parse(text);
