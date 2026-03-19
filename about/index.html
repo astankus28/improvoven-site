@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About - Improv Oven</title>
+<meta name="description" content="Improv Oven is a food blog about improvising with simple pantry ingredients to make delicious, budget-friendly meals.">
+<link rel="canonical" href="https://www.improvoven.com/about/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#2d6a4f;--green-light:#52b788;--cream:#faf7f2;--text:#1a1a1a;--muted:#666;--border:#e8e0d0}
+body{background:var(--cream);color:var(--text);font-family:'Lato',sans-serif;font-size:17px;line-height:1.7}
+a{color:var(--green);text-decoration:none}
+a:hover{color:var(--green-light)}
+nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--green)}
+.nav-logo span{font-style:italic;font-weight:400}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.nav-links a:hover{color:var(--green)}
+.about-wrap{max-width:720px;margin:0 auto;padding:4rem 2rem}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);font-weight:700;margin-bottom:2rem;line-height:1.15}
+h1 em{font-style:italic;color:var(--green)}
+.about-body p{margin-bottom:1.4rem;font-size:1.05rem;line-height:1.85;color:#333}
+.about-body p:first-child{font-size:1.15rem;color:var(--text);font-style:italic;border-left:3px solid var(--green-light);padding-left:1.2rem}
+.cta-box{background:#fff;border:1px solid var(--border);border-left:4px solid var(--green);padding:2rem;margin-top:3rem}
+.cta-box h3{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:0.5rem}
+.cta-box p{font-size:0.95rem;color:var(--muted);margin-bottom:1rem}
+.btn{background:var(--green);color:#fff;font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:0.8rem 1.8rem;display:inline-block;transition:background .2s}
+.btn:hover{background:#1f4f3a;color:#fff}
+footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.82rem;color:var(--muted);margin-top:4rem}
+@media(max-width:600px){.nav-links{display:none}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">Improv <span>Oven</span></a>
+  <ul class="nav-links">
+    <li><a href="/recipes/">Recipes</a></li>
+    <li><a href="/about/">About</a></li>
+  </ul>
+</nav>
+<div class="about-wrap">
+  <h1>Welcome to Improv <em>Oven</em></h1>
+  <div class="about-body">
+    <p>Fridge full, but nothing to eat? Cupboards filled with the same boring ingredients? You've come to the right place.</p>
+    <p>Improv Oven is all about improvisation in the kitchen — taking the simplest ingredients and creating easy to make, delicious, and quick meals. The name says it all: we improvise.</p>
+    <p>This blog started out of necessity. Living in Miami on a budget, cooking the same meals over and over, staring into a full refrigerator and somehow seeing nothing. Sound familiar? We started Improv Oven to solve exactly that problem.</p>
+    <p>Miami is one of the most food-diverse cities in the world. Latin American, Caribbean, Cuban, Venezuelan, Colombian — the flavors of the whole hemisphere are right here. That influence shows up in everything we cook. You'll find Latin-inspired weeknight meals sitting right next to classic American comfort food, all made with affordable pantry staples.</p>
+    <p>Every recipe on this site is designed around one principle: simple ingredients, real flavor, minimal fuss. We're not here to impress you with techniques — we're here to get dinner on the table.</p>
+    <p>New recipes publish every single day. Browse the archive, find something that matches what you've already got in your kitchen, and get cooking.</p>
+  </div>
+  <div class="cta-box">
+    <h3>Have an ingredient but don't know what to make?</h3>
+    <p>That's literally what we're here for. Browse the recipe archive and find something that matches your pantry.</p>
+    <a href="/recipes/" class="btn">Browse all recipes</a>
+  </div>
+</div>
+<footer>© <script>document.write(new Date().getFullYear())</script> Improv Oven · <a href="/">Home</a> · <a href="/recipes/">Recipes</a></footer>
+</body>
+</html>
