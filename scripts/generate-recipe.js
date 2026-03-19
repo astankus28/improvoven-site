@@ -5,27 +5,216 @@ const path = require('path');
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
-// Recipe styles to rotate through
-const styles = [
-  "budget-friendly pantry staple meal under $10",
-  "quick Miami-inspired Latin recipe under 30 minutes",
-  "comfort food classic with simple ingredients",
-  "quick weeknight meal with common pantry ingredients",
-  "budget-friendly meal inspired by Caribbean or Latin American cuisine",
-  "simple comfort food recipe ready in under 30 minutes",
-  "Miami-influenced dish using affordable everyday ingredients",
+// ============================================================
+// KEYWORD POOL — 150 high-intent, low-competition recipe searches
+// Script picks one unused keyword per day, tracks used ones,
+// resets automatically when all 150 have been used.
+// Add new keywords any time by editing this file.
+// ============================================================
+const KEYWORD_POOL = [
+  // BUDGET
+  "cheap chicken dinner ideas under $10",
+  "budget friendly pasta recipes",
+  "meals to make with ground beef under $10",
+  "cheap and easy weeknight dinners",
+  "budget meal prep ideas for the week",
+  "inexpensive family dinner ideas",
+  "affordable healthy dinner recipes",
+  "meals under $5 per serving",
+  "budget friendly soup recipes",
+  "cheap rice and beans recipes",
+  "inexpensive chicken thigh recipes",
+  "budget friendly casserole recipes",
+  "cheap dinner ideas for two",
+  "affordable meal ideas with pantry staples",
+  "cheap ground turkey recipes",
+  "budget friendly egg recipes for dinner",
+  "cheap tuna recipes",
+  "inexpensive vegetarian dinner ideas",
+  "budget friendly slow cooker meals",
+  "cheap protein meals on a budget",
+
+  // PANTRY STAPLES
+  "what to make with rice and canned tomatoes",
+  "recipes using pantry staples only",
+  "what to cook with chicken and rice",
+  "easy recipes with canned beans",
+  "what to make with pasta and olive oil",
+  "easy dinner with canned tomatoes",
+  "what to make with eggs and potatoes",
+  "easy recipes with dried lentils",
+  "what to cook with chickpeas",
+  "recipes using canned coconut milk",
+  "what to make with oats besides oatmeal",
+  "easy dinner with frozen vegetables",
+  "what to cook with leftover rice",
+  "recipes using bread crumbs",
+  "what to make with canned sardines",
+  "easy meals with peanut butter",
+  "what to cook with black beans",
+  "recipes using cornmeal",
+  "what to make with canned tuna and pasta",
+  "easy dinner with ground beef and potatoes",
+
+  // LATIN AND MIAMI INFLUENCED
+  "easy Cuban black beans and rice recipe",
+  "simple arroz con pollo recipe",
+  "easy homemade sofrito recipe",
+  "quick Cuban sandwich recipe",
+  "simple ropa vieja recipe",
+  "easy tostones recipe",
+  "homemade Cuban picadillo recipe",
+  "easy Colombian arepas recipe",
+  "simple Venezuelan pabellon criollo recipe",
+  "easy Puerto Rican rice recipe",
+  "homemade chimichurri sauce recipe",
+  "simple beef empanadas recipe",
+  "easy Mexican rice recipe",
+  "quick beef tacos recipe",
+  "simple guacamole recipe from scratch",
+  "easy Cuban mojo chicken recipe",
+  "simple pernil recipe easy",
+  "easy Cuban bread recipe homemade",
+  "homemade salsa verde recipe",
+  "simple elote street corn recipe",
+  "easy Brazilian chicken rice recipe",
+  "simple Dominican rice recipe",
+  "easy Haitian rice and beans recipe",
+  "simple ceviche recipe easy",
+  "easy green plantain recipes",
+
+  // COMFORT FOOD
+  "easy homemade mac and cheese recipe",
+  "simple beef stew recipe",
+  "easy chicken pot pie recipe",
+  "homemade meatloaf recipe easy",
+  "simple shepherd's pie recipe",
+  "easy fried chicken recipe at home",
+  "homemade chicken noodle soup recipe",
+  "simple baked ziti recipe",
+  "easy lasagna recipe from scratch",
+  "homemade chili recipe easy",
+  "simple pot roast recipe",
+  "easy chicken and dumplings recipe",
+  "homemade beef stroganoff recipe",
+  "simple chicken parmesan recipe",
+  "easy stuffed peppers recipe",
+  "homemade mashed potatoes recipe",
+  "simple tuna noodle casserole recipe",
+  "easy french onion soup recipe",
+  "simple beef chili recipe easy",
+  "easy baked chicken thighs recipe",
+
+  // QUICK WEEKNIGHT
+  "easy 20 minute chicken dinner",
+  "quick weeknight pasta recipe",
+  "15 minute stir fry recipe",
+  "easy 30 minute dinner ideas",
+  "quick salmon recipe under 20 minutes",
+  "fast shrimp recipes for dinner",
+  "quick and easy steak recipe",
+  "easy 20 minute soup recipe",
+  "fast weeknight chicken recipe",
+  "quick pork chop recipe easy",
+  "easy 15 minute egg fried rice",
+  "fast homemade pizza recipe",
+  "quick chicken quesadilla recipe",
+  "easy 20 minute beef and broccoli",
+  "fast homemade burger recipe",
+  "quick vegetable stir fry recipe",
+  "easy pan seared chicken recipe",
+  "fast shrimp tacos recipe",
+  "quick turkey meatball recipe",
+  "easy 30 minute chicken curry recipe",
+
+  // BREAKFAST AND BRUNCH
+  "easy homemade pancake recipe from scratch",
+  "simple French toast recipe",
+  "easy breakfast burrito recipe",
+  "homemade waffle recipe easy",
+  "simple shakshuka recipe",
+  "easy breakfast casserole recipe",
+  "simple avocado toast recipe ideas",
+  "easy egg muffin recipe",
+  "homemade granola recipe easy",
+  "simple breakfast hash recipe",
+
+  // SOUPS AND STEWS
+  "easy chicken tortilla soup recipe",
+  "simple lentil soup recipe",
+  "easy black bean soup recipe",
+  "homemade tomato soup recipe easy",
+  "simple potato soup recipe",
+  "easy minestrone soup recipe",
+  "homemade vegetable soup recipe",
+  "simple white bean soup recipe",
+  "easy Cuban black bean soup recipe",
+  "homemade chicken vegetable soup recipe",
+
+  // SALADS AND SIDES
+  "easy pasta salad recipe",
+  "simple coleslaw recipe",
+  "easy roasted vegetables recipe",
+  "homemade potato salad recipe easy",
+  "simple cucumber salad recipe",
+  "easy rice pilaf recipe",
+  "homemade cornbread recipe easy",
+  "simple garlic bread recipe",
+  "easy roasted sweet potatoes recipe",
+  "homemade coleslaw recipe easy",
+
+  // SAUCES AND BASICS
+  "easy homemade marinara sauce recipe",
+  "simple garlic butter sauce recipe",
+  "easy homemade salsa recipe",
+  "simple pesto recipe easy",
+  "easy teriyaki sauce recipe homemade",
+  "homemade BBQ sauce recipe easy",
+  "simple hollandaise sauce recipe",
+  "easy cheese sauce recipe",
+  "homemade hot sauce recipe easy",
+  "simple curry sauce recipe",
+
+  // SEAFOOD
+  "easy garlic butter shrimp recipe",
+  "simple baked salmon recipe",
+  "easy fish tacos recipe",
+  "homemade crab cakes recipe easy",
+  "simple shrimp fried rice recipe",
+  "easy lemon butter cod recipe",
+  "simple shrimp pasta recipe",
+  "easy tuna patties recipe",
+  "homemade fish stew recipe easy",
+  "simple pan seared tilapia recipe",
 ];
 
-function getStyle() {
-  const day = new Date().getDay();
-  return styles[day % styles.length];
+function getNextKeyword() {
+  const usedPath = path.join(process.cwd(), 'used-keywords.json');
+  let used = [];
+  if (fs.existsSync(usedPath)) {
+    used = JSON.parse(fs.readFileSync(usedPath, 'utf8'));
+  }
+
+  const unused = KEYWORD_POOL.filter(k => !used.includes(k));
+
+  if (unused.length === 0) {
+    console.log('All keywords used — resetting pool for another round');
+    used = [];
+    fs.writeFileSync(usedPath, JSON.stringify([], null, 2));
+    return KEYWORD_POOL[Math.floor(Math.random() * KEYWORD_POOL.length)];
+  }
+
+  const keyword = unused[Math.floor(Math.random() * unused.length)];
+  used.push(keyword);
+  fs.writeFileSync(usedPath, JSON.stringify(used, null, 2));
+  return keyword;
 }
 
-function httpsPost(hostname, path, headers, body) {
+function httpsPost(hostname, pathStr, headers, body) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
     const options = {
-      hostname, path, method: 'POST',
+      hostname, path: pathStr, method: 'POST',
       headers: { ...headers, 'Content-Length': Buffer.byteLength(data) }
     };
     const req = https.request(options, (res) => {
@@ -33,7 +222,7 @@ function httpsPost(hostname, path, headers, body) {
       res.on('data', d => chunks += d);
       res.on('end', () => {
         try { resolve(JSON.parse(chunks)); }
-        catch(e) { reject(new Error('Parse error: ' + chunks)); }
+        catch(e) { reject(new Error('Parse error: ' + chunks.slice(0, 300))); }
       });
     });
     req.on('error', reject);
@@ -56,7 +245,7 @@ function httpsGet(url) {
       res.on('data', d => chunks += d);
       res.on('end', () => {
         try { resolve(JSON.parse(chunks)); }
-        catch(e) { reject(new Error('Parse error: ' + chunks)); }
+        catch(e) { reject(new Error('Parse error: ' + chunks.slice(0, 300))); }
       });
     });
     req.on('error', reject);
@@ -64,9 +253,8 @@ function httpsGet(url) {
   });
 }
 
-async function generateRecipe() {
-  const style = getStyle();
-  console.log(`Generating recipe: ${style}`);
+async function generateRecipe(keyword) {
+  console.log(`Generating recipe for: "${keyword}"`);
 
   const response = await httpsPost(
     'api.anthropic.com',
@@ -77,46 +265,56 @@ async function generateRecipe() {
       'anthropic-version': '2023-06-01'
     },
     {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2000,
       messages: [{
         role: 'user',
-        content: `You are the voice of Improv Oven, a food blog with the tagline "cure refrigerator blindness." 
-The blog is about improvising with simple pantry ingredients to make delicious meals. 
-The tone is casual, friendly, and encouraging — like a knowledgeable friend helping you cook.
-The blog has a Miami influence with appreciation for Latin American cuisine.
+        content: `You are the voice of Improv Oven — a food blog with the tagline "cure refrigerator blindness."
+The blog is about improvising with pantry ingredients to make delicious, affordable meals.
+Tone: casual, warm, encouraging — like a knowledgeable Miami friend teaching you to cook.
+Strong Miami influence with Latin American and Caribbean flair.
+All recipes should be genuinely budget-friendly and achievable for home cooks.
 
-Generate a ${style} recipe. 
+Write a recipe that will rank on Google for: "${keyword}"
 
-Respond ONLY with a valid JSON object, no markdown, no backticks, exactly this structure:
+SEO RULES (critical):
+- Recipe title must naturally contain the keyword or a very close variation
+- First sentence of description must naturally include the keyword
+- Never sound like an SEO robot — keep the Improv Oven personality throughout
+- Recipe must genuinely match what someone searching that term wants
+
+Return ONLY valid JSON, no markdown, no backticks:
 {
-  "title": "Recipe Title",
-  "description": "2-3 sentence description in the Improv Oven voice",
+  "title": "Title naturally containing the keyword",
+  "description": "2-3 sentences. First naturally uses the keyword. Casual Miami voice.",
   "prepTime": "10 mins",
-  "cookTime": "20 mins",
+  "cookTime": "20 mins", 
   "totalTime": "30 mins",
   "servings": "4",
   "cuisine": "American",
   "category": "Entree",
-  "ingredients": ["ingredient 1", "ingredient 2"],
-  "instructions": ["Step 1 instruction", "Step 2 instruction"],
-  "tips": "One helpful tip in the Improv Oven voice",
-  "imagePrompt": "A professional food photography shot of [dish name], warm golden lighting, shallow depth of field, rustic wooden table, appetizing and vibrant"
+  "difficulty": "Easy",
+  "cost": "Budget",
+  "ingredients": ["quantity ingredient", "quantity ingredient"],
+  "instructions": ["Full step.", "Full step."],
+  "tips": "One genuinely useful tip in Improv Oven's voice",
+  "targetKeyword": "${keyword}",
+  "imagePrompt": "Professional food photography of [dish], warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing"
 }`
       }]
     }
   );
 
-  const text = response.content[0].text;
+  const text = response.content[0].text.trim()
+    .replace(/^```json?\n?/, '').replace(/\n?```$/, '');
   const recipe = JSON.parse(text);
-  console.log(`Recipe generated: ${recipe.title}`);
+  console.log(`✓ Recipe: "${recipe.title}"`);
   return recipe;
 }
 
 async function generateImage(prompt) {
-  console.log('Generating image...');
+  console.log('Generating food photo...');
 
-  // Start prediction
   const prediction = await httpsPost(
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
@@ -139,39 +337,37 @@ async function generateImage(prompt) {
     throw new Error('No polling URL: ' + JSON.stringify(prediction));
   }
 
-  // Poll until complete
   let result;
   for (let i = 0; i < 30; i++) {
     await new Promise(r => setTimeout(r, 3000));
     result = await httpsGet(prediction.urls.get);
-    console.log(`Image status: ${result.status}`);
+    console.log(`Image: ${result.status}`);
     if (result.status === 'succeeded') break;
-    if (result.status === 'failed') throw new Error('Image generation failed');
+    if (result.status === 'failed') throw new Error('Image failed: ' + JSON.stringify(result.error));
   }
 
+  if (!result?.output?.[0]) throw new Error('No image output');
+  console.log('✓ Image generated');
   return result.output[0];
 }
 
 function slugify(title) {
   return title.toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
 }
 
 function buildRecipePage(recipe, imageUrl, slug, date) {
   const ingredientsList = recipe.ingredients
-    .map(i => `<li itemprop="recipeIngredient">${i}</li>`)
-    .join('\n              ');
-  
-  const instructionsList = recipe.instructions
-    .map((step, idx) => `
-              <li itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
-                <span class="step-num">${idx + 1}</span>
-                <span itemprop="text">${step}</span>
-              </li>`).join('');
+    .map(i => `<li itemprop="recipeIngredient">${i}</li>`).join('\n');
 
-  const dateFormatted = new Date(date).toLocaleDateString('en-US', { 
-    year: 'numeric', month: 'long', day: 'numeric' 
+  const instructionsList = recipe.instructions
+    .map((s, i) => `<li itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
+      <span class="step-num">${i+1}</span><span itemprop="text">${s}</span></li>`).join('\n');
+
+  const dateFormatted = new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric'
   });
 
   return `<!DOCTYPE html>
@@ -180,25 +376,32 @@ function buildRecipePage(recipe, imageUrl, slug, date) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${recipe.title} - Improv Oven</title>
-<meta name="description" content="${recipe.description}">
+<meta name="description" content="${recipe.description.replace(/"/g,'&quot;')}">
+<meta name="keywords" content="${recipe.targetKeyword}, improv oven, easy recipes, budget meals">
+<meta property="og:title" content="${recipe.title} - Improv Oven">
+<meta property="og:description" content="${recipe.description.replace(/"/g,'&quot;')}">
+<meta property="og:image" content="${imageUrl}">
+<meta property="og:type" content="article">
 <link rel="canonical" href="https://www.improvoven.com/recipes/${slug}/">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Recipe",
-  "name": "${recipe.title}",
-  "description": "${recipe.description}",
-  "image": "${imageUrl}",
-  "author": { "@type": "Organization", "name": "Improv Oven" },
+  "name": "${recipe.title.replace(/"/g,'\\"')}",
+  "description": "${recipe.description.replace(/"/g,'\\"')}",
+  "image": ["${imageUrl}"],
+  "author": {"@type":"Organization","name":"Improv Oven","url":"https://www.improvoven.com"},
   "datePublished": "${date}",
-  "prepTime": "PT${recipe.prepTime.replace(' mins','')}M",
-  "cookTime": "PT${recipe.cookTime.replace(' mins','')}M",
-  "totalTime": "PT${recipe.totalTime.replace(' mins','')}M",
+  "prepTime": "PT${recipe.prepTime.replace(/\D/g,'')}M",
+  "cookTime": "PT${recipe.cookTime.replace(/\D/g,'')}M",
+  "totalTime": "PT${recipe.totalTime.replace(/\D/g,'')}M",
   "recipeYield": "${recipe.servings} servings",
   "recipeCategory": "${recipe.category}",
   "recipeCuisine": "${recipe.cuisine}",
+  "keywords": "${recipe.targetKeyword}",
   "recipeIngredient": ${JSON.stringify(recipe.ingredients)},
-  "recipeInstructions": ${JSON.stringify(recipe.instructions.map((s,i) => ({ "@type": "HowToStep", "position": i+1, "text": s })))}
+  "recipeInstructions": ${JSON.stringify(recipe.instructions.map((s,i)=>({
+    "@type":"HowToStep","position":i+1,"text":s})))}
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -207,10 +410,10 @@ function buildRecipePage(recipe, imageUrl, slug, date) {
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--green:#2d6a4f;--green-light:#52b788;--cream:#faf7f2;--text:#1a1a1a;--muted:#666;--border:#e8e0d0}
 body{background:var(--cream);color:var(--text);font-family:'Lato',sans-serif;font-size:17px;line-height:1.7}
-a{color:var(--green);text-decoration:none}
-a:hover{color:var(--green-light)}
+a{color:var(--green);text-decoration:none}a:hover{color:var(--green-light)}
 nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
 .nav-logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--green)}
+.nav-logo span{font-style:italic;font-weight:400}
 .nav-links{display:flex;gap:2rem;list-style:none}
 .nav-links a{font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .nav-links a:hover{color:var(--green)}
@@ -218,22 +421,23 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 .recipe-hero img{width:100%;height:100%;object-fit:cover}
 .recipe-wrap{max-width:800px;margin:0 auto;padding:3rem 2rem}
 .recipe-meta-top{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem}
-.tag{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--green);color:#fff;padding:0.25rem 0.7rem;border-radius:2px}
-.recipe-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);font-weight:700;line-height:1.15;margin-bottom:1rem;color:var(--text)}
+.tag{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--green);color:#fff;padding:0.25rem 0.7rem}
+.tag.budget{background:#b5832a}
+.recipe-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);font-weight:700;line-height:1.15;margin-bottom:1rem}
 .recipe-date{font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem}
-.recipe-desc{font-size:1.05rem;color:#444;line-height:1.8;margin-bottom:2.5rem;border-left:3px solid var(--green-light);padding-left:1.2rem;font-style:italic}
+.recipe-desc{font-size:1.05rem;color:#444;line-height:1.85;margin-bottom:2.5rem;border-left:3px solid var(--green-light);padding-left:1.2rem;font-style:italic}
 .recipe-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:3rem}
 .stat{background:#fff;padding:1.2rem;text-align:center}
 .stat-label{font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem}
 .stat-val{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--green)}
-h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:1.2rem;padding-bottom:0.5rem;border-bottom:2px solid var(--green-light)}
+h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:1.2rem;padding-bottom:0.5rem;border-bottom:2px solid var(--green-light)}
 .ingredients-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 2rem;margin-bottom:3rem}
 .ingredients-list li{padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.95rem}
 .ingredients-list li::before{content:'◆';color:var(--green-light);font-size:0.5rem;margin-right:0.6rem;vertical-align:middle}
 .instructions-list{list-style:none;display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem}
 .instructions-list li{display:flex;gap:1.2rem;align-items:flex-start}
 .step-num{flex-shrink:0;width:32px;height:32px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;margin-top:0.2rem}
-.tip-box{background:#fff;border:1px solid var(--border);border-left:4px solid var(--green);padding:1.5rem;margin-bottom:3rem;border-radius:0 4px 4px 0}
+.tip-box{background:#fff;border:1px solid var(--border);border-left:4px solid var(--green);padding:1.5rem;margin-bottom:3rem}
 .tip-label{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:0.5rem}
 .back-link{display:inline-block;margin-bottom:2rem;font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;font-weight:700}
 .back-link::before{content:'← '}
@@ -243,23 +447,25 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-logo">Improv Oven</a>
+  <a href="/" class="nav-logo">Improv <span>Oven</span></a>
   <ul class="nav-links">
     <li><a href="/recipes/">Recipes</a></li>
     <li><a href="/about/">About</a></li>
   </ul>
 </nav>
 <div class="recipe-hero">
-  <img src="${imageUrl}" alt="${recipe.title}" loading="lazy">
+  <img src="${imageUrl}" alt="${recipe.title}" fetchpriority="high">
 </div>
 <div class="recipe-wrap">
   <a href="/recipes/" class="back-link">All Recipes</a>
   <div class="recipe-meta-top">
     <span class="tag">${recipe.category}</span>
     <span class="tag">${recipe.cuisine}</span>
+    <span class="tag">${recipe.difficulty||'Easy'}</span>
+    <span class="tag budget">${recipe.cost||'Budget'}</span>
   </div>
   <h1 class="recipe-title">${recipe.title}</h1>
-  <div class="recipe-date">Published ${dateFormatted} by Improv Oven</div>
+  <div class="recipe-date">Published ${dateFormatted} · Improv Oven</div>
   <p class="recipe-desc">${recipe.description}</p>
   <div class="recipe-stats">
     <div class="stat"><div class="stat-label">Prep</div><div class="stat-val">${recipe.prepTime}</div></div>
@@ -272,33 +478,26 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   <h2>Instructions</h2>
   <ol class="instructions-list">${instructionsList}</ol>
   <div class="tip-box">
-    <div class="tip-label">Improv Tip</div>
+    <div class="tip-label">💡 Improv Tip</div>
     <p>${recipe.tips}</p>
   </div>
 </div>
-<footer>
-  © ${new Date().getFullYear()} Improv Oven · Simple recipes, simple ingredients · <a href="/">Home</a>
-</footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a></footer>
 </body>
 </html>`;
 }
 
-async function updateIndex(recipes) {
-  // Read existing index or create new
+async function updateRecipeIndex(recipes) {
   const indexPath = path.join(process.cwd(), 'recipes', 'index.html');
-  
-  const recipeCards = recipes.slice(0, 50).map(r => `
+  fs.mkdirSync(path.dirname(indexPath), { recursive: true });
+
+  const cards = recipes.slice(0, 100).map(r => `
     <a href="/recipes/${r.slug}/" class="recipe-card">
-      <div class="card-img">
-        <img src="${r.image}" alt="${r.title}" loading="lazy">
-      </div>
+      <div class="card-img"><img src="${r.image}" alt="${r.title}" loading="lazy"></div>
       <div class="card-body">
-        <div class="card-tags">
-          <span class="ctag">${r.category}</span>
-          <span class="ctag">${r.cuisine}</span>
-        </div>
+        <div class="card-tags"><span class="ctag">${r.category}</span><span class="ctag">${r.cuisine}</span></div>
         <h3>${r.title}</h3>
-        <p>${r.description}</p>
+        <p>${r.description.slice(0,120)}...</p>
         <div class="card-meta">${r.totalTime} · Serves ${r.servings}</div>
       </div>
     </a>`).join('');
@@ -308,8 +507,9 @@ async function updateIndex(recipes) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All Recipes - Improv Oven</title>
-<meta name="description" content="Simple recipes using pantry staples. Budget-friendly, quick weeknight meals with Miami and Latin American influence.">
+<title>All Recipes - Improv Oven | Simple Budget-Friendly Meals</title>
+<meta name="description" content="Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.">
+<link rel="canonical" href="https://www.improvoven.com/recipes/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
@@ -319,22 +519,23 @@ body{background:var(--cream);color:var(--text);font-family:'Lato',sans-serif}
 a{color:var(--green);text-decoration:none}
 nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
 .nav-logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--green)}
+.nav-logo span{font-style:italic;font-weight:400}
 .nav-links{display:flex;gap:2rem;list-style:none}
 .nav-links a{font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .nav-links a:hover{color:var(--green)}
 .page-header{max-width:1100px;margin:0 auto;padding:3rem 2rem 1rem}
 .page-header h1{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;margin-bottom:0.5rem}
-.page-header p{color:var(--muted);font-size:1rem}
+.page-header p{color:var(--muted)}
 .recipes-grid{max-width:1100px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
 .recipe-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
 .recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
 .card-img{aspect-ratio:16/9;overflow:hidden}
 .card-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
-.recipe-card:hover .card-img img{transform:scale(1.03)}
-.card-body{padding:1.2rem;flex:1;display:flex;flex-direction:column}
-.card-tags{display:flex;gap:0.4rem;margin-bottom:0.7rem}
+.recipe-card:hover .card-img img{transform:scale(1.04)}
+.card-body{padding:1.2rem 1.4rem;flex:1;display:flex;flex-direction:column}
+.card-tags{display:flex;gap:0.4rem;margin-bottom:0.7rem;flex-wrap:wrap}
 .ctag{font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--green);color:#fff;padding:0.2rem 0.5rem}
-.card-body h3{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;color:var(--text);line-height:1.3}
+.card-body h3{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;margin-bottom:0.5rem;color:var(--text);line-height:1.3}
 .card-body p{font-size:0.88rem;color:var(--muted);line-height:1.6;flex:1;margin-bottom:0.8rem}
 .card-meta{font-size:0.75rem;color:var(--green);font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
 footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.82rem;color:var(--muted);margin-top:2rem}
@@ -343,7 +544,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-logo">Improv Oven</a>
+  <a href="/" class="nav-logo">Improv <span>Oven</span></a>
   <ul class="nav-links">
     <li><a href="/recipes/">Recipes</a></li>
     <li><a href="/about/">About</a></li>
@@ -351,61 +552,51 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </nav>
 <div class="page-header">
   <h1>All Recipes</h1>
-  <p>Simple dishes with simple ingredients — ${recipes.length} recipes and counting.</p>
+  <p>Simple dishes with simple ingredients — ${recipes.length} recipe${recipes.length!==1?'s':''} and counting.</p>
 </div>
-<div class="recipes-grid">${recipeCards}</div>
+<div class="recipes-grid">${cards||'<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
 <footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a></footer>
 </body>
 </html>`;
 
-  fs.mkdirSync(path.dirname(indexPath), { recursive: true });
   fs.writeFileSync(indexPath, html);
-  console.log('Recipe index updated');
+  console.log(`✓ Recipe index updated (${recipes.length} recipes)`);
 }
 
 async function main() {
   try {
-    // Generate recipe content
-    const recipe = await generateRecipe();
-    
-    // Generate image
+    const keyword = getNextKeyword();
+    console.log(`\n🎯 Target keyword: "${keyword}"\n`);
+
+    const recipe = await generateRecipe(keyword);
     const imageUrl = await generateImage(recipe.imagePrompt);
-    
-    // Create recipe page
+
     const date = new Date().toISOString().split('T')[0];
     const slug = slugify(recipe.title) + '-' + date;
     const recipeDir = path.join(process.cwd(), 'recipes', slug);
-    
     fs.mkdirSync(recipeDir, { recursive: true });
-    
+
     const html = buildRecipePage(recipe, imageUrl, slug, date);
     fs.writeFileSync(path.join(recipeDir, 'index.html'), html);
-    console.log(`Recipe page created: recipes/${slug}/index.html`);
 
-    // Update recipe index
     const recipesDataPath = path.join(process.cwd(), 'recipes-data.json');
     let recipes = [];
     if (fs.existsSync(recipesDataPath)) {
       recipes = JSON.parse(fs.readFileSync(recipesDataPath, 'utf8'));
     }
-    recipes.unshift({
-      slug,
-      title: recipe.title,
-      description: recipe.description,
-      image: imageUrl,
-      category: recipe.category,
-      cuisine: recipe.cuisine,
-      totalTime: recipe.totalTime,
-      servings: recipe.servings,
-      date
-    });
+    recipes.unshift({ slug, title: recipe.title, description: recipe.description,
+      image: imageUrl, category: recipe.category, cuisine: recipe.cuisine,
+      totalTime: recipe.totalTime, servings: recipe.servings, keyword, date });
     fs.writeFileSync(recipesDataPath, JSON.stringify(recipes, null, 2));
-    
-    await updateIndex(recipes);
-    
-    console.log('Done! Recipe published:', recipe.title);
+
+    await updateRecipeIndex(recipes);
+
+    console.log(`\n✅ Published: "${recipe.title}"`);
+    console.log(`   Keyword: "${keyword}"`);
+    console.log(`   URL: /recipes/${slug}/`);
+
   } catch (err) {
-    console.error('Error:', err);
+    console.error('\n❌ Error:', err.message);
     process.exit(1);
   }
 }
