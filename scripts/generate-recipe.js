@@ -305,7 +305,6 @@ Return ONLY valid JSON, no markdown, no backticks:
     }
   );
 
-  console.log('API Response:', JSON.stringify(response).slice(0, 500));
   const text = response.content[0].text.trim()
     .replace(/^```json?\n?/, '').replace(/\n?```$/, '');
   const recipe = JSON.parse(text);
@@ -313,7 +312,24 @@ Return ONLY valid JSON, no markdown, no backticks:
   return recipe;
 }
 
-async function generateImage(prompt) {
+function downloadBinary(url, destPath) {
+  return new Promise((resolve, reject) => {
+    const follow = (u) => {
+      const urlObj = new URL(u);
+      const req = https.request({ hostname: urlObj.hostname, path: urlObj.pathname + urlObj.search, method: 'GET' }, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) { return follow(res.headers.location); }
+        const chunks = [];
+        res.on('data', d => chunks.push(d));
+        res.on('end', () => { fs.writeFileSync(destPath, Buffer.concat(chunks)); resolve(destPath); });
+      });
+      req.on('error', reject);
+      req.end();
+    };
+    follow(url);
+  });
+}
+
+async function generateImage(prompt, slug) {
   console.log('Generating food photo...');
 
   const prediction = await httpsPost(
@@ -348,8 +364,16 @@ async function generateImage(prompt) {
   }
 
   if (!result?.output?.[0]) throw new Error('No image output');
-  console.log('✓ Image generated');
-  return result.output[0];
+
+  // Download and save image permanently in repo
+  const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
+  fs.mkdirSync(imgDir, { recursive: true });
+  const imgPath = path.join(imgDir, 'hero.webp');
+  await downloadBinary(result.output[0], imgPath);
+  console.log('✓ Image saved locally');
+
+  // Return local path for use in HTML
+  return '/recipes/' + slug + '/images/hero.webp';
 }
 
 function slugify(title) {
@@ -570,12 +594,13 @@ async function main() {
     console.log(`\n🎯 Target keyword: "${keyword}"\n`);
 
     const recipe = await generateRecipe(keyword);
-    const imageUrl = await generateImage(recipe.imagePrompt);
 
     const date = new Date().toISOString().split('T')[0];
     const slug = slugify(recipe.title) + '-' + date;
     const recipeDir = path.join(process.cwd(), 'recipes', slug);
     fs.mkdirSync(recipeDir, { recursive: true });
+
+    const imageUrl = await generateImage(recipe.imagePrompt, slug);
 
     const html = buildRecipePage(recipe, imageUrl, slug, date);
     fs.writeFileSync(path.join(recipeDir, 'index.html'), html);
