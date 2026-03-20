@@ -329,48 +329,11 @@ function downloadBinary(url, destPath) {
   });
 }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
 async function getImage(recipe, slug) {
   console.log('Generating food photo...');
 
   const prompt = recipe.imagePrompt || `Professional food photography of ${recipe.title}, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing`;
 
-  // Try Gemini first (free)
-  try {
-    const response = await httpsPost(
-      'generativelanguage.googleapis.com',
-      `/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`,
-      { 'Content-Type': 'application/json' },
-      {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
-      }
-    );
-
-    // Check for API errors in response body
-    if (response.error) {
-      console.log(`Gemini error (${response.error.code}), falling back to Replicate...`);
-    } else {
-      const parts = response?.candidates?.[0]?.content?.parts || [];
-      const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
-
-      if (imagePart) {
-        const ext = imagePart.inlineData.mimeType.includes('png') ? 'png' : 'jpg';
-        const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
-        fs.mkdirSync(imgDir, { recursive: true });
-        const imgPath = path.join(imgDir, `hero.${ext}`);
-        fs.writeFileSync(imgPath, Buffer.from(imagePart.inlineData.data, 'base64'));
-        console.log('✓ Image saved (Gemini)');
-        return `/recipes/${slug}/images/hero.${ext}`;
-      }
-      console.log('Gemini returned no image, falling back to Replicate...');
-    }
-  } catch (err) {
-    console.log(`Gemini failed, falling back to Replicate...`);
-  }
-
-  // Fallback: Replicate Flux Schnell
   const prediction = await httpsPost(
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
@@ -384,6 +347,7 @@ async function getImage(recipe, slug) {
   for (let i = 0; i < 30; i++) {
     await new Promise(r => setTimeout(r, 3000));
     result = await httpsGet(prediction.urls.get);
+    console.log(`Image: ${result.status}`);
     if (result.status === 'succeeded') break;
     if (result.status === 'failed') throw new Error('Replicate image failed');
   }
@@ -394,7 +358,7 @@ async function getImage(recipe, slug) {
   fs.mkdirSync(imgDir, { recursive: true });
   const imgPath = path.join(imgDir, 'hero.webp');
   await downloadBinary(result.output[0], imgPath);
-  console.log('✓ Image saved (Replicate fallback)');
+  console.log('✓ Image saved');
   return `/recipes/${slug}/images/hero.webp`;
 }
 
