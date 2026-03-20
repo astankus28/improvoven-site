@@ -332,37 +332,35 @@ function downloadBinary(url, destPath) {
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 async function getImage(recipe, slug) {
-  console.log('Generating food photo with Gemini Imagen...');
+  console.log('Generating food photo with Gemini...');
 
   const prompt = recipe.imagePrompt || `Professional food photography of ${recipe.title}, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing`;
 
   const response = await httpsPost(
     'generativelanguage.googleapis.com',
-    `/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_API_KEY}`,
+    `/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`,
     { 'Content-Type': 'application/json' },
     {
-      instances: [{ prompt }],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: '16:9',
-        safetyFilterLevel: 'block_few',
-        personGeneration: 'dont_allow'
-      }
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
     }
   );
 
-  if (!response.predictions || !response.predictions[0]) {
-    throw new Error('No image from Gemini: ' + JSON.stringify(response));
+  const parts = response?.candidates?.[0]?.content?.parts || [];
+  const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
+
+  if (!imagePart) {
+    throw new Error('No image from Gemini: ' + JSON.stringify(response).slice(0, 300));
   }
 
-  const base64Image = response.predictions[0].bytesBase64Encoded;
+  const ext = imagePart.inlineData.mimeType.includes('png') ? 'png' : 'jpg';
   const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
   fs.mkdirSync(imgDir, { recursive: true });
-  const imgPath = path.join(imgDir, 'hero.jpg');
-  fs.writeFileSync(imgPath, Buffer.from(base64Image, 'base64'));
+  const imgPath = path.join(imgDir, `hero.${ext}`);
+  fs.writeFileSync(imgPath, Buffer.from(imagePart.inlineData.data, 'base64'));
   console.log('✓ Image saved locally');
 
-  return '/recipes/' + slug + '/images/hero.jpg';
+  return `/recipes/${slug}/images/hero.${ext}`;
 }
 
 function slugify(title) {
