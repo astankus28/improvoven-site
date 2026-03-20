@@ -348,23 +348,26 @@ async function getImage(recipe, slug) {
       }
     );
 
-    const parts = response?.candidates?.[0]?.content?.parts || [];
-    const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
+    // Check for API errors in response body
+    if (response.error) {
+      console.log(`Gemini error (${response.error.code}), falling back to Replicate...`);
+    } else {
+      const parts = response?.candidates?.[0]?.content?.parts || [];
+      const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
 
-    if (imagePart) {
-      const ext = imagePart.inlineData.mimeType.includes('png') ? 'png' : 'jpg';
-      const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
-      fs.mkdirSync(imgDir, { recursive: true });
-      const imgPath = path.join(imgDir, `hero.${ext}`);
-      fs.writeFileSync(imgPath, Buffer.from(imagePart.inlineData.data, 'base64'));
-      console.log('✓ Image saved (Gemini)');
-      return `/recipes/${slug}/images/hero.${ext}`;
+      if (imagePart) {
+        const ext = imagePart.inlineData.mimeType.includes('png') ? 'png' : 'jpg';
+        const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
+        fs.mkdirSync(imgDir, { recursive: true });
+        const imgPath = path.join(imgDir, `hero.${ext}`);
+        fs.writeFileSync(imgPath, Buffer.from(imagePart.inlineData.data, 'base64'));
+        console.log('✓ Image saved (Gemini)');
+        return `/recipes/${slug}/images/hero.${ext}`;
+      }
+      console.log('Gemini returned no image, falling back to Replicate...');
     }
-
-    // If no image in response, fall through to Replicate
-    console.log('Gemini returned no image, falling back to Replicate...');
   } catch (err) {
-    console.log(`Gemini failed (${err.message.slice(0, 60)}), falling back to Replicate...`);
+    console.log(`Gemini failed, falling back to Replicate...`);
   }
 
   // Fallback: Replicate Flux Schnell
