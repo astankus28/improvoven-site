@@ -537,6 +537,11 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 .page-header{max-width:1100px;margin:0 auto;padding:3rem 2rem 1rem}
 .page-header h1{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;margin-bottom:0.5rem}
 .page-header p{color:var(--muted)}
+.search-wrap{max-width:1100px;margin:0 auto;padding:0 2rem 1rem}
+.search-box{width:100%;padding:0.9rem 1.2rem;font-size:1rem;font-family:'Lato',sans-serif;border:2px solid var(--border);background:#fff;color:var(--text);outline:none;transition:border-color .2s}
+.search-box:focus{border-color:var(--green)}
+.search-box::placeholder{color:var(--muted)}
+.no-results{grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem;font-size:1.1rem}
 .recipes-grid{max-width:1100px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
 .recipe-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
 .recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
@@ -565,8 +570,34 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   <h1>All Recipes</h1>
   <p>Simple dishes with simple ingredients — ${recipes.length} recipe${recipes.length!==1?'s':''} and counting.</p>
 </div>
+<div class="search-wrap">
+  <input class="search-box" type="search" id="recipe-search" placeholder="Search recipes... try 'chicken', 'Latin', 'quick'" autocomplete="off">
+</div>
 <div class="recipes-grid">${cards||'<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
 <footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<script>
+const search = document.getElementById('recipe-search');
+const grid = document.querySelector('.recipes-grid');
+const cards = Array.from(grid.querySelectorAll('.recipe-card'));
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase().trim();
+  let visible = 0;
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const show = !q || text.includes(q);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const existing = grid.querySelector('.no-results');
+  if (existing) existing.remove();
+  if (visible === 0) {
+    const msg = document.createElement('p');
+    msg.className = 'no-results';
+    msg.textContent = 'No recipes found for "' + search.value + '" — try another search.';
+    grid.appendChild(msg);
+  }
+});
+</script>
 </body>
 </html>`;
 
