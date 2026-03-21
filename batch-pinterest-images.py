@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 # batch-pinterest-images.py
 # Run from root of improvoven-site: python3 batch-pinterest-images.py
+#
+# To fix a badly cropped recipe, add its slug to CROP_OVERRIDES below
+# with a value from 0.0 (far left) to 1.0 (far right). 0.5 = center (default)
+# Example: 'apple-walnut-salad-with-creamy-lemon-dressing': 0.3
+
+CROP_OVERRIDES = {
+    # 'slug-here': 0.3,   # shift left
+    # 'slug-here': 0.7,   # shift right
+}
 
 import os, json
 from PIL import Image, ImageDraw, ImageFont
@@ -18,35 +27,7 @@ def get_font(size, bold=False):
             except: continue
     return ImageFont.load_default()
 
-def best_crop(img, target_w, target_h):
-    """Find the crop position where the most 'interesting' content is centered."""
-    fw, fh = img.size
-    best_left = (fw - target_w) // 2
-    best_score = -1
-    
-    # Sample 12 positions across the image
-    steps = 12
-    for i in range(steps + 1):
-        left = int((fw - target_w) * i / steps)
-        left = max(0, min(left, fw - target_w))
-        region = img.crop((left, 0, left + target_w, target_h))
-        
-        # Score: look at center horizontal strip for "content"
-        # Content = pixels that aren't too bright (background) or too dark
-        center_region = region.crop((target_w//4, target_h//4, 3*target_w//4, 3*target_h//4))
-        pixels = list(center_region.getdata())
-        
-        # Count pixels in "food range" - not white background, not black
-        food_pixels = sum(1 for p in pixels if 40 < sum(p)/3 < 220 and max(p)-min(p) > 20)
-        score = food_pixels / len(pixels)
-        
-        if score > best_score:
-            best_score = score
-            best_left = left
-    
-    return img.crop((best_left, 0, best_left + target_w, target_h))
-
-def make_pinterest_image(hero_path, title, output_path):
+def make_pinterest_image(hero_path, title, output_path, crop_pos=0.5):
     W, H = 1000, 1500
     food_h = int(H * 0.58)
     text_h = H - food_h
@@ -55,7 +36,12 @@ def make_pinterest_image(hero_path, title, output_path):
     fw, fh = food.size
     scale = max(W / fw, food_h / fh)
     food = food.resize((int(fw*scale), int(fh*scale)), Image.LANCZOS)
-    food = best_crop(food, W, food_h)
+    nfw, nfh = food.size
+
+    # Simple positional crop — 0.0=left, 0.5=center, 1.0=right
+    max_left = max(0, nfw - W)
+    left = int(max_left * crop_pos)
+    food = food.crop((left, 0, left + W, food_h))
 
     canvas = Image.new('RGB', (W, H), (35, 75, 50))
     canvas.paste(food, (0, 0))
@@ -120,7 +106,8 @@ for r in recipes:
     out = f'recipes/{slug}/images/pinterest.jpg'
     if not hero: print(f'⚠ No image: {slug}'); failed += 1; continue
     try:
-        make_pinterest_image(hero, title, out)
+        crop_pos = CROP_OVERRIDES.get(slug, 0.5)
+        make_pinterest_image(hero, title, out, crop_pos)
         print(f'✓ {title[:65]}'); done += 1
     except Exception as e:
         print(f'❌ {slug}: {e}'); failed += 1
