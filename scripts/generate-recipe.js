@@ -791,14 +791,15 @@ async function main() {
 
     const imageUrl = await getImage(recipe, slug);
 
-    const html = buildRecipePage(recipe, imageUrl, slug, date, recipes);
-    fs.writeFileSync(path.join(recipeDir, 'index.html'), html);
-
     const recipesDataPath = path.join(process.cwd(), 'recipes-data.json');
     let recipes = [];
     if (fs.existsSync(recipesDataPath)) {
       recipes = JSON.parse(fs.readFileSync(recipesDataPath, 'utf8'));
     }
+
+    const html = buildRecipePage(recipe, imageUrl, slug, date, recipes);
+    fs.writeFileSync(path.join(recipeDir, 'index.html'), html);
+
     recipes.unshift({ slug, title: recipe.title, description: recipe.description,
       image: imageUrl, category: recipe.category, cuisine: recipe.cuisine,
       totalTime: recipe.totalTime, servings: recipe.servings, keyword, date });
