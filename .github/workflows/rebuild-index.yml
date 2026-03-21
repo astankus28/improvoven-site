@@ -35,4 +35,5 @@ jobs:
           git config --local user.name "Improv Oven Bot"
           git add recipes/index.html sitemap.xml
           git diff --staged --quiet || git commit -m "🔄 Rebuild index"
+          git pull --rebase origin main
           git push
