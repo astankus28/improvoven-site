@@ -96,7 +96,7 @@ for r in recipes:
     slug, title = r['slug'], r['title']
     hero = next((p for p in [f'recipes/{slug}/images/hero.webp', f'recipes/{slug}/images/hero.jpg'] if os.path.exists(p)), None)
     out = f'recipes/{slug}/images/pinterest.jpg'
-    if os.path.exists(out): skipped += 1; continue
+    # always overwrite
     if not hero: print(f'⚠ No image: {slug}'); failed += 1; continue
     try:
         make_pinterest_image(hero, title, out)
