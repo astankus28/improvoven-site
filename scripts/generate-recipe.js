@@ -493,7 +493,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
     <p>${recipe.tips}</p>
   </div>
 </div>
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 }
@@ -566,7 +566,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   <p>Simple dishes with simple ingredients — ${recipes.length} recipe${recipes.length!==1?'s':''} and counting.</p>
 </div>
 <div class="recipes-grid">${cards||'<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 
