@@ -508,7 +508,7 @@ async function updateRecipeIndex(recipes) {
       <div class="card-body">
         <div class="card-tags"><span class="ctag">${r.category}</span><span class="ctag">${r.cuisine}</span></div>
         <h3>${r.title}</h3>
-        <p>${r.description.slice(0,120)}...</p>
+        <p>${r.description.length > 120 ? r.description.slice(0, r.description.lastIndexOf(" ", 120)) + "..." : r.description}</p>
         <div class="card-meta">${r.totalTime} · Serves ${r.servings}</div>
       </div>
     </a>`).join('');
