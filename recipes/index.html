@@ -27,6 +27,10 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 .search-box:focus{border-color:var(--green)}
 .search-box::placeholder{color:var(--muted)}
 .no-results{grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem;font-size:1.1rem}
+.filter-wrap{max-width:1100px;margin:0 auto;padding:0 2rem 1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap}
+.filter-btn{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;font-family:'Lato',sans-serif;padding:0.4rem 1rem;border:2px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:all .15s}
+.filter-btn:hover{border-color:var(--green);color:var(--green)}
+.filter-btn.active{background:var(--green);border-color:var(--green);color:#fff}
 .recipes-grid{max-width:1100px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
 .recipe-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
 .recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
@@ -58,6 +62,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 <div class="search-wrap">
   <input class="search-box" type="search" id="recipe-search" placeholder="Search recipes... try 'chicken', 'Latin', 'quick'" autocomplete="off">
 </div>
+<div class="filter-wrap" id="filter-wrap"></div>
 <div class="recipes-grid">
     <a href="/recipes/easy-dinner-with-canned-tomatoes-one-pan-sofrito-chicken-2026-03-21/" class="recipe-card">
       <div class="card-img"><img src="/recipes/easy-dinner-with-canned-tomatoes-one-pan-sofrito-chicken-2026-03-21/images/hero.webp" alt="Easy Dinner with Canned Tomatoes: One-Pan Sofrito Chicken" loading="lazy"></div>
@@ -180,12 +185,37 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 <script>
 const search = document.getElementById('recipe-search');
 const grid = document.querySelector('.recipes-grid');
+const filterWrap = document.getElementById('filter-wrap');
 const cards = Array.from(grid.querySelectorAll('.recipe-card'));
-search.addEventListener('input', () => {
+
+// Build category filters from actual card data
+const categories = ['All', ...new Set(cards.flatMap(c => 
+  Array.from(c.querySelectorAll('.ctag')).map(t => t.textContent.trim())
+))];
+
+let activeFilter = 'All';
+
+categories.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn' + (cat === 'All' ? ' active' : '');
+  btn.textContent = cat;
+  btn.addEventListener('click', () => {
+    activeFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterCards();
+  });
+  filterWrap.appendChild(btn);
+});
+
+function filterCards() {
   const q = search.value.toLowerCase().trim();
   let visible = 0;
   cards.forEach(card => {
-    const show = !q || card.textContent.toLowerCase().includes(q);
+    const matchesSearch = !q || card.textContent.toLowerCase().includes(q);
+    const matchesFilter = activeFilter === 'All' || 
+      Array.from(card.querySelectorAll('.ctag')).some(t => t.textContent.trim() === activeFilter);
+    const show = matchesSearch && matchesFilter;
     card.style.display = show ? '' : 'none';
     if (show) visible++;
   });
@@ -194,10 +224,14 @@ search.addEventListener('input', () => {
   if (visible === 0) {
     const msg = document.createElement('p');
     msg.className = 'no-results';
-    msg.textContent = 'No recipes found for "' + search.value + '" — try another search.';
+    msg.textContent = activeFilter !== 'All' 
+      ? 'No ' + activeFilter + ' recipes yet — check back soon!'
+      : 'No recipes found for "' + search.value + '" — try another search.';
     grid.appendChild(msg);
   }
-});
+}
+
+search.addEventListener('input', filterCards);
 </script>
 </body>
 </html>
