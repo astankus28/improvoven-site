@@ -2,8 +2,9 @@ name: Daily Recipe Generator
 
 on:
   schedule:
-    # Runs at 8:00 AM EST every day (13:00 UTC)
-    - cron: '0 13 * * *'
+    - cron: '0 13 * * *'  # 8:00 AM EST
+    - cron: '0 17 * * *'  # 12:00 PM EST
+    - cron: '0 23 * * *'  # 6:00 PM EST
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
@@ -28,6 +29,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: node scripts/generate-recipe.js
 
       - name: Commit and push new recipe
