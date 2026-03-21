@@ -475,6 +475,8 @@ h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-
 .tip-label{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:0.5rem}
 .back-link{display:inline-block;margin-bottom:2rem;font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;font-weight:700}
 .back-link::before{content:'← '}
+.jump-btn{display:inline-block;margin:0 0 2rem;padding:0.6rem 1.4rem;background:var(--green);color:#fff;font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;transition:background .2s}
+.jump-btn:hover{background:var(--green-light);color:#fff}
 .related{max-width:800px;margin:0 auto;padding:0 2rem 3rem}
 .related h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:1.5rem;padding-bottom:0.5rem;border-bottom:2px solid var(--green-light)}
 .related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
@@ -502,6 +504,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </div>
 <div class="recipe-wrap">
   <a href="/recipes/" class="back-link">All Recipes</a>
+  <a href="#ingredients" class="jump-btn">Jump to Recipe</a>
   <div class="recipe-meta-top">
     <span class="tag">${recipe.category}</span>
     <span class="tag">${recipe.cuisine}</span>
@@ -517,7 +520,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
     <div class="stat"><div class="stat-label">Total</div><div class="stat-val">${recipe.totalTime}</div></div>
     <div class="stat"><div class="stat-label">Serves</div><div class="stat-val">${recipe.servings}</div></div>
   </div>
-  <h2>Ingredients</h2>
+  <h2 id="ingredients">Ingredients</h2>
   <ul class="ingredients-list">${ingredientsList}</ul>
   <h2>Instructions</h2>
   <ol class="instructions-list">${instructionsList}</ol>
