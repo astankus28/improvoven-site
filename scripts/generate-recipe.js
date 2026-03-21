@@ -369,7 +369,7 @@ function slugify(title) {
     .slice(0, 80);
 }
 
-function buildRecipePage(recipe, imageUrl, slug, date) {
+function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   const ingredientsList = recipe.ingredients
     .map(i => `<li itemprop="recipeIngredient">${i}</li>`).join('\n');
 
@@ -380,6 +380,25 @@ function buildRecipePage(recipe, imageUrl, slug, date) {
   const dateFormatted = new Date(date).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric'
   });
+
+  // Build related recipes
+  const related = allRecipes
+    .filter(r => r.slug !== slug && (r.category === recipe.category || r.cuisine === recipe.cuisine))
+    .slice(0, 3);
+
+  const relatedHtml = related.length >= 2 ? `
+<div class="related">
+  <h2>You Might Also Like</h2>
+  <div class="related-grid">
+    ${related.map(r => `<a href="/recipes/${r.slug}/" class="related-card">
+      <img src="${r.image}" alt="${r.title}" loading="lazy">
+      <div class="related-card-body">
+        <h3>${r.title}</h3>
+        <p>${r.totalTime} · Serves ${r.servings}</p>
+      </div>
+    </a>`).join('')}
+  </div>
+</div>` : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -456,6 +475,16 @@ h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-
 .tip-label{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:0.5rem}
 .back-link{display:inline-block;margin-bottom:2rem;font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;font-weight:700}
 .back-link::before{content:'← '}
+.related{max-width:800px;margin:0 auto;padding:0 2rem 3rem}
+.related h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:1.5rem;padding-bottom:0.5rem;border-bottom:2px solid var(--green-light)}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.related-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+.related-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.related-card-body{padding:0.9rem 1rem;flex:1}
+.related-card-body h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;line-height:1.3;margin-bottom:0.4rem;color:var(--text)}
+.related-card-body p{font-size:0.8rem;color:var(--muted);line-height:1.5}
+@media(max-width:600px){.related-grid{grid-template-columns:1fr}}
 footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.82rem;color:var(--muted);margin-top:4rem}
 @media(max-width:600px){.recipe-stats{grid-template-columns:repeat(2,1fr)}.ingredients-list{grid-template-columns:1fr}.nav-links{display:none}}
 </style>
@@ -497,6 +526,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
     <p>${recipe.tips}</p>
   </div>
 </div>
+${relatedHtml}
 <footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 </body>
 </html>`;
@@ -582,6 +612,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   <input class="search-box" type="search" id="recipe-search" placeholder="Search recipes... try 'chicken', 'Latin', 'quick'" autocomplete="off">
 </div>
 <div class="recipes-grid">${cards||'<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
+${relatedHtml}
 <footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 <script>
 const search = document.getElementById('recipe-search');
@@ -643,7 +674,7 @@ async function main() {
 
     const imageUrl = await getImage(recipe, slug);
 
-    const html = buildRecipePage(recipe, imageUrl, slug, date);
+    const html = buildRecipePage(recipe, imageUrl, slug, date, recipes);
     fs.writeFileSync(path.join(recipeDir, 'index.html'), html);
 
     const recipesDataPath = path.join(process.cwd(), 'recipes-data.json');
