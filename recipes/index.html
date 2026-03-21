@@ -47,8 +47,8 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 <nav>
   <a href="/" class="nav-logo">Improv <span>Oven</span></a>
   <ul class="nav-links">
-    <li><a href="/recipes/">Recipes</a></li>
-    <li><a href="/about/">About</a></li>
+    <li><a href="/recipes/index.html">Recipes</a></li>
+    <li><a href="/about/index.html">About</a></li>
   </ul>
 </nav>
 <div class="page-header">
@@ -176,8 +176,7 @@ search.addEventListener('input', () => {
   const q = search.value.toLowerCase().trim();
   let visible = 0;
   cards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    const show = !q || text.includes(q);
+    const show = !q || card.textContent.toLowerCase().includes(q);
     card.style.display = show ? '' : 'none';
     if (show) visible++;
   });
