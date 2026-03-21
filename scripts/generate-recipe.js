@@ -762,6 +762,85 @@ search.addEventListener('input', () => {
 }
 
 
+
+async function makePinterestImage(heroPath, title, outputPath) {
+  const { execSync } = require('child_process');
+  const script = `
+from PIL import Image, ImageDraw, ImageFont
+import sys
+
+hero_path = sys.argv[1]
+title = sys.argv[2]
+output_path = sys.argv[3]
+
+img = Image.open(hero_path).convert('RGB')
+w, h = img.size
+target_w = min(w, int(h * 2/3))
+target_h = int(target_w * 3/2)
+if w > target_w:
+    left = (w - target_w) // 2
+    img = img.crop((left, 0, left + target_w, min(h, target_h)))
+img = img.resize((1000, 1500), Image.LANCZOS)
+
+overlay = Image.new('RGBA', (1000, 1500), (0, 0, 0, 0))
+ov_draw = ImageDraw.Draw(overlay)
+for i in range(600):
+    alpha = int((i / 600) * 210)
+    ov_draw.rectangle([(0, 1500 - i), (1000, 1500 - i + 1)], fill=(15, 30, 20, alpha))
+
+img = img.convert('RGBA')
+img = Image.alpha_composite(img, overlay)
+img = img.convert('RGB')
+draw = ImageDraw.Draw(img)
+
+try:
+    font_title = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf', 72)
+    font_brand = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 32)
+except:
+    font_title = font_brand = ImageFont.load_default()
+
+words = title.split()
+lines = []
+current = []
+for word in words:
+    test_line = ' '.join(current + [word])
+    bbox = draw.textbbox((0, 0), test_line, font=font_title)
+    if bbox[2] - bbox[0] > 880 and current:
+        lines.append(' '.join(current))
+        current = [word]
+    else:
+        current.append(word)
+if current:
+    lines.append(' '.join(current))
+
+line_height = 85
+total_height = len(lines) * line_height
+y_start = 1500 - total_height - 120
+for line in lines:
+    bbox = draw.textbbox((0, 0), line, font=font_title)
+    text_w = bbox[2] - bbox[0]
+    x = (1000 - text_w) // 2
+    draw.text((x+2, y_start+2), line, fill=(0, 0, 0, 180), font=font_title)
+    draw.text((x, y_start), line, fill=(250, 247, 242), font=font_title)
+    y_start += line_height
+
+draw.rectangle([(60, 1500-55), (940, 1500-50)], fill=(82, 183, 136))
+brand = 'ImprovOven.com'
+bbox = draw.textbbox((0, 0), brand, font=font_brand)
+bw = bbox[2] - bbox[0]
+draw.text(((1000 - bw)//2, 1500-42), brand, fill=(82, 183, 136), font=font_brand)
+
+img.save(output_path, 'JPEG', quality=92)
+`;
+  
+  try {
+    execSync(`python3 -c "${script.replace(/"/g, '\"')}" "${heroPath}" "${title.replace(/"/g, '\"')}" "${outputPath}"`, { stdio: 'pipe' });
+    console.log('✓ Pinterest image created');
+  } catch(e) {
+    console.log('⚠ Pinterest image generation skipped:', e.message.slice(0, 100));
+  }
+}
+
 async function updateSitemap(recipes) {
   const baseUrl = 'https://www.improvoven.com';
   const today = new Date().toISOString().split('T')[0];
@@ -795,6 +874,13 @@ async function main() {
     let recipes = [];
     if (fs.existsSync(recipesDataPath)) {
       recipes = JSON.parse(fs.readFileSync(recipesDataPath, 'utf8'));
+    }
+
+    // Generate Pinterest vertical image
+    const heroPath = path.join(process.cwd(), imageUrl.replace(/^\//, ''));
+    const pinterestPath = path.join(recipeDir, 'images', 'pinterest.jpg');
+    if (fs.existsSync(heroPath)) {
+      await makePinterestImage(heroPath, recipe.title, pinterestPath);
     }
 
     const html = buildRecipePage(recipe, imageUrl, slug, date, recipes);
