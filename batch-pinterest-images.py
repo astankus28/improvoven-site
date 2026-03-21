@@ -6,23 +6,45 @@ import os, json
 from PIL import Image, ImageDraw, ImageFont
 
 def get_font(size, bold=False):
-    # Try Mac fonts first, then Linux, then default
-    mac_serif_bold = '/System/Library/Fonts/Supplemental/Georgia Bold.ttf'
-    mac_serif = '/System/Library/Fonts/Supplemental/Georgia.ttf'
-    mac_sans_bold = '/System/Library/Fonts/Helvetica.ttc'
-    mac_sans = '/System/Library/Fonts/Helvetica.ttc'
-    linux_serif_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
-    linux_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-    linux_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-    
-    candidates = [mac_serif_bold, mac_serif, linux_serif_bold] if bold else [mac_serif, linux_serif_bold]
+    candidates = [
+        '/System/Library/Fonts/Supplemental/Georgia Bold.ttf' if bold else '/System/Library/Fonts/Supplemental/Georgia.ttf',
+        '/System/Library/Fonts/Helvetica.ttc',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf' if bold else '/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf' if bold else '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+    ]
     for path in candidates:
         if os.path.exists(path):
-            try:
-                return ImageFont.truetype(path, size)
-            except:
-                continue
+            try: return ImageFont.truetype(path, size)
+            except: continue
     return ImageFont.load_default()
+
+def best_crop(img, target_w, target_h):
+    """Find the crop position where the most 'interesting' content is centered."""
+    fw, fh = img.size
+    best_left = (fw - target_w) // 2
+    best_score = -1
+    
+    # Sample 12 positions across the image
+    steps = 12
+    for i in range(steps + 1):
+        left = int((fw - target_w) * i / steps)
+        left = max(0, min(left, fw - target_w))
+        region = img.crop((left, 0, left + target_w, target_h))
+        
+        # Score: look at center horizontal strip for "content"
+        # Content = pixels that aren't too bright (background) or too dark
+        center_region = region.crop((target_w//4, target_h//4, 3*target_w//4, 3*target_h//4))
+        pixels = list(center_region.getdata())
+        
+        # Count pixels in "food range" - not white background, not black
+        food_pixels = sum(1 for p in pixels if 40 < sum(p)/3 < 220 and max(p)-min(p) > 20)
+        score = food_pixels / len(pixels)
+        
+        if score > best_score:
+            best_score = score
+            best_left = left
+    
+    return img.crop((best_left, 0, best_left + target_w, target_h))
 
 def make_pinterest_image(hero_path, title, output_path):
     W, H = 1000, 1500
@@ -33,20 +55,7 @@ def make_pinterest_image(hero_path, title, output_path):
     fw, fh = food.size
     scale = max(W / fw, food_h / fh)
     food = food.resize((int(fw*scale), int(fh*scale)), Image.LANCZOS)
-    nfw, nfh = food.size
-    
-    positions = [0, (nfw-W)//2, max(0, nfw-W)]
-    best_left = (nfw-W)//2
-    best_score = -999
-    for left in [max(0,p) for p in positions]:
-        region = food.crop((left, 0, min(nfw, left+W), food_h))
-        pixels = list(region.getdata())
-        brightness = sum(sum(p) for p in pixels) / (len(pixels)*3)
-        score = -abs(brightness - 125)
-        if score > best_score:
-            best_score = score
-            best_left = left
-    food = food.crop((best_left, 0, best_left+W, food_h))
+    food = best_crop(food, W, food_h)
 
     canvas = Image.new('RGB', (W, H), (35, 75, 50))
     canvas.paste(food, (0, 0))
@@ -64,8 +73,7 @@ def make_pinterest_image(hero_path, title, output_path):
             bbox = draw.textbbox((0,0), test, font=font)
             if bbox[2]-bbox[0] > max_w and cur:
                 lines.append(' '.join(cur)); cur = [word]
-            else:
-                cur.append(word)
+            else: cur.append(word)
         if cur: lines.append(' '.join(cur))
         return lines
 
@@ -78,12 +86,8 @@ def make_pinterest_image(hero_path, title, output_path):
         font = get_font(sz, bold=True)
         lines = wrap(title, font)
         lh = int(sz * 1.25)
-        total = len(lines) * lh
-        if total <= available_h and len(lines) <= 5:
-            best_font = font
-            best_lines = lines
-            best_lh = lh
-            break
+        if len(lines) * lh <= available_h and len(lines) <= 5:
+            best_font = font; best_lines = lines; best_lh = lh; break
 
     total_text = len(best_lines) * best_lh
     y = food_h + 20 + (available_h - total_text) // 2
