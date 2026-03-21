@@ -477,6 +477,10 @@ h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-
 .back-link::before{content:'← '}
 .jump-btn{display:inline-block;margin:0 0 2rem;padding:0.6rem 1.4rem;background:var(--green);color:#fff;font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;transition:background .2s}
 .jump-btn:hover{background:var(--green-light);color:#fff}
+.recipe-actions{display:flex;gap:0.8rem;margin-bottom:2rem;flex-wrap:wrap}
+.print-btn{display:inline-block;padding:0.6rem 1.4rem;background:#fff;color:var(--green);border:2px solid var(--green);font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Lato',sans-serif}
+.print-btn:hover{background:var(--green);color:#fff}
+@media print{nav,footer,.back-link,.jump-btn,.recipe-actions,.related,.recipe-hero{display:none!important}.recipe-wrap{padding:0}.recipe-stats{border:1px solid #ccc}}
 .related{max-width:800px;margin:0 auto;padding:0 2rem 3rem}
 .related h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:1.5rem;padding-bottom:0.5rem;border-bottom:2px solid var(--green-light)}
 .related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
@@ -504,7 +508,10 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </div>
 <div class="recipe-wrap">
   <a href="/recipes/" class="back-link">All Recipes</a>
-  <a href="#ingredients" class="jump-btn">Jump to Recipe</a>
+  <div class="recipe-actions">
+    <a href="#ingredients" class="jump-btn">Jump to Recipe</a>
+    <button class="print-btn" onclick="window.print()">Print Recipe</button>
+  </div>
   <div class="recipe-meta-top">
     <span class="tag">${recipe.category}</span>
     <span class="tag">${recipe.cuisine}</span>
