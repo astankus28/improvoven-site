@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>All Recipes - Improv Oven | Simple Budget-Friendly Meals</title>
-<meta name="description" content="Browse 11+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.">
+<meta name="description" content="Browse 12+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.">
 <link rel="canonical" href="https://www.improvoven.com/recipes/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
@@ -22,6 +22,11 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 .page-header{max-width:1100px;margin:0 auto;padding:3rem 2rem 1rem}
 .page-header h1{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;margin-bottom:0.5rem}
 .page-header p{color:var(--muted)}
+.search-wrap{max-width:1100px;margin:0 auto;padding:0 2rem 1rem}
+.search-box{width:100%;padding:0.9rem 1.2rem;font-size:1rem;font-family:'Lato',sans-serif;border:2px solid var(--border);background:#fff;color:var(--text);outline:none;transition:border-color .2s}
+.search-box:focus{border-color:var(--green)}
+.search-box::placeholder{color:var(--muted)}
+.no-results{grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem;font-size:1.1rem}
 .recipes-grid{max-width:1100px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
 .recipe-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
 .recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
@@ -48,9 +53,21 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </nav>
 <div class="page-header">
   <h1>All Recipes</h1>
-  <p>Simple dishes with simple ingredients — 11 recipes and counting.</p>
+  <p>Simple dishes with simple ingredients — 12 recipes and counting.</p>
+</div>
+<div class="search-wrap">
+  <input class="search-box" type="search" id="recipe-search" placeholder="Search recipes... try 'chicken', 'Latin', 'quick'" autocomplete="off">
 </div>
 <div class="recipes-grid">
+    <a href="/recipes/easy-homemade-cornbread-recipe-fluffy-golden-done-in-30-minutes-2026-03-21/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/easy-homemade-cornbread-recipe-fluffy-golden-done-in-30-minutes-2026-03-21/images/hero.webp" alt="Easy Homemade Cornbread Recipe (Fluffy, Golden, Done in 30 Minutes)" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Side Dish</span><span class="ctag">American</span></div>
+        <h3>Easy Homemade Cornbread Recipe (Fluffy, Golden, Done in 30 Minutes)</h3>
+        <p>This easy homemade cornbread recipe is the one you'll make on repeat — simple pantry ingredients, one bowl, and you're...</p>
+        <div class="card-meta">30 mins · Serves 8</div>
+      </div>
+    </a>
     <a href="/recipes/the-easiest-pasta-salad-recipe-you-ll-make-all-summer-2026-03-21/" class="recipe-card">
       <div class="card-img"><img src="/recipes/the-easiest-pasta-salad-recipe-you-ll-make-all-summer-2026-03-21/images/hero.webp" alt="The Easiest Pasta Salad Recipe You'll Make All Summer" loading="lazy"></div>
       <div class="card-body">
@@ -65,7 +82,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
       <div class="card-body">
         <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">Cuban-American</span></div>
         <h3>Black Bean and Rice Bowls: Flavor-Packed Meals Under $5 Per Serving</h3>
-        <p>If you need meals under $5 per serving that actually taste like you put in real effort, this Cuban-inspired black bean a...</p>
+        <p>If you need meals under $5 per serving that actually taste like you put in real effort, this Cuban-inspired black bean...</p>
         <div class="card-meta">35 mins · Serves 4</div>
       </div>
     </a>
@@ -74,7 +91,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
       <div class="card-body">
         <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">Latin American</span></div>
         <h3>Cheap Tuna Recipes Made Fancy: Sofrito Tuna Rice Bowls</h3>
-        <p>When you need cheap tuna recipes that actually slap, this sofrito tuna rice bowl is your answer — we're talking pantry s...</p>
+        <p>When you need cheap tuna recipes that actually slap, this sofrito tuna rice bowl is your answer — we're talking pantry...</p>
         <div class="card-meta">30 mins · Serves 4</div>
       </div>
     </a>
@@ -101,7 +118,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
       <div class="card-body">
         <div class="card-tags"><span class="ctag">Appetizer</span><span class="ctag">American</span></div>
         <h3>Easy Homemade Chicken Wings Recipe</h3>
-        <p>This easy homemade chicken wings recipe gives you perfectly crispy oven-baked wings without the mess of deep frying. Jus...</p>
+        <p>This easy homemade chicken wings recipe gives you perfectly crispy oven-baked wings without the mess of deep frying....</p>
         <div class="card-meta">1 hour · Serves 8</div>
       </div>
     </a>
@@ -110,7 +127,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
       <div class="card-body">
         <div class="card-tags"><span class="ctag">Breakfast</span><span class="ctag">American</span></div>
         <h3>Bacon Egg and Cheese Sandwich on a Croissant</h3>
-        <p>The best bacon egg and cheese sandwich recipe is the one you can make at home in 10 minutes flat. We use fresh croissant...</p>
+        <p>The best bacon egg and cheese sandwich recipe is the one you can make at home in 10 minutes flat. We use fresh...</p>
         <div class="card-meta">15 mins · Serves 2</div>
       </div>
     </a>
@@ -119,7 +136,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
       <div class="card-body">
         <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">Italian</span></div>
         <h3>Potato Lasagna With Creamy White Sauce</h3>
-        <p>This potato lasagna with creamy white sauce is a brilliant gluten-free lasagna recipe that replaces pasta noodles with t...</p>
+        <p>This potato lasagna with creamy white sauce is a brilliant gluten-free lasagna recipe that replaces pasta noodles with...</p>
         <div class="card-meta">50 mins · Serves 4</div>
       </div>
     </a>
@@ -128,7 +145,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
       <div class="card-body">
         <div class="card-tags"><span class="ctag">Appetizer</span><span class="ctag">Venezuelan</span></div>
         <h3>Venezuelan Tequeños — Fried Cheese Sticks Recipe</h3>
-        <p>This Venezuelan tequeños recipe brings the best fried cheese sticks you'll ever taste straight from Miami's Latin food s...</p>
+        <p>This Venezuelan tequeños recipe brings the best fried cheese sticks you'll ever taste straight from Miami's Latin food...</p>
         <div class="card-meta">50 mins · Serves 12</div>
       </div>
     </a>
@@ -146,10 +163,33 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
       <div class="card-body">
         <div class="card-tags"><span class="ctag">Breakfast</span><span class="ctag">American</span></div>
         <h3>Easy Egg White Omelette Recipe</h3>
-        <p>This easy egg white omelette recipe is the quickest healthy breakfast you can make — just 2 eggs, a little cheese, and y...</p>
+        <p>This easy egg white omelette recipe is the quickest healthy breakfast you can make — just 2 eggs, a little cheese, and...</p>
         <div class="card-meta">5 mins · Serves 1</div>
       </div>
     </a></div>
-<footer>© 2026 Improv Oven · <a href="/">Home</a></footer>
+<footer>© 2026 Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<script>
+const search = document.getElementById('recipe-search');
+const grid = document.querySelector('.recipes-grid');
+const cards = Array.from(grid.querySelectorAll('.recipe-card'));
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase().trim();
+  let visible = 0;
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    const show = !q || text.includes(q);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  const existing = grid.querySelector('.no-results');
+  if (existing) existing.remove();
+  if (visible === 0) {
+    const msg = document.createElement('p');
+    msg.className = 'no-results';
+    msg.textContent = 'No recipes found for "' + search.value + '" — try another search.';
+    grid.appendChild(msg);
+  }
+});
+</script>
 </body>
 </html>
