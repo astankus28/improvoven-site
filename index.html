@@ -97,6 +97,17 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 .card-body p{font-size:0.88rem;color:var(--muted);line-height:1.6;flex:1;margin-bottom:0.8rem}
 .card-meta{font-size:0.75rem;color:var(--green);font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
 
+/* Email signup */
+.signup-strip{background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:4rem 2rem;text-align:center}
+.signup-strip h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin-bottom:0.5rem}
+.signup-strip p{color:var(--muted);max-width:480px;margin:0 auto 2rem;line-height:1.7}
+.signup-form{display:flex;gap:0;max-width:480px;margin:0 auto}
+.signup-input{flex:1;padding:0.9rem 1.2rem;font-size:1rem;font-family:'Lato',sans-serif;border:2px solid var(--border);border-right:none;background:#fff;color:var(--text);outline:none}
+.signup-input:focus{border-color:var(--green)}
+.signup-btn{padding:0.9rem 1.8rem;background:var(--green);color:#fff;font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;border:2px solid var(--green);cursor:pointer;font-family:'Lato',sans-serif;transition:background .2s;white-space:nowrap}
+.signup-btn:hover{background:var(--green-light);border-color:var(--green-light)}
+.signup-note{font-size:0.75rem;color:var(--muted);margin-top:0.8rem}
+@media(max-width:500px){.signup-form{flex-direction:column}.signup-input{border-right:2px solid var(--border);border-bottom:none}.signup-btn{border:2px solid var(--green)}}
 /* About strip */
 .about-strip{background:var(--green);color:#fff;padding:4rem 2rem;text-align:center}
 .about-strip h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin-bottom:1rem}
@@ -171,6 +182,20 @@ footer a{color:var(--green);font-weight:700}
   </div>
 </section>
 
+<div class="signup-strip">
+  <h2>A New Recipe Every Day</h2>
+  <p>Get simple, budget-friendly recipes delivered to your inbox — no fluff, just food.</p>
+  <form action="https://improvoven.us5.list-manage.com/subscribe/post?u=5b750534650fb5ecc3b359db8&amp;id=4ef9909334&amp;f_id=000796e0f0" method="post" target="_blank">
+    <div class="signup-form">
+      <input class="signup-input" type="email" name="EMAIL" placeholder="Your email address" required>
+      <button class="signup-btn" type="submit">Subscribe</button>
+    </div>
+    <div aria-hidden="true" style="position:absolute;left:-5000px">
+      <input type="text" name="b_5b750534650fb5ecc3b359db8_4ef9909334" tabindex="-1" value="">
+    </div>
+    <p class="signup-note">No spam. Unsubscribe anytime.</p>
+  </form>
+</div>
 <div class="about-strip">
   <h2>What is Improv Oven?</h2>
   <p>How often do you make a trip to your full refrigerator to find nothing to eat — then go back 5 minutes later and stare at that same fridge? This site is about showing you how to turn those dull ingredients into something delicious.</p>
