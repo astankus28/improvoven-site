@@ -5,52 +5,57 @@
 import os, json
 from PIL import Image, ImageDraw, ImageFont
 
+def get_font(size, bold=False):
+    # Try Mac fonts first, then Linux, then default
+    mac_serif_bold = '/System/Library/Fonts/Supplemental/Georgia Bold.ttf'
+    mac_serif = '/System/Library/Fonts/Supplemental/Georgia.ttf'
+    mac_sans_bold = '/System/Library/Fonts/Helvetica.ttc'
+    mac_sans = '/System/Library/Fonts/Helvetica.ttc'
+    linux_serif_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
+    linux_sans_bold = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+    linux_sans = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+    
+    candidates = [mac_serif_bold, mac_serif, linux_serif_bold] if bold else [mac_serif, linux_serif_bold]
+    for path in candidates:
+        if os.path.exists(path):
+            try:
+                return ImageFont.truetype(path, size)
+            except:
+                continue
+    return ImageFont.load_default()
+
 def make_pinterest_image(hero_path, title, output_path):
     W, H = 1000, 1500
-    food_h = int(H * 0.58)  # top 58% = food photo
-    text_h = H - food_h     # bottom 42% = branded text area
+    food_h = int(H * 0.58)
+    text_h = H - food_h
 
-    # Load and crop food image
     food = Image.open(hero_path).convert('RGB')
     fw, fh = food.size
     scale = max(W / fw, food_h / fh)
     food = food.resize((int(fw*scale), int(fh*scale)), Image.LANCZOS)
     nfw, nfh = food.size
-    # Try 3 horizontal crop positions, pick best brightness
+    
     positions = [0, (nfw-W)//2, max(0, nfw-W)]
-    best_left = (nfw - W) // 2  # default center
+    best_left = (nfw-W)//2
     best_score = -999
-    for left in positions:
-        region = food.crop((left, 0, left+W, food_h))
+    for left in [max(0,p) for p in positions]:
+        region = food.crop((left, 0, min(nfw, left+W), food_h))
         pixels = list(region.getdata())
-        brightness = sum(sum(p) for p in pixels) / (len(pixels) * 3)
-        score = -abs(brightness - 125)  # closer to 125 = more food-like
+        brightness = sum(sum(p) for p in pixels) / (len(pixels)*3)
+        score = -abs(brightness - 125)
         if score > best_score:
             best_score = score
             best_left = left
     food = food.crop((best_left, 0, best_left+W, food_h))
 
-    # Canvas
     canvas = Image.new('RGB', (W, H), (35, 75, 50))
     canvas.paste(food, (0, 0))
     draw = ImageDraw.Draw(canvas)
-
-    # Bottom green area
     draw.rectangle([(0, food_h), (W, H)], fill=(35, 75, 50))
-    # Accent line
     draw.rectangle([(0, food_h), (W, food_h+6)], fill=(82, 183, 136))
 
-    # Fonts
-    try:
-        fonts = {
-            sz: ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf', sz)
-            for sz in [96, 82, 68, 56, 46]
-        }
-        fbrand = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 36)
-        furl = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 30)
-    except:
-        fonts = {96: ImageFont.load_default()}
-        fbrand = furl = ImageFont.load_default()
+    fbrand = get_font(36, bold=True)
+    furl = get_font(30)
 
     def wrap(text, font, max_w=880):
         words = text.split(); lines = []; cur = []
@@ -64,15 +69,13 @@ def make_pinterest_image(hero_path, title, output_path):
         if cur: lines.append(' '.join(cur))
         return lines
 
-    # Available space for text (leaving 110px for branding at bottom)
-    available_h = text_h - 110 - 20  # 110 for bottom branding, 20 padding top
-
-    # Find largest font that fits
-    best_font = fonts[46]
-    best_lines = wrap(title, fonts[46])
+    available_h = text_h - 110 - 20
+    best_font = get_font(46, bold=True)
+    best_lines = wrap(title, best_font)
     best_lh = 60
 
-    for sz, font in sorted(fonts.items(), reverse=True):
+    for sz in [96, 82, 68, 56, 46]:
+        font = get_font(sz, bold=True)
         lines = wrap(title, font)
         lh = int(sz * 1.25)
         total = len(lines) * lh
@@ -82,7 +85,6 @@ def make_pinterest_image(hero_path, title, output_path):
             best_lh = lh
             break
 
-    # Center text vertically in text area
     total_text = len(best_lines) * best_lh
     y = food_h + 20 + (available_h - total_text) // 2
 
@@ -92,7 +94,6 @@ def make_pinterest_image(hero_path, title, output_path):
         draw.text((x, y), line, fill=(255, 252, 240), font=best_font)
         y += best_lh
 
-    # Bottom branding
     draw.rectangle([(0, H-90), (W, H-84)], fill=(82,183,136))
     brand = 'IMPROV OVEN'
     bbox = draw.textbbox((0,0), brand, font=fbrand)
