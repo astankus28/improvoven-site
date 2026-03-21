@@ -574,6 +574,22 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   console.log(`✓ Recipe index updated (${recipes.length} recipes)`);
 }
 
+
+async function updateSitemap(recipes) {
+  const baseUrl = 'https://www.improvoven.com';
+  const today = new Date().toISOString().split('T')[0];
+  const staticPages = [
+    { url: '/', priority: '1.0', changefreq: 'daily' },
+    { url: '/recipes/index.html', priority: '0.9', changefreq: 'daily' },
+    { url: '/about/index.html', priority: '0.5', changefreq: 'monthly' },
+  ];
+  const recipeUrls = recipes.map(r => `  <url>\n    <loc>${baseUrl}/recipes/${r.slug}/</loc>\n    <lastmod>${r.date || today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`).join('\n');
+  const staticUrls = staticPages.map(p => `  <url>\n    <loc>${baseUrl}${p.url}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`).join('\n');
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${staticUrls}\n${recipeUrls}\n</urlset>`;
+  fs.writeFileSync(path.join(process.cwd(), 'sitemap.xml'), sitemap);
+  console.log(`✓ Sitemap updated (${recipes.length + staticPages.length} URLs)`);
+}
+
 async function main() {
   try {
     const keyword = getNextKeyword();
@@ -602,6 +618,7 @@ async function main() {
     fs.writeFileSync(recipesDataPath, JSON.stringify(recipes, null, 2));
 
     await updateRecipeIndex(recipes);
+    await updateSitemap(recipes);
 
     console.log(`\n✅ Published: "${recipe.title}"`);
     console.log(`   Keyword: "${keyword}"`);
