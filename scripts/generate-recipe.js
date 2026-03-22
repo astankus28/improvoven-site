@@ -527,7 +527,7 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   "@type": "Recipe",
   "name": "${recipe.title.replace(/"/g,'\\"')}",
   "description": "${recipe.description.replace(/"/g,'\\"')}",
-  "image": ["${imageUrl}"],
+  "image": ["https://www.improvoven.com${imageUrl}"],
   "author": {"@type":"Organization","name":"Improv Oven","url":"https://www.improvoven.com"},
   "datePublished": "${date}",
   "prepTime": "PT${recipe.prepTime.replace(/\D/g,'')}M",
@@ -539,7 +539,7 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   "keywords": "${recipe.targetKeyword}",
   "recipeIngredient": ${JSON.stringify(recipe.ingredients)},
   "recipeInstructions": ${JSON.stringify(recipe.instructions.map((s,i)=>({
-    "@type":"HowToStep","position":i+1,"text":s})))}
+    "@type":"HowToStep","position":i+1,"name":"Step " + (i+1),"text":s,"url":"https://www.improvoven.com/recipes/${slug}/#step-"+(i+1)})))}
 }
 </script>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
