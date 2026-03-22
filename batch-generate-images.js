@@ -55,6 +55,7 @@ const RECIPES = [
   { slug: 'sausage-peppers-and-onions', prompt: 'Professional food photography of Sausage, Peppers, and Onions, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing, restaurant quality' },
   { slug: 'slow-cooker-pulled-pork-sandwich', prompt: 'Professional food photography of Slow Cooker Pulled Pork Sandwich with Purple Slaw, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing, restaurant quality' },
   { slug: 'snickerdoodle-cookies', prompt: 'Professional food photography of Easy Snickerdoodles Cookie Recipe, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing, restaurant quality' },
+  { slug: 'linguine-with-white-clam-sauce-recipe', prompt: 'Professional food photography of linguine pasta with white clam sauce, fresh clams, parsley garnish, parmesan cheese, warm golden lighting, shallow depth of field, Italian restaurant style, appetizing' },
   { slug: 'the-best-chocolate-chip-cookies-from-scratch', prompt: 'Professional food photography of The Best Chocolate Chip Cookies from Scratch, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing, restaurant quality' },
 ];
 
