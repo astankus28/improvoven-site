@@ -784,5 +784,17 @@
     "servings": "4",
     "keyword": "the best chocolate chip cookies from scratch",
     "date": "2015-01-01"
+  },
+  {
+    "slug": "linguine-with-white-clam-sauce-recipe",
+    "title": "Linguine with White Clam Sauce",
+    "description": "A classic Italian linguine with white clam sauce that takes only 25 minutes to make. Easy, budget-friendly, and absolutely delicious.",
+    "image": "/recipes/linguine-with-white-clam-sauce-recipe/images/hero.webp",
+    "category": "Entree",
+    "cuisine": "Italian",
+    "totalTime": "25 mins",
+    "servings": "2",
+    "keyword": "linguine with white clam sauce",
+    "date": "2015-07-08"
   }
 ]
