@@ -142,6 +142,10 @@ footer a{color:var(--green);font-weight:700}
   <a href="/" class="nav-logo">Improv <span>Oven</span></a>
   <ul class="nav-links">
     <li><a href="/recipes/">Recipes</a></li>
+    <li><a href="/recipes/dinner/">Dinner</a></li>
+    <li><a href="/recipes/breakfast/">Breakfast</a></li>
+    <li><a href="/recipes/quick/">Quick</a></li>
+    <li><a href="/recipes/latin/">Latin</a></li>
     <li><a href="/about/">About</a></li>
   </ul>
 </nav>
@@ -174,19 +178,22 @@ footer a{color:var(--green);font-weight:700}
   </div>
 </div>
 
-<section class="latest">
-  <div class="section-header">
-    <h2>Latest Recipes</h2>
-    <a href="/recipes/index.html">View all →</a>
+<!-- Category Navigation -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:2rem;text-align:center">
+  <div style="font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--green-light);font-weight:700;margin-bottom:1rem">Browse by Category</div>
+  <div style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center">
+    <a href="/recipes/dinner/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍽 Dinner</a>
+    <a href="/recipes/breakfast/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍳 Breakfast</a>
+    <a href="/recipes/quick/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">⚡ 30-Minute Meals</a>
+    <a href="/recipes/latin/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🌶 Latin</a>
+    <a href="/recipes/italian/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍝 Italian</a>
+    <a href="/recipes/budget/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">💰 Budget Meals</a>
+    <a href="/recipes/dessert/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍰 Desserts</a>
+    <a href="/recipes/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">📖 All Recipes</a>
   </div>
-  <div class="recipes-grid" id="recipes-grid">
-    <div class="empty-state" style="grid-column:1/-1">
-      <h3>First recipe coming tomorrow!</h3>
-      <p>The kitchen is heating up. Check back soon — new recipes publish daily.</p>
-    </div>
-  </div>
-</section>
+</div>
 
+<!-- Email Signup -->
 <div class="signup-strip">
   <h2>A New Recipe Every Day</h2>
   <p>Get simple, budget-friendly recipes delivered to your inbox — no fluff, just food.</p>
@@ -201,6 +208,20 @@ footer a{color:var(--green);font-weight:700}
     <p class="signup-note">No spam. Unsubscribe anytime.</p>
   </form>
 </div>
+<section class="latest">
+  <div class="section-header">
+    <h2>Latest Recipes</h2>
+    <a href="/recipes/index.html">View all →</a>
+  </div>
+  <div class="recipes-grid" id="recipes-grid">
+    <div class="empty-state" style="grid-column:1/-1">
+      <h3>First recipe coming tomorrow!</h3>
+      <p>The kitchen is heating up. Check back soon — new recipes publish daily.</p>
+    </div>
+  </div>
+</section>
+
+
 <div class="about-strip">
   <h2>What is Improv Oven?</h2>
   <p>How often do you make a trip to your full refrigerator to find nothing to eat — then go back 5 minutes later and stare at that same fridge? This site is about showing you how to turn those dull ingredients into something delicious.</p>
