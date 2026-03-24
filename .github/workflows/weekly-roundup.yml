@@ -1,0 +1,44 @@
+name: Weekly Round-Up Generator
+
+on:
+  schedule:
+    - cron: '0 14 * * 0'  # 9:00 AM EST every Sunday
+  workflow_dispatch:
+
+jobs:
+  generate-roundup:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate weekly round-up
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "🗞️ Generating weekly round-up..."
+          node scripts/generate-roundup.js
+
+      - name: Rebuild index and categories
+        run: |
+          node scripts/rebuild-index.js
+          node scripts/rebuild-categories.js
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Improv Oven Bot"
+          git add -A
+          git diff --staged --quiet || git commit -m "🗞️ Weekly round-up: $(date +'%Y-%m-%d')"
+          git push
