@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Improv Oven — Pinterest Integration Demo</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f8f7f4;
+  color: #1a1a1a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: #e60023;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+.logo-text h1 { font-size: 1.2rem; font-weight: 600; }
+.logo-text p { font-size: 0.85rem; color: #888; margin-top: 0.2rem; }
+.step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.step:last-of-type { border-bottom: none; }
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: #888;
+}
+.step-num.active { background: #e60023; color: white; }
+.step-num.done { background: #22c55e; color: white; }
+.step-content h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+.step-content p { font-size: 0.85rem; color: #666; line-height: 1.5; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  margin-top: 1rem;
+  text-decoration: none;
+}
+.btn-pinterest {
+  background: #e60023;
+  color: white;
+}
+.btn-pinterest:hover { background: #c0001e; }
+.btn-pinterest:disabled { background: #ccc; cursor: not-allowed; }
+.btn-green { background: #22c55e; color: white; }
+.btn-green:hover { background: #16a34a; }
+.token-box {
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #555;
+  word-break: break-all;
+  display: none;
+}
+.pin-preview {
+  display: none;
+  margin-top: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pin-preview img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: #f0f0f0;
+}
+.pin-preview-info {
+  padding: 1rem;
+}
+.pin-preview-info h4 { font-size: 0.95rem; margin-bottom: 0.3rem; }
+.pin-preview-info p { font-size: 0.8rem; color: #666; }
+.pin-preview-info a { font-size: 0.8rem; color: #e60023; }
+.status {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+.status-success { background: #dcfce7; color: #16a34a; }
+.status-pending { background: #fef9c3; color: #ca8a04; }
+.status-error { background: #fee2e2; color: #dc2626; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">P</div>
+    <div class="logo-text">
+      <h1>Improv Oven</h1>
+      <p>Pinterest Auto-Publisher Demo</p>
+    </div>
+  </div>
+
+  <!-- Step 1: Connect -->
+  <div class="step">
+    <div class="step-num active" id="step1-num">1</div>
+    <div class="step-content">
+      <h3>Connect Pinterest Account</h3>
+      <p>Authenticate with Pinterest to grant Improv Oven permission to publish recipe pins on your behalf.</p>
+      <button class="btn btn-pinterest" id="connect-btn" onclick="connectPinterest()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+        Connect with Pinterest
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Token -->
+  <div class="step">
+    <div class="step-num" id="step2-num">2</div>
+    <div class="step-content">
+      <h3>Authorization Granted</h3>
+      <p>Pinterest returns an access token that allows Improv Oven to create pins on your boards.</p>
+      <div class="token-box" id="token-box">
+        Access token received: <span id="token-display">••••••••••••••••••••••••••••••••</span>
+        <br><br>
+        <span class="status status-success">✓ Authenticated successfully</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Create Pin -->
+  <div class="step">
+    <div class="step-num" id="step3-num">3</div>
+    <div class="step-content">
+      <h3>Auto-Publish Recipe Pin</h3>
+      <p>When a new recipe is generated on Improv Oven, it's automatically published as a Pinterest pin with the recipe image, title, and link.</p>
+      <div class="pin-preview" id="pin-preview">
+        <img src="https://www.improvoven.com/recipes/easy-cilantro-lime-shrimp-tacos-recipe/images/hero.webp" alt="Recipe pin preview" onerror="this.style.background='#f0f0f0';this.src=''">
+        <div class="pin-preview-info">
+          <h4>Easy Cilantro Lime Shrimp Tacos Recipe</h4>
+          <p>Quick and easy shrimp tacos with fresh cilantro lime sauce — ready in 20 minutes. Perfect weeknight dinner.</p>
+          <a href="https://www.improvoven.com/recipes/easy-cilantro-lime-shrimp-tacos-recipe/" target="_blank">improvoven.com →</a>
+          <br>
+          <span class="status status-success" id="pin-status" style="display:none">✓ Pin published successfully</span>
+        </div>
+      </div>
+      <button class="btn btn-green" id="publish-btn" onclick="publishPin()" style="display:none;">
+        ↑ Publish Test Pin
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const APP_ID = '1554854';
+const REDIRECT_URI = window.location.href.split('?')[0];
+
+function connectPinterest() {
+  const scope = 'pins:read,pins:write,boards:read,user_accounts:read';
+  const state = Math.random().toString(36).substring(7);
+  localStorage.setItem('pinterest_state', state);
+  const authUrl = `https://www.pinterest.com/oauth/?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${scope}&state=${state}`;
+  window.location.href = authUrl;
+}
+
+function publishPin() {
+  // Simulate pin creation for demo
+  document.getElementById('pin-status').style.display = 'inline-block';
+  document.getElementById('publish-btn').textContent = '✓ Published!';
+  document.getElementById('publish-btn').style.background = '#22c55e';
+  document.getElementById('publish-btn').disabled = true;
+  document.getElementById('step3-num').className = 'step-num done';
+  document.getElementById('step3-num').textContent = '✓';
+}
+
+// Check if returning from OAuth
+const params = new URLSearchParams(window.location.search);
+const code = params.get('code');
+const state = params.get('state');
+
+if (code && state) {
+  // Auth successful — show token step
+  document.getElementById('step1-num').className = 'step-num done';
+  document.getElementById('step1-num').textContent = '✓';
+  document.getElementById('connect-btn').textContent = '✓ Connected';
+  document.getElementById('connect-btn').disabled = true;
+  document.getElementById('connect-btn').style.background = '#22c55e';
+
+  document.getElementById('step2-num').className = 'step-num done';
+  document.getElementById('step2-num').textContent = '✓';
+  document.getElementById('token-box').style.display = 'block';
+  document.getElementById('token-display').textContent = code.substring(0, 20) + '...';
+
+  document.getElementById('step3-num').className = 'step-num active';
+  document.getElementById('pin-preview').style.display = 'block';
+  document.getElementById('publish-btn').style.display = 'inline-flex';
+
+  // Clean URL
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+</script>
+</body>
+</html>
