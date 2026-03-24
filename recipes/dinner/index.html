@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Easy Dinner Recipes — Improv Oven</title>
+<meta name="description" content="Quick and easy dinner recipes for busy weeknights. From pasta to chicken to budget-friendly meals — find your next favorite dinner.">
+<meta name="keywords" content="easy dinner recipes, quick weeknight dinners, simple dinner ideas">
+<meta property="og:title" content="Easy Dinner Recipes — Improv Oven">
+<meta property="og:description" content="Quick and easy dinner recipes for busy weeknights. From pasta to chicken to budget-friendly meals — find your next favorite dinner.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.improvoven.com/recipes/dinner/">
+<link rel="canonical" href="https://www.improvoven.com/recipes/dinner/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Easy Dinner Recipes",
+  "description": "Quick and easy dinner recipes for busy weeknights. From pasta to chicken to budget-friendly meals — find your next favorite dinner.",
+  "url": "https://www.improvoven.com/recipes/dinner/",
+  "publisher": {"@type": "Organization", "name": "Improv Oven", "url": "https://www.improvoven.com"}
+}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#2d6a4f;--accent:#2d6a4f;--white:#fff;--bg:#f8f7f4;--text:#1a1a1a;--gray:#666;--border:#e8e4dc}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{color:inherit;text-decoration:none}
+nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--green)}
+.nav-links{display:flex;gap:1.5rem;list-style:none}
+.nav-links a{font-size:0.85rem;color:var(--gray);transition:color 0.2s}
+.nav-links a:hover{color:var(--green)}
+.hero{background:var(--accent);color:#fff;padding:4rem 2rem;text-align:center}
+.hero-label{font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;opacity:0.7;margin-bottom:0.75rem}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:700;margin-bottom:1rem;line-height:1.1}
+.hero p{font-size:1rem;opacity:0.85;max-width:600px;margin:0 auto 1.5rem}
+.hero-count{font-size:0.8rem;opacity:0.6;letter-spacing:0.1em}
+.breadcrumb{padding:1rem 2rem;font-size:0.8rem;color:var(--gray);max-width:1400px;margin:0 auto}
+.breadcrumb a{color:var(--green)}
+.breadcrumb a:hover{text-decoration:underline}
+.grid-wrap{max-width:1400px;margin:0 auto;padding:2rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+.recipe-card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:transform 0.2s,box-shadow 0.2s}
+.recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.1)}
+.card-img{aspect-ratio:16/9;overflow:hidden;background:#f0ede6}
+.card-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.3s}
+.recipe-card:hover .card-img img{transform:scale(1.04)}
+.card-body{padding:1rem}
+.card-meta{font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:0.4rem;font-weight:500}
+.card-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;line-height:1.3;margin-bottom:0.4rem}
+.card-desc{font-size:0.82rem;color:var(--gray);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.other-cats{background:#fff;border-top:1px solid var(--border);padding:3rem 2rem;text-align:center}
+.other-cats h2{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:1.5rem}
+.cat-pills{display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center}
+.cat-pill{padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.82rem;color:var(--gray);transition:all 0.2s}
+.cat-pill:hover{background:var(--green);color:#fff;border-color:var(--green)}
+footer{background:#1a1a1a;color:rgba(255,255,255,0.4);text-align:center;padding:2rem;font-size:0.8rem}
+footer a{color:rgba(255,255,255,0.5)}
+@media(max-width:600px){nav{padding:0.75rem 1rem}.nav-links{display:none}.hero{padding:2.5rem 1rem}.grid-wrap{padding:1rem}.grid{grid-template-columns:1fr 1fr;gap:1rem}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">Improv Oven</a>
+  <ul class="nav-links">
+    <li><a href="/recipes/">All Recipes</a></li>
+    <li><a href="/recipes/dinner/">Dinner</a></li>
+    <li><a href="/recipes/breakfast/">Breakfast</a></li>
+    <li><a href="/recipes/quick/">Quick Meals</a></li>
+    <li><a href="/recipes/latin/">Latin</a></li>
+    <li><a href="/recipes/dessert/">Desserts</a></li>
+  </ul>
+</nav>
+<div class="hero">
+  <div class="hero-label">Improv Oven</div>
+  <h1>🍽 Easy Dinner Recipes</h1>
+  <p>Quick and easy dinner recipes for busy weeknights. From pasta to chicken to budget-friendly meals — find your next favorite dinner.</p>
+  <div class="hero-count">39 recipes</div>
+</div>
+<div class="breadcrumb">
+  <a href="/">Home</a> → <a href="/recipes/">Recipes</a> → Easy Dinner Recipes
+</div>
+<div class="grid-wrap">
+  <div class="grid">
+    
+    <article class="recipe-card">
+      <a href="/recipes/simple-pan-seared-tilapia-recipe-with-garlic-butter-and-lime-2026-03-24/">
+        <div class="card-img">
+          <img src="/recipes/simple-pan-seared-tilapia-recipe-with-garlic-butter-and-lime-2026-03-24/images/hero.webp" alt="Simple Pan Seared Tilapia Recipe with Garlic Butter and Lime" loading="lazy" onerror="this.src='/recipes/simple-pan-seared-tilapia-recipe-with-garlic-butter-and-lime-2026-03-24/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 15 mins</div>
+          <h2 class="card-title">Simple Pan Seared Tilapia Recipe with Garlic Butter and Lime</h2>
+          <p class="card-desc">This simple pan seared tilapia recipe is the kind of weeknight move that makes you feel like you rea...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-argentine-empanadas-recipe-with-whatever-s-in-your-fridge-2026-03-23/">
+        <div class="card-img">
+          <img src="/recipes/easy-argentine-empanadas-recipe-with-whatever-s-in-your-fridge-2026-03-23/images/hero.webp" alt="Easy Argentine Empanadas Recipe (With Whatever's in Your Fridge)" loading="lazy" onerror="this.src='/recipes/easy-argentine-empanadas-recipe-with-whatever-s-in-your-fridge-2026-03-23/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Argentine · 50 mins</div>
+          <h2 class="card-title">Easy Argentine Empanadas Recipe (With Whatever's in Your Fridge)</h2>
+          <p class="card-desc">This easy Argentine empanadas recipe is the kind of thing your abuela would approve of — golden, fla...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-garlic-butter-shrimp-recipe-ready-in-15-minutes-2026-03-23/">
+        <div class="card-img">
+          <img src="/recipes/easy-garlic-butter-shrimp-recipe-ready-in-15-minutes-2026-03-23/images/hero.webp" alt="Easy Garlic Butter Shrimp Recipe (Ready in 15 Minutes)" loading="lazy" onerror="this.src='/recipes/easy-garlic-butter-shrimp-recipe-ready-in-15-minutes-2026-03-23/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 15 mins</div>
+          <h2 class="card-title">Easy Garlic Butter Shrimp Recipe (Ready in 15 Minutes)</h2>
+          <p class="card-desc">This easy garlic butter shrimp recipe is the one I make when I need dinner on the table fast and I s...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/simple-pot-roast-recipe-that-actually-falls-apart-right-2026-03-22/">
+        <div class="card-img">
+          <img src="/recipes/simple-pot-roast-recipe-that-actually-falls-apart-right-2026-03-22/images/hero.webp" alt="Simple Pot Roast Recipe (That Actually Falls Apart Right)" loading="lazy" onerror="this.src='/recipes/simple-pot-roast-recipe-that-actually-falls-apart-right-2026-03-22/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 3 hrs 45 mins</div>
+          <h2 class="card-title">Simple Pot Roast Recipe (That Actually Falls Apart Right)</h2>
+          <p class="card-desc">This simple pot roast recipe is the kind of dish that makes your whole place smell incredible and ha...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-20-minute-chicken-dinner-with-garlic-butter-and-lime-2026-03-22/">
+        <div class="card-img">
+          <img src="/recipes/easy-20-minute-chicken-dinner-with-garlic-butter-and-lime-2026-03-22/images/hero.webp" alt="Easy 20-Minute Chicken Dinner with Garlic Butter and Lime" loading="lazy" onerror="this.src='/recipes/easy-20-minute-chicken-dinner-with-garlic-butter-and-lime-2026-03-22/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Latin American · 30 mins</div>
+          <h2 class="card-title">Easy 20-Minute Chicken Dinner with Garlic Butter and Lime</h2>
+          <p class="card-desc">This easy 20-minute chicken dinner is the kind of weeknight move that makes you feel like you actual...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-breakfast-burrito-recipe-crispy-cheesy-and-ready-in-30-minutes-2026-03-22/">
+        <div class="card-img">
+          <img src="/recipes/easy-breakfast-burrito-recipe-crispy-cheesy-and-ready-in-30-minutes-2026-03-22/images/hero.webp" alt="Easy Breakfast Burrito Recipe (Crispy, Cheesy, and Ready in 30 Minutes)" loading="lazy" onerror="this.src='/recipes/easy-breakfast-burrito-recipe-crispy-cheesy-and-ready-in-30-minutes-2026-03-22/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 30 mins</div>
+          <h2 class="card-title">Easy Breakfast Burrito Recipe (Crispy, Cheesy, and Ready in 30 Minutes)</h2>
+          <p class="card-desc">This easy breakfast burrito recipe is the move when you've got eggs, a can of beans, and some tortil...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-cuban-black-beans-and-rice-recipe-better-than-takeout-2026-03-21/">
+        <div class="card-img">
+          <img src="/recipes/easy-cuban-black-beans-and-rice-recipe-better-than-takeout-2026-03-21/images/hero.webp" alt="Easy Cuban Black Beans and Rice Recipe (Better Than Takeout)" loading="lazy" onerror="this.src='/recipes/easy-cuban-black-beans-and-rice-recipe-better-than-takeout-2026-03-21/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Cuban · 30 mins</div>
+          <h2 class="card-title">Easy Cuban Black Beans and Rice Recipe (Better Than Takeout)</h2>
+          <p class="card-desc">This easy Cuban black beans and rice recipe is the one my abuela's neighbor made every Friday, and o...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-dinner-with-canned-tomatoes-one-pan-sofrito-chicken-2026-03-21/">
+        <div class="card-img">
+          <img src="/recipes/easy-dinner-with-canned-tomatoes-one-pan-sofrito-chicken-2026-03-21/images/hero.webp" alt="Easy Dinner with Canned Tomatoes: One-Pan Sofrito Chicken" loading="lazy" onerror="this.src='/recipes/easy-dinner-with-canned-tomatoes-one-pan-sofrito-chicken-2026-03-21/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Latin American · 30 mins</div>
+          <h2 class="card-title">Easy Dinner with Canned Tomatoes: One-Pan Sofrito Chicken</h2>
+          <p class="card-desc">When you need an easy dinner with canned tomatoes and a rotisserie chicken sitting in the fridge, th...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/the-easiest-pasta-salad-recipe-you-ll-make-all-summer-2026-03-21/">
+        <div class="card-img">
+          <img src="/recipes/the-easiest-pasta-salad-recipe-you-ll-make-all-summer-2026-03-21/images/hero.webp" alt="The Easiest Pasta Salad Recipe You'll Make All Summer" loading="lazy" onerror="this.src='/recipes/the-easiest-pasta-salad-recipe-you-ll-make-all-summer-2026-03-21/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 22 mins</div>
+          <h2 class="card-title">The Easiest Pasta Salad Recipe You'll Make All Summer</h2>
+          <p class="card-desc">This easy pasta salad recipe is the one you pull out when you need to feed people fast and still loo...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/black-bean-and-rice-bowls-flavor-packed-meals-under-5-per-serving-2026-03-20/">
+        <div class="card-img">
+          <img src="/recipes/black-bean-and-rice-bowls-flavor-packed-meals-under-5-per-serving-2026-03-20/images/hero.webp" alt="Black Bean and Rice Bowls: Flavor-Packed Meals Under $5 Per Serving" loading="lazy" onerror="this.src='/recipes/black-bean-and-rice-bowls-flavor-packed-meals-under-5-per-serving-2026-03-20/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Cuban-American · 35 mins</div>
+          <h2 class="card-title">Black Bean and Rice Bowls: Flavor-Packed Meals Under $5 Per Serving</h2>
+          <p class="card-desc">If you need meals under $5 per serving that actually taste like you put in real effort, this Cuban-i...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/cheap-tuna-recipes-made-fancy-sofrito-tuna-rice-bowls-2026-03-20/">
+        <div class="card-img">
+          <img src="/recipes/cheap-tuna-recipes-made-fancy-sofrito-tuna-rice-bowls-2026-03-20/images/hero.webp" alt="Cheap Tuna Recipes Made Fancy: Sofrito Tuna Rice Bowls" loading="lazy" onerror="this.src='/recipes/cheap-tuna-recipes-made-fancy-sofrito-tuna-rice-bowls-2026-03-20/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Latin American · 30 mins</div>
+          <h2 class="card-title">Cheap Tuna Recipes Made Fancy: Sofrito Tuna Rice Bowls</h2>
+          <p class="card-desc">When you need cheap tuna recipes that actually slap, this sofrito tuna rice bowl is your answer — we...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/cheap-chicken-dinner-ideas-under-10-crispy-sofrito-rice-bowls-2026-03-19/">
+        <div class="card-img">
+          <img src="/recipes/cheap-chicken-dinner-ideas-under-10-crispy-sofrito-rice-bowls-2026-03-19/images/hero.webp" alt="Cheap Chicken Dinner Ideas Under $10: Crispy Sofrito Rice Bowls" loading="lazy" onerror="this.src='/recipes/cheap-chicken-dinner-ideas-under-10-crispy-sofrito-rice-bowls-2026-03-19/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Latin American · 35 mins</div>
+          <h2 class="card-title">Cheap Chicken Dinner Ideas Under $10: Crispy Sofrito Rice Bowls</h2>
+          <p class="card-desc">When you need cheap chicken dinner ideas under $10 that actually slap, this is your move — bone-in c...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-lasagna-recipe-from-scratch-no-fancy-stuff-required-2026-03-19/">
+        <div class="card-img">
+          <img src="/recipes/easy-lasagna-recipe-from-scratch-no-fancy-stuff-required-2026-03-19/images/hero.webp" alt="Easy Lasagna Recipe From Scratch (No Fancy Stuff Required)" loading="lazy" onerror="this.src='/recipes/easy-lasagna-recipe-from-scratch-no-fancy-stuff-required-2026-03-19/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian-American · 1 hour 30 mins</div>
+          <h2 class="card-title">Easy Lasagna Recipe From Scratch (No Fancy Stuff Required)</h2>
+          <p class="card-desc">This easy lasagna recipe from scratch is the kind of dish that makes people think you spent all day ...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/potato-lasagna-with-creamy-white-sauce/">
+        <div class="card-img">
+          <img src="/recipes/potato-lasagna-with-creamy-white-sauce/images/hero.webp" alt="Potato Lasagna With Creamy White Sauce" loading="lazy" onerror="this.src='/recipes/potato-lasagna-with-creamy-white-sauce/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian · 50 mins</div>
+          <h2 class="card-title">Potato Lasagna With Creamy White Sauce</h2>
+          <p class="card-desc">This potato lasagna with creamy white sauce is a brilliant gluten-free lasagna recipe that replaces ...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-baked-salmon-recipe-2-ingredients/">
+        <div class="card-img">
+          <img src="/recipes/easy-baked-salmon-recipe-2-ingredients/images/hero.webp" alt="Easy Baked Salmon Recipe — 2 Ingredients" loading="lazy" onerror="this.src='/recipes/easy-baked-salmon-recipe-2-ingredients/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Easy Baked Salmon Recipe — 2 Ingredients</h2>
+          <p class="card-desc">This easy baked salmon recipe is almost too simple — just 2 ingredients, one oven, and 30 minutes. I...</p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/arancini-italian-rice-balls-recipe/">
+        <div class="card-img">
+          <img src="/recipes/arancini-italian-rice-balls-recipe/images/hero.webp" alt="Arancini Italian Rice Balls Recipe" loading="lazy" onerror="this.src='/recipes/arancini-italian-rice-balls-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian · 35 mins</div>
+          <h2 class="card-title">Arancini Italian Rice Balls Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/avocado-on-toast-recipe/">
+        <div class="card-img">
+          <img src="/recipes/avocado-on-toast-recipe/images/hero.webp" alt="Avocado On Toast Recipe" loading="lazy" onerror="this.src='/recipes/avocado-on-toast-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Avocado On Toast Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/baked-chicken-and-rice-casserole/">
+        <div class="card-img">
+          <img src="/recipes/baked-chicken-and-rice-casserole/images/hero.webp" alt="Oven Baked Chicken and Rice Casserole" loading="lazy" onerror="this.src='/recipes/baked-chicken-and-rice-casserole/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Oven Baked Chicken and Rice Casserole</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/baked-rigatoni-recipe/">
+        <div class="card-img">
+          <img src="/recipes/baked-rigatoni-recipe/images/hero.webp" alt="Baked Rigatoni Recipe" loading="lazy" onerror="this.src='/recipes/baked-rigatoni-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian · 35 mins</div>
+          <h2 class="card-title">Baked Rigatoni Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/best-bloody-mary-drink-mix-and-cocktail-recipe/">
+        <div class="card-img">
+          <img src="/recipes/best-bloody-mary-drink-mix-and-cocktail-recipe/images/hero.webp" alt="Best Bloody Mary Drink Mix And Cocktail Recipe" loading="lazy" onerror="this.src='/recipes/best-bloody-mary-drink-mix-and-cocktail-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Best Bloody Mary Drink Mix And Cocktail Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/creamy-spinach-and-italian-sausage-pasta-recipe/">
+        <div class="card-img">
+          <img src="/recipes/creamy-spinach-and-italian-sausage-pasta-recipe/images/hero.webp" alt="Creamy Spinach and Italian Sausage Pasta Recipe" loading="lazy" onerror="this.src='/recipes/creamy-spinach-and-italian-sausage-pasta-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian · 35 mins</div>
+          <h2 class="card-title">Creamy Spinach and Italian Sausage Pasta Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/curry-chicken-sandwich/">
+        <div class="card-img">
+          <img src="/recipes/curry-chicken-sandwich/images/hero.webp" alt="Curry Chicken Sandwich" loading="lazy" onerror="this.src='/recipes/curry-chicken-sandwich/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Asian · 35 mins</div>
+          <h2 class="card-title">Curry Chicken Sandwich</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-cheesy-chicken-alfredo/">
+        <div class="card-img">
+          <img src="/recipes/easy-cheesy-chicken-alfredo/images/hero.webp" alt="Easy-Cheesy Chicken Alfredo" loading="lazy" onerror="this.src='/recipes/easy-cheesy-chicken-alfredo/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian · 35 mins</div>
+          <h2 class="card-title">Easy-Cheesy Chicken Alfredo</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-cilantro-lime-shrimp-tacos-recipe/">
+        <div class="card-img">
+          <img src="/recipes/easy-cilantro-lime-shrimp-tacos-recipe/images/hero.webp" alt="Easy Cilantro Lime Shrimp Tacos Recipe" loading="lazy" onerror="this.src='/recipes/easy-cilantro-lime-shrimp-tacos-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Mexican · 35 mins</div>
+          <h2 class="card-title">Easy Cilantro Lime Shrimp Tacos Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-fried-chicken-tenders/">
+        <div class="card-img">
+          <img src="/recipes/easy-fried-chicken-tenders/images/hero.webp" alt="Easy Fried Chicken Tenders" loading="lazy" onerror="this.src='/recipes/easy-fried-chicken-tenders/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Easy Fried Chicken Tenders</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-mac-and-cheese/">
+        <div class="card-img">
+          <img src="/recipes/easy-mac-and-cheese/images/hero.webp" alt="Easy Mac and Cheese" loading="lazy" onerror="this.src='/recipes/easy-mac-and-cheese/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Easy Mac and Cheese</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-shepherds-pie-recipe/">
+        <div class="card-img">
+          <img src="/recipes/easy-shepherds-pie-recipe/images/hero.webp" alt="Easy Shepherds Pie Recipe" loading="lazy" onerror="this.src='/recipes/easy-shepherds-pie-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Easy Shepherds Pie Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-shrimp-and-cheese-grits-recipe/">
+        <div class="card-img">
+          <img src="/recipes/easy-shrimp-and-cheese-grits-recipe/images/hero.webp" alt="Easy Shrimp and Cheese Grits Recipe" loading="lazy" onerror="this.src='/recipes/easy-shrimp-and-cheese-grits-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Easy Shrimp and Cheese Grits Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-smothered-and-fried-pork-chops-and-rice-recipe/">
+        <div class="card-img">
+          <img src="/recipes/easy-smothered-and-fried-pork-chops-and-rice-recipe/images/hero.webp" alt="Easy Smothered And Fried Pork Chops And Rice Recipe" loading="lazy" onerror="this.src='/recipes/easy-smothered-and-fried-pork-chops-and-rice-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Easy Smothered And Fried Pork Chops And Rice Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/easy-stuffed-red-peppers-italian-sausage-rice/">
+        <div class="card-img">
+          <img src="/recipes/easy-stuffed-red-peppers-italian-sausage-rice/images/hero.webp" alt="Easy Stuffed Red Peppers with Italian Sausage and Rice" loading="lazy" onerror="this.src='/recipes/easy-stuffed-red-peppers-italian-sausage-rice/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian · 35 mins</div>
+          <h2 class="card-title">Easy Stuffed Red Peppers with Italian Sausage and Rice</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/fried-chicken-sandwich-recipe/">
+        <div class="card-img">
+          <img src="/recipes/fried-chicken-sandwich-recipe/images/hero.webp" alt="Fried Chicken Sandwich Recipe" loading="lazy" onerror="this.src='/recipes/fried-chicken-sandwich-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Fried Chicken Sandwich Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/grilled-steak-fajitas-recipe/">
+        <div class="card-img">
+          <img src="/recipes/grilled-steak-fajitas-recipe/images/hero.webp" alt="Grilled Steak Fajitas Recipe" loading="lazy" onerror="this.src='/recipes/grilled-steak-fajitas-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Mexican · 35 mins</div>
+          <h2 class="card-title">Grilled Steak Fajitas Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/ground-chicken-meatballs-recipe/">
+        <div class="card-img">
+          <img src="/recipes/ground-chicken-meatballs-recipe/images/hero.webp" alt="Ground Chicken Meatballs Recipe" loading="lazy" onerror="this.src='/recipes/ground-chicken-meatballs-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Ground Chicken Meatballs Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/how-to-make-creamy-garlic-mashed-potatoes-recipe/">
+        <div class="card-img">
+          <img src="/recipes/how-to-make-creamy-garlic-mashed-potatoes-recipe/images/hero.webp" alt="Creamy Garlic Mashed Potatoes Recipe" loading="lazy" onerror="this.src='/recipes/how-to-make-creamy-garlic-mashed-potatoes-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Creamy Garlic Mashed Potatoes Recipe</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/oven-baked-bbq-mahi-mahi/">
+        <div class="card-img">
+          <img src="/recipes/oven-baked-bbq-mahi-mahi/images/hero.webp" alt="Oven Baked BBQ Mahi-Mahi" loading="lazy" onerror="this.src='/recipes/oven-baked-bbq-mahi-mahi/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Oven Baked BBQ Mahi-Mahi</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/peruvian-tilapia-ceviche/">
+        <div class="card-img">
+          <img src="/recipes/peruvian-tilapia-ceviche/images/hero.webp" alt="Peruvian Tilapia Ceviche" loading="lazy" onerror="this.src='/recipes/peruvian-tilapia-ceviche/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Latin American · 35 mins</div>
+          <h2 class="card-title">Peruvian Tilapia Ceviche</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/sausage-peppers-and-onions/">
+        <div class="card-img">
+          <img src="/recipes/sausage-peppers-and-onions/images/hero.webp" alt="Sausage, Peppers, and Onions" loading="lazy" onerror="this.src='/recipes/sausage-peppers-and-onions/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Sausage, Peppers, and Onions</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/slow-cooker-pulled-pork-sandwich/">
+        <div class="card-img">
+          <img src="/recipes/slow-cooker-pulled-pork-sandwich/images/hero.webp" alt="Slow Cooker Pulled Pork Sandwich with Purple Slaw" loading="lazy" onerror="this.src='/recipes/slow-cooker-pulled-pork-sandwich/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">American · 35 mins</div>
+          <h2 class="card-title">Slow Cooker Pulled Pork Sandwich with Purple Slaw</h2>
+          <p class="card-desc"></p>
+        </div>
+      </a>
+    </article>
+    <article class="recipe-card">
+      <a href="/recipes/linguine-with-white-clam-sauce-recipe/">
+        <div class="card-img">
+          <img src="/recipes/linguine-with-white-clam-sauce-recipe/images/hero.webp" alt="Linguine with White Clam Sauce" loading="lazy" onerror="this.src='/recipes/linguine-with-white-clam-sauce-recipe/images/hero.jpg'">
+        </div>
+        <div class="card-body">
+          <div class="card-meta">Italian · 25 mins</div>
+          <h2 class="card-title">Linguine with White Clam Sauce</h2>
+          <p class="card-desc">A classic Italian linguine with white clam sauce that takes only 25 minutes to make. Easy, budget-fr...</p>
+        </div>
+      </a>
+    </article>
+  </div>
+</div>
+<div class="other-cats">
+  <h2>Browse More Categories</h2>
+  <div class="cat-pills">
+    <a href="/recipes/dinner/" class="cat-pill">🍽 Dinner</a>
+    <a href="/recipes/breakfast/" class="cat-pill">🍳 Breakfast</a>
+    <a href="/recipes/quick/" class="cat-pill">⚡ 30-Minute Meals</a>
+    <a href="/recipes/italian/" class="cat-pill">🍝 Italian</a>
+    <a href="/recipes/latin/" class="cat-pill">🌶 Latin</a>
+    <a href="/recipes/budget/" class="cat-pill">💰 Budget Meals</a>
+    <a href="/recipes/dessert/" class="cat-pill">🍰 Desserts</a>
+    <a href="/recipes/" class="cat-pill">📖 All Recipes</a>
+  </div>
+</div>
+<footer>
+  <p>© 2026 Improv Oven · <a href="/privacy-policy/">Privacy Policy</a></p>
+</footer>
+</body>
+</html>
