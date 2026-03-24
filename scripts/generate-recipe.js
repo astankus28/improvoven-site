@@ -4,6 +4,7 @@ const path = require('path');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner | dessert | any
 
 // ============================================================
 // KEYWORD POOL — 150 high-intent, low-competition recipe searches
@@ -296,7 +297,40 @@ const KEYWORD_POOL = [
   "homemade vanilla pudding recipe easy",
 ];
 
+
+// ── Keyword categories by meal type ──────────────────────────────────────────
+const BREAKFAST_KEYWORDS = KEYWORD_POOL.filter(k =>
+  /breakfast|pancake|waffle|french toast|oatmeal|granola|egg muffin|shakshuka|brunch|overnight oat|hash|avocado toast|burrito/.test(k.toLowerCase())
+);
+
+const LUNCH_KEYWORDS = KEYWORD_POOL.filter(k =>
+  /lunch|sandwich|salad|wrap|quesadilla|soup|bowl|hummus|nachos|taco|pasta salad/.test(k.toLowerCase())
+);
+
+const DESSERT_KEYWORDS = KEYWORD_POOL.filter(k =>
+  /dessert|cake|brownie|cookie|pudding|flan|churro|tres leches|arroz con leche|cheesecake|banana bread|mug cake|rice pudding|dulce de leche|alfajor/.test(k.toLowerCase())
+);
+
+const DINNER_KEYWORDS = KEYWORD_POOL.filter(k => {
+  const lower = k.toLowerCase();
+  const isBreakfast = BREAKFAST_KEYWORDS.includes(k);
+  const isDessert = DESSERT_KEYWORDS.includes(k);
+  const isLunch = LUNCH_KEYWORDS.includes(k);
+  return !isBreakfast && !isDessert && !isLunch;
+});
+
+function getKeywordPoolForMealType() {
+  switch(MEAL_TYPE) {
+    case 'breakfast': return BREAKFAST_KEYWORDS.length > 0 ? BREAKFAST_KEYWORDS : KEYWORD_POOL;
+    case 'lunch':     return LUNCH_KEYWORDS.length > 0 ? LUNCH_KEYWORDS : KEYWORD_POOL;
+    case 'dessert':   return DESSERT_KEYWORDS.length > 0 ? DESSERT_KEYWORDS : KEYWORD_POOL;
+    case 'dinner':    return DINNER_KEYWORDS.length > 0 ? DINNER_KEYWORDS : KEYWORD_POOL;
+    default:          return KEYWORD_POOL;
+  }
+}
+
 function getNextKeyword() {
+  const pool = getKeywordPoolForMealType();
   const usedPath = path.join(process.cwd(), 'used-keywords.json');
   let used = [];
   if (fs.existsSync(usedPath)) {
@@ -384,6 +418,7 @@ Strong Miami influence with Latin American and Caribbean flair.
 All recipes should be genuinely budget-friendly and achievable for home cooks.
 
 Write a recipe that will rank on Google for: "${keyword}"
+Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — this should be a morning meal (eggs, pancakes, waffles, oatmeal, etc.)' : MEAL_TYPE === 'lunch' ? ' — this should be a midday meal (sandwiches, salads, soups, light dishes)' : MEAL_TYPE === 'dinner' ? ' — this should be an evening main course' : MEAL_TYPE === 'dessert' ? ' — this should be a dessert or sweet treat' : ''}
 
 SEO RULES (critical):
 - Recipe title must naturally contain the keyword or a very close variation
