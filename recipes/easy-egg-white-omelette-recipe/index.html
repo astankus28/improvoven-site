@@ -56,6 +56,8 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:1.2rem;padding-bottom:0.5rem;border-bottom:2px solid var(--green-light)}
 .ingredients-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 2rem;margin-bottom:3rem}
 .ingredients-list li{padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.95rem}
+.ingredients-list li.ingredient-header{grid-column:1/-1;font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:var(--green);border-bottom:2px solid var(--green);padding-bottom:0.3rem;margin-top:1rem;}
+.ingredients-list li.ingredient-header::before{content:'';margin:0;}
 .ingredients-list li::before{content:'◆';color:var(--green-light);font-size:0.5rem;margin-right:0.6rem;vertical-align:middle}
 .instructions-list{list-style:none;display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem}
 .instructions-list li{display:flex;gap:1.2rem;align-items:flex-start}
@@ -103,7 +105,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 <li itemprop="recipeIngredient">2 tablespoons shredded cheese (cheddar, mozzarella, or your choice)</li>
 <li itemprop="recipeIngredient">2 tablespoons cooked meat (diced ham, turkey, bacon, or sausage)</li>
 <li itemprop="recipeIngredient">Salt and pepper to taste</li>
-<li itemprop="recipeIngredient">Cooking spray or small pat of butter</li></ul>
+<li class="ingredient-header">Cooking spray or small pat of butter</li></ul>
   <h2>Instructions</h2>
   <ol class="instructions-list">
     <li itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
