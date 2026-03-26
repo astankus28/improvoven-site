@@ -39,6 +39,8 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:1.2rem;padding-bottom:0.5rem;border-bottom:2px solid var(--green-light)}
 .ingredients-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 2rem;margin-bottom:3rem}
 .ingredients-list li{padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.95rem}
+.ingredients-list li.ingredient-header{grid-column:1/-1;font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:var(--green);border-bottom:2px solid var(--green);padding-bottom:0.3rem;margin-top:1rem;}
+.ingredients-list li.ingredient-header::before{content:'';margin:0;}
 .ingredients-list li::before{content:'◆';color:var(--green-light);font-size:0.5rem;margin-right:0.6rem;vertical-align:middle}
 .instructions-list{list-style:none;display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem}
 .instructions-list li{display:flex;gap:1.2rem;align-items:flex-start}
@@ -58,8 +60,8 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 <nav>
   <a href="/" class="nav-logo">Improv <span>Oven</span></a>
   <ul class="nav-links">
-    <li><a href="/recipes/index.html">Recipes</a></li>
-    <li><a href="/about/index.html">About</a></li>
+    <li class="ingredient-header">Recipes</li>
+    <li class="ingredient-header">About</li>
   </ul>
 </nav>
 <div class="recipe-hero">
@@ -88,10 +90,10 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   </div>
   <h2 id="ingredients">Ingredients</h2>
   <ul class="ingredients-list">
-    <li>Skip to primary navigation</li>
-    <li>Skip to main content</li>
-    <li>Skip to primary sidebar</li>
-    <li>Skip to footer</li>
+    <li class="ingredient-header">Skip to primary navigation</li>
+    <li class="ingredient-header">Skip to main content</li>
+    <li class="ingredient-header">Skip to primary sidebar</li>
+    <li class="ingredient-header">Skip to footer</li>
   </ul>
   <h2>Instructions</h2>
   <ol class="instructions-list">
