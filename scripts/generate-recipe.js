@@ -307,9 +307,38 @@ const LUNCH_KEYWORDS = KEYWORD_POOL.filter(k =>
   /lunch|sandwich|salad|wrap|quesadilla|soup|bowl|hummus|nachos|taco|pasta salad/.test(k.toLowerCase())
 );
 
-const DESSERT_KEYWORDS = KEYWORD_POOL.filter(k =>
-  /dessert|cake|brownie|cookie|pudding|flan|churro|tres leches|arroz con leche|cheesecake|banana bread|mug cake|rice pudding|dulce de leche|alfajor/.test(k.toLowerCase())
-);
+// Add more dessert keywords to pool
+const EXTRA_DESSERT_KEYWORDS = [
+  "easy chocolate chip cookies from scratch",
+  "easy snickerdoodle cookies recipe",
+  "homemade brownies recipe fudgy",
+  "easy sugar cookies recipe",
+  "simple lemon bars recipe",
+  "easy peanut butter cookies recipe",
+  "homemade ice cream recipe no churn",
+  "easy apple crisp recipe",
+  "simple peach cobbler recipe",
+  "easy tiramisu recipe",
+  "homemade caramel sauce recipe",
+  "easy chocolate mousse recipe",
+  "simple crepes recipe sweet",
+  "easy empanadas de dulce recipe",
+  "homemade coconut macaroons recipe",
+  "easy donut holes recipe",
+  "simple fried plantains with sugar recipe",
+  "easy tres leches cupcakes recipe",
+  "homemade whipped cream recipe",
+  "easy chocolate lava cake recipe"
+];
+
+const DESSERT_KEYWORDS = [
+  ...KEYWORD_POOL.filter(k => {
+    const lower = k.toLowerCase();
+    // More specific matching - avoid false positives like "crab cakes" and "pancakes"
+    return /\bcheesecake\b|brownie|\bcookie\b|pudding|flan|churro|tres leches|arroz con leche|\bmug cake\b|rice pudding|dulce de leche|alfajor|banana bread|\btiramisu\b|\bcobbler\b|\bcrisp\b|\bcrepe\b.*sweet|\bdessert\b/.test(lower);
+  }),
+  ...EXTRA_DESSERT_KEYWORDS
+];
 
 const DINNER_KEYWORDS = KEYWORD_POOL.filter(k => {
   const lower = k.toLowerCase();
@@ -514,20 +543,7 @@ function slugify(title) {
 
 function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   const ingredientsList = recipe.ingredients
-    .map(i => {
-      // Detect section headers — ingredients with no leading quantity (no digit at start)
-      const isHeader = !/^\d|^\d+\/|^\d+\.|^a |^an |^\d+\s/i.test(i.trim()) && 
-                       !i.toLowerCase().startsWith('salt') &&
-                       !i.toLowerCase().startsWith('pepper') &&
-                       !i.toLowerCase().startsWith('olive') &&
-                       !i.toLowerCase().startsWith('water') &&
-                       i.length < 40 &&
-                       !i.includes(',');
-      if (isHeader) {
-        return `<li class="ingredient-header">${i}</li>`;
-      }
-      return `<li itemprop="recipeIngredient">${i}</li>`;
-    }).join('\n');
+    .map(i => `<li itemprop="recipeIngredient">${i}</li>`).join('\n');
 
   const instructionsList = recipe.instructions
     .map((s, i) => `<li itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
@@ -624,8 +640,6 @@ h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-
 .ingredients-list{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 2rem;margin-bottom:3rem}
 .ingredients-list li{padding:0.4rem 0;border-bottom:1px solid var(--border);font-size:0.95rem}
 .ingredients-list li::before{content:'◆';color:var(--green-light);font-size:0.5rem;margin-right:0.6rem;vertical-align:middle}
-.ingredients-list li.ingredient-header{grid-column:1/-1;font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:var(--green);border-bottom:2px solid var(--green);padding-bottom:0.3rem;margin-top:1rem;}
-.ingredients-list li.ingredient-header::before{content:'';}
 .instructions-list{list-style:none;display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem}
 .instructions-list li{display:flex;gap:1.2rem;align-items:flex-start}
 .step-num{flex-shrink:0;width:32px;height:32px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;margin-top:0.2rem}
