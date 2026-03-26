@@ -19,10 +19,28 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.improvoven.com/privacy-policy/</loc>
+    <loc>https://www.improvoven.com/recipes/quick-weeknight-pasta-with-garlic-olive-oil-and-whatever-you-ve-got-2026-03-25/</loc>
     <lastmod>2026-03-25</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.improvoven.com/recipes/cheap-protein-meals-on-a-budget-spicy-black-bean-and-egg-skillet-2026-03-25/</loc>
+    <lastmod>2026-03-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.improvoven.com/recipes/what-to-make-with-rice-and-canned-tomatoes-one-pan-spanish-rice-2026-03-25/</loc>
+    <lastmod>2026-03-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.improvoven.com/recipes/simple-stuffed-mushrooms-recipe-with-cream-cheese-and-herbs-2026-03-25/</loc>
+    <lastmod>2026-03-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.improvoven.com/recipes/easy-15-minute-egg-fried-rice-pudding-2026-03-25/</loc>
