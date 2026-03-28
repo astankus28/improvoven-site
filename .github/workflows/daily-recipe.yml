@@ -107,3 +107,19 @@ jobs:
               .then(() => console.log('✅ Posted to Pinterest!'))
               .catch(e => console.log('⚠ Pinterest failed:', e.message));
           "
+
+      - name: Post to Instagram
+        if: steps.meal.outputs.skip != 'true'
+        env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+        run: |
+          echo "📸 Posting to Instagram..."
+          SLUG="${{ steps.generate.outputs.slug }}"
+          node -e "
+            const { postToInstagram } = require('./scripts/instagram-post.js');
+            const recipes = require('./recipes-data.json');
+            const recipe = recipes.find(r => r.slug === '$SLUG') || recipes[0];
+            postToInstagram(recipe, recipe.slug)
+              .then(() => console.log('✅ Posted to Instagram!'))
+              .catch(e => console.log('⚠ Instagram failed:', e.message));
+          " 2>&1
