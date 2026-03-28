@@ -119,7 +119,7 @@ async function postToPinterest(recipe, slug) {
   const boardName = getBoardName(recipe);
   const boardId = await getOrCreateBoard(boardName);
 
-  const imageUrl = `${SITE_URL}/recipes/${slug}/images/pinterest.jpg`;
+  const imageUrl = `${SITE_URL}/recipes/${slug}/images/hero.webp`;
   const recipeUrl = `${SITE_URL}/recipes/${slug}/`;
   const description = generateDescription(recipe);
 
