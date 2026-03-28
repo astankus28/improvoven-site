@@ -307,39 +307,9 @@ const LUNCH_KEYWORDS = KEYWORD_POOL.filter(k =>
   /lunch|sandwich|salad|wrap|quesadilla|soup|bowl|hummus|nachos|taco|pasta salad/.test(k.toLowerCase())
 );
 
-// Hardcoded dessert keywords — no filtering to avoid false positives
-const DESSERT_KEYWORDS = [
-  "easy chocolate chip cookies from scratch",
-  "simple brownies recipe fudgy",
-  "easy no bake cheesecake recipe",
-  "homemade churros recipe easy",
-  "easy tres leches cake recipe",
-  "simple flan recipe easy",
-  "homemade dulce de leche recipe",
-  "homemade alfajores recipe easy",
-  "easy chocolate mug cake recipe",
-  "simple banana bread recipe easy",
-  "easy arroz con leche recipe",
-  "homemade vanilla pudding recipe easy",
-  "easy snickerdoodle cookies recipe",
-  "simple lemon bars recipe",
-  "easy peanut butter cookies recipe",
-  "homemade caramel sauce recipe",
-  "easy chocolate mousse recipe",
-  "easy apple crisp recipe",
-  "simple peach cobbler recipe",
-  "easy tiramisu recipe",
-  "easy empanadas de dulce recipe",
-  "simple fried sweet plantains recipe",
-  "easy tres leches cupcakes recipe",
-  "homemade coconut macaroons recipe",
-  "easy chocolate lava cake recipe",
-  "simple sugar cookies recipe",
-  "easy donut holes recipe homemade",
-  "homemade ice cream recipe no churn",
-  "easy cinnamon rolls recipe from scratch",
-  "simple crepes recipe sweet filling"
-];
+const DESSERT_KEYWORDS = KEYWORD_POOL.filter(k =>
+  /dessert|cake|brownie|cookie|pudding|flan|churro|tres leches|arroz con leche|cheesecake|banana bread|mug cake|rice pudding|dulce de leche|alfajor/.test(k.toLowerCase())
+);
 
 const DINNER_KEYWORDS = KEYWORD_POOL.filter(k => {
   const lower = k.toLowerCase();
@@ -367,13 +337,15 @@ function getNextKeyword() {
     used = JSON.parse(fs.readFileSync(usedPath, 'utf8'));
   }
 
-  const unused = KEYWORD_POOL.filter(k => !used.includes(k));
+  const unused = pool.filter(k => !used.includes(k));
 
   if (unused.length === 0) {
-    console.log('All keywords used — resetting pool for another round');
-    used = [];
-    fs.writeFileSync(usedPath, JSON.stringify([], null, 2));
-    return KEYWORD_POOL[Math.floor(Math.random() * KEYWORD_POOL.length)];
+    console.log('All keywords used for this meal type — resetting');
+    // Remove used keywords from this pool only
+    const poolSlugs = pool.map(k => k);
+    const newUsed = used.filter(k => !poolSlugs.includes(k));
+    fs.writeFileSync(usedPath, JSON.stringify(newUsed, null, 2));
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   const keyword = unused[Math.floor(Math.random() * unused.length)];
@@ -448,7 +420,7 @@ Strong Miami influence with Latin American and Caribbean flair.
 All recipes should be genuinely budget-friendly and achievable for home cooks.
 
 Write a recipe that will rank on Google for: "${keyword}"
-Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — this should be a morning meal (eggs, pancakes, waffles, oatmeal, etc.)' : MEAL_TYPE === 'lunch' ? ' — this should be a midday meal (sandwiches, salads, soups, light dishes)' : MEAL_TYPE === 'dinner' ? ' — this should be an evening main course' : MEAL_TYPE === 'dessert' ? ' — MUST be a sweet dessert (cookies, cake, brownies, flan, churros, tres leches, etc.). NOT soup. NOT savory.' : ''}
+Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — this should be a morning meal (eggs, pancakes, waffles, oatmeal, etc.)' : MEAL_TYPE === 'lunch' ? ' — this should be a midday meal (sandwiches, salads, soups, light dishes)' : MEAL_TYPE === 'dinner' ? ' — this should be an evening main course' : MEAL_TYPE === 'dessert' ? ' — this should be a dessert or sweet treat' : ''}
 
 SEO RULES (critical):
 - Recipe title must naturally contain the keyword or a very close variation
@@ -966,7 +938,7 @@ async function main() {
     // Post to Pinterest
     try {
       console.log('📌 Attempting Pinterest post...');
-      const { postToPinterest } = require(require('path').join(__dirname, 'pinterest-post.js'));
+      const { postToPinterest } = require('./pinterest-post.js');
       await postToPinterest(recipe, slug);
     } catch(e) {
       console.log('⚠ Pinterest posting failed:', e.message);
