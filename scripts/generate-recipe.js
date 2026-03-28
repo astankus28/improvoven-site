@@ -307,9 +307,39 @@ const LUNCH_KEYWORDS = KEYWORD_POOL.filter(k =>
   /lunch|sandwich|salad|wrap|quesadilla|soup|bowl|hummus|nachos|taco|pasta salad/.test(k.toLowerCase())
 );
 
-const DESSERT_KEYWORDS = KEYWORD_POOL.filter(k =>
-  /dessert|cake|brownie|cookie|pudding|flan|churro|tres leches|arroz con leche|cheesecake|banana bread|mug cake|rice pudding|dulce de leche|alfajor/.test(k.toLowerCase())
-);
+// Hardcoded dessert keywords — no filtering to avoid false positives
+const DESSERT_KEYWORDS = [
+  "easy chocolate chip cookies from scratch",
+  "simple brownies recipe fudgy",
+  "easy no bake cheesecake recipe",
+  "homemade churros recipe easy",
+  "easy tres leches cake recipe",
+  "simple flan recipe easy",
+  "homemade dulce de leche recipe",
+  "homemade alfajores recipe easy",
+  "easy chocolate mug cake recipe",
+  "simple banana bread recipe easy",
+  "easy arroz con leche recipe",
+  "homemade vanilla pudding recipe easy",
+  "easy snickerdoodle cookies recipe",
+  "simple lemon bars recipe",
+  "easy peanut butter cookies recipe",
+  "homemade caramel sauce recipe",
+  "easy chocolate mousse recipe",
+  "easy apple crisp recipe",
+  "simple peach cobbler recipe",
+  "easy tiramisu recipe",
+  "easy empanadas de dulce recipe",
+  "simple fried sweet plantains recipe",
+  "easy tres leches cupcakes recipe",
+  "homemade coconut macaroons recipe",
+  "easy chocolate lava cake recipe",
+  "simple sugar cookies recipe",
+  "easy donut holes recipe homemade",
+  "homemade ice cream recipe no churn",
+  "easy cinnamon rolls recipe from scratch",
+  "simple crepes recipe sweet filling"
+];
 
 const DINNER_KEYWORDS = KEYWORD_POOL.filter(k => {
   const lower = k.toLowerCase();
@@ -418,8 +448,7 @@ Strong Miami influence with Latin American and Caribbean flair.
 All recipes should be genuinely budget-friendly and achievable for home cooks.
 
 Write a recipe that will rank on Google for: "${keyword}"
-Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — MUST be a breakfast dish (eggs, pancakes, waffles, French toast, oatmeal, breakfast burritos, etc.). NOT lunch or dinner.' : MEAL_TYPE === 'lunch' ? ' — MUST be a lunch dish (sandwiches, salads, soups, wraps, light plates). NOT breakfast or dinner.' : MEAL_TYPE === 'dinner' ? ' — MUST be an evening main course (pasta, chicken, beef, seafood, rice dishes). NOT breakfast or dessert.' : MEAL_TYPE === 'dessert' ? ' — MUST be a sweet dessert (cookies, cake, brownies, ice cream, pudding, flan, churros, tres leches, etc.). NOT a savory dish. NOT soup. NOT a main course.' : ''}
-IMPORTANT: The keyword is just for SEO inspiration. The actual recipe MUST match the meal type above.
+Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — this should be a morning meal (eggs, pancakes, waffles, oatmeal, etc.)' : MEAL_TYPE === 'lunch' ? ' — this should be a midday meal (sandwiches, salads, soups, light dishes)' : MEAL_TYPE === 'dinner' ? ' — this should be an evening main course' : MEAL_TYPE === 'dessert' ? ' — MUST be a sweet dessert (cookies, cake, brownies, flan, churros, tres leches, etc.). NOT soup. NOT savory.' : ''}
 
 SEO RULES (critical):
 - Recipe title must naturally contain the keyword or a very close variation
