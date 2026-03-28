@@ -8,7 +8,7 @@ const path = require('path');
 
 const MAILERLITE_API_KEY = process.env.MAILERLITE_API_KEY;
 const SITE_URL = 'https://www.improvoven.com';
-const GROUP_ID = '2222920'; // ImprovOven group
+const GROUP_ID = '182974031267366202'; // ImprovOven group
 
 function mailerliteRequest(method, endpoint, body = null) {
   return new Promise((resolve, reject) => {
