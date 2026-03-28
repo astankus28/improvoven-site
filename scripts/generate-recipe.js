@@ -337,19 +337,22 @@ function getNextKeyword() {
     used = JSON.parse(fs.readFileSync(usedPath, 'utf8'));
   }
 
-  const unused = pool.filter(k => !used.includes(k));
+  // Rolling window — only block keywords used in the last 60 recipes
+  // This allows keywords to recycle after enough time has passed
+  const ROLLING_WINDOW = 60;
+  const recentlyUsed = used.slice(-ROLLING_WINDOW);
+  
+  const unused = pool.filter(k => !recentlyUsed.includes(k));
 
-  if (unused.length === 0) {
-    console.log('All keywords used for this meal type — resetting');
-    // Remove used keywords from this pool only
-    const poolSlugs = pool.map(k => k);
-    const newUsed = used.filter(k => !poolSlugs.includes(k));
-    fs.writeFileSync(usedPath, JSON.stringify(newUsed, null, 2));
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  const keyword = unused[Math.floor(Math.random() * unused.length)];
+  // If all pool keywords were used recently, just pick any from pool
+  const candidates = unused.length > 0 ? unused : pool;
+  
+  const keyword = candidates[Math.floor(Math.random() * candidates.length)];
   used.push(keyword);
+  
+  // Keep used list trimmed to last 200 entries
+  if (used.length > 200) used = used.slice(-200);
+  
   fs.writeFileSync(usedPath, JSON.stringify(used, null, 2));
   return keyword;
 }
