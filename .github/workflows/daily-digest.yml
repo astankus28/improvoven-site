@@ -1,0 +1,26 @@
+name: Daily Recipe Digest Email
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # 9:00 AM EST every day
+  workflow_dispatch:
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Send daily recipe digest
+        env:
+          MAILERLITE_API_KEY: ${{ secrets.MAILERLITE_API_KEY }}
+        run: |
+          echo "📧 Sending daily recipe digest..."
+          node scripts/send-daily-digest.js 2>&1
