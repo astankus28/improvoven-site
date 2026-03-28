@@ -39,27 +39,11 @@ function apiRequest(method, url, body = null) {
 }
 
 async function getInstagramAccountId() {
-  const url = `https://graph.facebook.com/v19.0/me/accounts?access_token=${INSTAGRAM_ACCESS_TOKEN}`;
-  const res = await apiRequest('GET', url);
-  if (!res.data.data || res.data.data.length === 0) {
-    throw new Error('No Facebook pages found');
-  }
-  
-  // Get Instagram account connected to the page
-  const pageId = res.data.data[0].id;
-  const pageToken = res.data.data[0].access_token;
-  
-  const igRes = await apiRequest('GET', 
-    `https://graph.facebook.com/v19.0/${pageId}?fields=instagram_business_account&access_token=${pageToken}`
-  );
-  
-  if (!igRes.data.instagram_business_account) {
-    throw new Error('No Instagram business account connected to this page');
-  }
-  
+  // Using hardcoded Instagram Business Account ID
+  const igAccountId = '17841400630237013';
   return {
-    igAccountId: igRes.data.instagram_business_account.id,
-    pageToken
+    igAccountId,
+    pageToken: INSTAGRAM_ACCESS_TOKEN
   };
 }
 
