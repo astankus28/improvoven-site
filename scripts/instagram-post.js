@@ -80,15 +80,42 @@ function buildCaption(recipe, slug) {
   return `${recipe.title}\n\n${desc}\n\nFull recipe at improvoven.com 🔗 (link in bio)\n\n${hashtags.join(' ')}`;
 }
 
+const FACEBOOK_PAGE_ID = '834239926633861';
+
+async function postToFacebook(recipe, slug, pageToken) {
+  const imageUrl = `${SITE_URL}/recipes/${slug}/images/hero.webp`;
+  const recipeUrl = `${SITE_URL}/recipes/${slug}/`;
+  const message = `${recipe.title}
+
+${(recipe.description || '').substring(0, 200)}
+
+Full recipe → ${recipeUrl}
+
+#ImprovOven #EasyRecipes #HomeCooking`;
+
+  console.log('📘 Posting to Facebook...');
+  const res = await apiRequest('POST',
+    `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}/photos?` +
+    `url=${encodeURIComponent(imageUrl)}&` +
+    `message=${encodeURIComponent(message)}&` +
+    `access_token=${pageToken}`
+  );
+
+  if (res.data.id) {
+    console.log(`✅ Facebook post published: ${res.data.id}`);
+  } else {
+    console.log(`⚠ Facebook post failed: ${JSON.stringify(res.data)}`);
+  }
+}
+
 async function postToInstagram(recipe, slug) {
   if (!INSTAGRAM_ACCESS_TOKEN) {
     console.log('⚠ No Instagram access token — skipping');
     return;
   }
 
-  console.log('📸 Posting to Instagram...');
+  console.log('📸 Posting to Instagram + Facebook...');
 
-  // Get Instagram account ID
   const { igAccountId, pageToken } = await getInstagramAccountId();
   console.log(`✓ Instagram account ID: ${igAccountId}`);
 
@@ -114,8 +141,8 @@ async function postToInstagram(recipe, slug) {
   // Wait for container to be ready
   await new Promise(r => setTimeout(r, 5000));
 
-  // Step 2: Publish the container
-  console.log('Publishing post...');
+  // Step 2: Publish to Instagram
+  console.log('Publishing to Instagram...');
   const publishRes = await apiRequest('POST',
     `https://graph.facebook.com/v19.0/${igAccountId}/media_publish?` +
     `creation_id=${containerId}&` +
@@ -124,10 +151,12 @@ async function postToInstagram(recipe, slug) {
 
   if (publishRes.data.id) {
     console.log(`✅ Instagram post published: ${publishRes.data.id}`);
-    console.log(`   Recipe: ${recipe.title}`);
   } else {
-    throw new Error(`Failed to publish: ${JSON.stringify(publishRes.data)}`);
+    console.log(`⚠ Instagram publish failed: ${JSON.stringify(publishRes.data)}`);
   }
+
+  // Step 3: Post to Facebook page
+  await postToFacebook(recipe, slug, pageToken);
 }
 
 // If run directly
