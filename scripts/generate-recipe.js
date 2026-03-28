@@ -418,7 +418,8 @@ Strong Miami influence with Latin American and Caribbean flair.
 All recipes should be genuinely budget-friendly and achievable for home cooks.
 
 Write a recipe that will rank on Google for: "${keyword}"
-Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — this should be a morning meal (eggs, pancakes, waffles, oatmeal, etc.)' : MEAL_TYPE === 'lunch' ? ' — this should be a midday meal (sandwiches, salads, soups, light dishes)' : MEAL_TYPE === 'dinner' ? ' — this should be an evening main course' : MEAL_TYPE === 'dessert' ? ' — this should be a dessert or sweet treat' : ''}
+Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — MUST be a breakfast dish (eggs, pancakes, waffles, French toast, oatmeal, breakfast burritos, etc.). NOT lunch or dinner.' : MEAL_TYPE === 'lunch' ? ' — MUST be a lunch dish (sandwiches, salads, soups, wraps, light plates). NOT breakfast or dinner.' : MEAL_TYPE === 'dinner' ? ' — MUST be an evening main course (pasta, chicken, beef, seafood, rice dishes). NOT breakfast or dessert.' : MEAL_TYPE === 'dessert' ? ' — MUST be a sweet dessert (cookies, cake, brownies, ice cream, pudding, flan, churros, tres leches, etc.). NOT a savory dish. NOT soup. NOT a main course.' : ''}
+IMPORTANT: The keyword is just for SEO inspiration. The actual recipe MUST match the meal type above.
 
 SEO RULES (critical):
 - Recipe title must naturally contain the keyword or a very close variation
@@ -936,7 +937,7 @@ async function main() {
     // Post to Pinterest
     try {
       console.log('📌 Attempting Pinterest post...');
-      const { postToPinterest } = require('./pinterest-post.js');
+      const { postToPinterest } = require(require('path').join(__dirname, 'pinterest-post.js'));
       await postToPinterest(recipe, slug);
     } catch(e) {
       console.log('⚠ Pinterest posting failed:', e.message);
