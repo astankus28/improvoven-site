@@ -1,0 +1,39 @@
+name: Monthly Keyword Refresh
+
+on:
+  schedule:
+    - cron: '0 12 1 * *'  # 8:00 AM EST on the 1st of every month
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  refresh-keywords:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Refresh keyword pool with trending searches
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "🔄 Refreshing keyword pool with trending food searches..."
+          node scripts/refresh-keywords.js
+
+      - name: Commit updated keywords
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Improv Oven Bot"
+          git add -A
+          git diff --staged --quiet || git commit -m "🔄 Monthly keyword refresh: $(date +'%B %Y')"
+          git push
