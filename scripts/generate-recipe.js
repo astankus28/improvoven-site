@@ -307,38 +307,9 @@ const LUNCH_KEYWORDS = KEYWORD_POOL.filter(k =>
   /lunch|sandwich|salad|wrap|quesadilla|soup|bowl|hummus|nachos|taco|pasta salad/.test(k.toLowerCase())
 );
 
-// Add more dessert keywords to pool
-const EXTRA_DESSERT_KEYWORDS = [
-  "easy chocolate chip cookies from scratch",
-  "easy snickerdoodle cookies recipe",
-  "homemade brownies recipe fudgy",
-  "easy sugar cookies recipe",
-  "simple lemon bars recipe",
-  "easy peanut butter cookies recipe",
-  "homemade ice cream recipe no churn",
-  "easy apple crisp recipe",
-  "simple peach cobbler recipe",
-  "easy tiramisu recipe",
-  "homemade caramel sauce recipe",
-  "easy chocolate mousse recipe",
-  "simple crepes recipe sweet",
-  "easy empanadas de dulce recipe",
-  "homemade coconut macaroons recipe",
-  "easy donut holes recipe",
-  "simple fried plantains with sugar recipe",
-  "easy tres leches cupcakes recipe",
-  "homemade whipped cream recipe",
-  "easy chocolate lava cake recipe"
-];
-
-const DESSERT_KEYWORDS = [
-  ...KEYWORD_POOL.filter(k => {
-    const lower = k.toLowerCase();
-    // More specific matching - avoid false positives like "crab cakes" and "pancakes"
-    return /\bcheesecake\b|brownie|\bcookie\b|pudding|flan|churro|tres leches|arroz con leche|\bmug cake\b|rice pudding|dulce de leche|alfajor|banana bread|\btiramisu\b|\bcobbler\b|\bcrisp\b|\bcrepe\b.*sweet|\bdessert\b/.test(lower);
-  }),
-  ...EXTRA_DESSERT_KEYWORDS
-];
+const DESSERT_KEYWORDS = KEYWORD_POOL.filter(k =>
+  /dessert|cake|brownie|cookie|pudding|flan|churro|tres leches|arroz con leche|cheesecake|banana bread|mug cake|rice pudding|dulce de leche|alfajor/.test(k.toLowerCase())
+);
 
 const DINNER_KEYWORDS = KEYWORD_POOL.filter(k => {
   const lower = k.toLowerCase();
@@ -961,6 +932,14 @@ async function main() {
     console.log(`\n✅ Published: "${recipe.title}"`);
     console.log(`   Keyword: "${keyword}"`);
     console.log(`   URL: /recipes/${slug}/`);
+
+    // Post to Pinterest
+    try {
+      const { postToPinterest } = require('./pinterest-post.js');
+      await postToPinterest(recipe, slug);
+    } catch(e) {
+      console.log('⚠ Pinterest posting skipped:', e.message);
+    }
 
   } catch (err) {
     console.error('\n❌ Error:', err.message);
