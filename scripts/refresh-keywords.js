@@ -118,15 +118,16 @@ async function main() {
   // Merge — add new keywords that aren't already in pool
   const combined = [...new Set([...currentKeywords, ...newKeywords])];
   
-  // Keep pool manageable — max 350 keywords
-  // If over limit, remove oldest non-recent keywords
-  const MAX_POOL = 350;
+  // Strategy: NEVER remove existing keywords — only ADD new ones
+  // Once we have Search Console data (90+ days) we can prune based on actual performance
+  // For now, keep everything and just expand the pool
+  const MAX_POOL = 400;
   let finalPool = combined;
   if (combined.length > MAX_POOL) {
-    // Keep all new keywords + as many original as fit
-    const slots = MAX_POOL - newKeywords.length;
-    finalPool = [...newKeywords, ...currentKeywords.slice(0, slots)];
-    finalPool = [...new Set(finalPool)];
+    // If somehow over limit, keep all current + as many new as fit
+    const slots = MAX_POOL - currentKeywords.length;
+    const newToAdd = newKeywords.filter(k => !currentKeywords.includes(k)).slice(0, slots);
+    finalPool = [...currentKeywords, ...newToAdd];
   }
 
   console.log(`✓ New pool size: ${finalPool.length} keywords`);
