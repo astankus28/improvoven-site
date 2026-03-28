@@ -935,10 +935,12 @@ async function main() {
 
     // Post to Pinterest
     try {
+      console.log('📌 Attempting Pinterest post...');
       const { postToPinterest } = require('./pinterest-post.js');
       await postToPinterest(recipe, slug);
     } catch(e) {
-      console.log('⚠ Pinterest posting skipped:', e.message);
+      console.log('⚠ Pinterest posting failed:', e.message);
+      console.log('Stack:', e.stack);
     }
 
   } catch (err) {
