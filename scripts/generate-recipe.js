@@ -295,6 +295,28 @@ const KEYWORD_POOL = [
   "simple rice pudding recipe",
   "easy arroz con leche recipe",
   "homemade vanilla pudding recipe easy",
+
+  // EASTER & LENTEN SEASONAL (March-April 2026)
+  "easy Easter lamb recipe for dinner",
+  "simple deviled eggs recipe for Easter",
+  "easy hot cross buns recipe homemade",
+  "simple Easter ham recipe glazed",
+  "easy lenten fish recipe for Good Friday",
+  "simple tuna casserole recipe lent",
+  "easy meatless Friday dinner recipe",
+  "simple lenten pasta recipe no meat",
+  "easy baked cod recipe lenten",
+  "homemade Easter bread recipe easy",
+  "simple Greek Easter soup recipe",
+  "easy lenten lentil soup recipe",
+  "simple meatless lasagna recipe lent",
+  "easy shrimp pasta recipe lenten Friday",
+  "simple cheese and spinach stuffed shells lent",
+  "easy vegetarian Easter side dishes",
+  "simple roasted asparagus recipe Easter",
+  "easy scalloped potatoes recipe Easter",
+  "homemade carrot cake recipe Easter",
+  "simple Easter sugar cookies recipe decorated",
 ];
 
 
@@ -329,7 +351,54 @@ function getKeywordPoolForMealType() {
   }
 }
 
+function isEasterSeason() {
+  const now = new Date();
+  const end = new Date('2026-04-06'); // Through Easter Sunday
+  return now < end;
+}
+
+const EASTER_KEYWORDS = [
+  "easy Easter lamb recipe for dinner",
+  "simple deviled eggs recipe for Easter",
+  "easy hot cross buns recipe homemade",
+  "simple Easter ham recipe glazed",
+  "easy lenten fish recipe for Good Friday",
+  "simple tuna casserole recipe lent",
+  "easy meatless Friday dinner recipe",
+  "simple lenten pasta recipe no meat",
+  "easy baked cod recipe lenten",
+  "homemade Easter bread recipe easy",
+  "simple Greek Easter soup recipe",
+  "easy lenten lentil soup recipe",
+  "simple meatless lasagna recipe lent",
+  "easy shrimp pasta recipe lenten Friday",
+  "simple cheese and spinach stuffed shells lent",
+  "easy vegetarian Easter side dishes",
+  "simple roasted asparagus recipe Easter",
+  "easy scalloped potatoes recipe Easter",
+  "homemade carrot cake recipe Easter",
+  "simple Easter sugar cookies recipe decorated",
+];
+
 function getNextKeyword() {
+  // During Easter season, use Easter keywords
+  if (isEasterSeason()) {
+    const usedPath = require('path').join(process.cwd(), 'used-keywords.json');
+    let used = [];
+    if (require('fs').existsSync(usedPath)) {
+      used = JSON.parse(require('fs').readFileSync(usedPath, 'utf8'));
+    }
+    const unusedEaster = EASTER_KEYWORDS.filter(k => !used.includes(k));
+    if (unusedEaster.length > 0) {
+      const keyword = unusedEaster[Math.floor(Math.random() * unusedEaster.length)];
+      used.push(keyword);
+      if (used.length > 200) used = used.slice(-200);
+      require('fs').writeFileSync(usedPath, JSON.stringify(used, null, 2));
+      console.log(`🐣 Easter season keyword: ${keyword}`);
+      return keyword;
+    }
+  }
+  
   const pool = getKeywordPoolForMealType();
   const usedPath = path.join(process.cwd(), 'used-keywords.json');
   let used = [];
@@ -337,22 +406,17 @@ function getNextKeyword() {
     used = JSON.parse(fs.readFileSync(usedPath, 'utf8'));
   }
 
-  // Rolling window — only block keywords used in the last 60 recipes
-  // This allows keywords to recycle after enough time has passed
-  const ROLLING_WINDOW = 60;
-  const recentlyUsed = used.slice(-ROLLING_WINDOW);
-  
-  const unused = pool.filter(k => !recentlyUsed.includes(k));
+  const unused = KEYWORD_POOL.filter(k => !used.includes(k));
 
-  // If all pool keywords were used recently, just pick any from pool
-  const candidates = unused.length > 0 ? unused : pool;
-  
-  const keyword = candidates[Math.floor(Math.random() * candidates.length)];
+  if (unused.length === 0) {
+    console.log('All keywords used — resetting pool for another round');
+    used = [];
+    fs.writeFileSync(usedPath, JSON.stringify([], null, 2));
+    return KEYWORD_POOL[Math.floor(Math.random() * KEYWORD_POOL.length)];
+  }
+
+  const keyword = unused[Math.floor(Math.random() * unused.length)];
   used.push(keyword);
-  
-  // Keep used list trimmed to last 200 entries
-  if (used.length > 200) used = used.slice(-200);
-  
   fs.writeFileSync(usedPath, JSON.stringify(used, null, 2));
   return keyword;
 }
