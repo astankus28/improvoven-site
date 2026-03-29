@@ -644,6 +644,39 @@ function getSeasonalKeywords() {
 
   if (now >= easterStart && now <= easterEnd) return HOLIDAY_KEYWORDS.easter.keywords;
 
+  // Ash Wednesday (46 days before Easter) — meatless
+  const ashWednesday = new Date(easter); ashWednesday.setDate(easter.getDate() - 46);
+  if (now.toDateString() === ashWednesday.toDateString()) {
+    return [
+      "easy meatless Ash Wednesday dinner recipe",
+      "simple fish recipe Ash Wednesday",
+      "easy vegetarian soup recipe Ash Wednesday",
+      "simple tuna pasta recipe Ash Wednesday",
+      "easy meatless chili recipe Ash Wednesday",
+      "simple vegetable curry recipe Ash Wednesday",
+      "easy shrimp stir fry recipe Ash Wednesday",
+      "simple bean tacos recipe meatless",
+      "easy baked salmon recipe Ash Wednesday",
+      "simple lentil stew recipe meatless",
+    ];
+  }
+
+  // Christmas Eve — Feast of the Seven Fishes tradition
+  if (month === 12 && day === 24) {
+    return [
+      "easy feast of the seven fishes recipe",
+      "simple baccala recipe Christmas Eve Italian",
+      "easy shrimp scampi recipe Christmas Eve",
+      "simple linguine with clam sauce recipe Christmas Eve",
+      "easy baked salmon recipe Christmas Eve dinner",
+      "simple calamari recipe Christmas Eve",
+      "easy seafood pasta recipe Christmas Eve",
+      "simple cod recipe Christmas Eve Italian",
+      "easy stuffed clams recipe Christmas Eve",
+      "simple crab cake recipe Christmas Eve dinner",
+    ];
+  }
+
   // New Year
   if ((month === 12 && day >= 28) || (month === 1 && day <= 3)) return HOLIDAY_KEYWORDS.new_year.keywords;
   // Valentine's
