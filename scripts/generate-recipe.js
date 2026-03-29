@@ -507,6 +507,15 @@ const HOLIDAY_KEYWORDS = {
       "simple watermelon lemonade recipe summer",
       "easy hamburger recipe 4th of July BBQ",
       "simple berry cobbler recipe 4th of July",
+      // Latin BBQ twists
+      "easy churrasco recipe Argentine 4th of July grill",
+      "simple chimichurri burger recipe 4th of July",
+      "easy tostones recipe BBQ side dish",
+      "simple Argentine asado recipe 4th of July",
+      "easy agua fresca recipe summer 4th of July",
+      "simple carne asada recipe 4th of July BBQ",
+      "easy elote recipe grilled corn 4th of July",
+      "simple mango habanero wings recipe 4th of July",
     ]
   },
   // LABOR DAY (1 week before first Monday in September)
@@ -537,6 +546,13 @@ const HOLIDAY_KEYWORDS = {
       "simple pumpkin dip recipe Halloween party",
       "easy skeleton pizza recipe Halloween",
       "simple Halloween punch recipe party",
+      // Latin Halloween and Dia de los Muertos
+      "easy pan de muerto recipe Mexican Halloween",
+      "simple calabaza en tacha recipe Mexican candy pumpkin",
+      "easy calavera sugar cookies recipe Dia de los Muertos",
+      "simple atole recipe Mexican Dia de los Muertos",
+      "easy tamales recipe Dia de los Muertos",
+      "simple champurrado recipe Mexican Halloween",
     ]
   },
   // THANKSGIVING (2 weeks before 4th Thursday in November)
@@ -557,6 +573,15 @@ const HOLIDAY_KEYWORDS = {
       "easy leftover turkey recipe ideas",
       "simple turkey soup recipe leftover",
       "easy Thanksgiving appetizers recipe",
+      // Latin twists on Thanksgiving
+      "easy pernil recipe Puerto Rican Thanksgiving",
+      "simple arroz con gandules recipe Thanksgiving",
+      "easy Cuban black beans recipe Thanksgiving side",
+      "simple tres leches cake recipe Thanksgiving dessert",
+      "easy Latin stuffing recipe with chorizo",
+      "simple lechon asado recipe Thanksgiving",
+      "easy pumpkin flan recipe Thanksgiving Latin",
+      "simple yuca recipe Thanksgiving side dish",
     ]
   },
   // CHRISTMAS (Dec 15-25)
@@ -577,6 +602,17 @@ const HOLIDAY_KEYWORDS = {
       "easy mulled wine recipe Christmas",
       "simple Christmas fudge recipe easy",
       "easy Christmas bread recipe homemade",
+      // Latin Christmas traditions
+      "easy hallacas recipe Venezuelan Christmas",
+      "simple pasteles recipe Puerto Rican Christmas",
+      "easy coquito recipe Puerto Rican Christmas eggnog",
+      "simple lechon asado recipe Christmas Cuban",
+      "easy pernil recipe Christmas dinner Latin",
+      "simple ponche navideño recipe Mexican Christmas",
+      "easy arroz con leche recipe Christmas dessert",
+      "simple rosca de reyes recipe Three Kings Day",
+      "easy tamales recipe Christmas homemade",
+      "simple buñuelos recipe Christmas Latin",
     ]
   },
 };
@@ -691,14 +727,14 @@ function getSeasonalKeywords() {
   if (inRange(5, 18, 5, 26)) return HOLIDAY_KEYWORDS.memorial_day.keywords;
   // Father's Day (3rd Sunday June — Jun 8-15 window)
   if (inRange(6, 8, 6, 15)) return HOLIDAY_KEYWORDS.fathers_day.keywords;
-  // 4th of July
-  if (inRange(6, 27, 7, 4)) return HOLIDAY_KEYWORDS.fourth_of_july.keywords;
+  // 4th of July (Jun 20 - Jul 4 — extended window)
+  if (inRange(6, 20, 7, 4)) return HOLIDAY_KEYWORDS.fourth_of_july.keywords;
   // Labor Day (first Monday Sep — Aug 29 - Sep 1 window)
   if (inRange(8, 29, 9, 7)) return HOLIDAY_KEYWORDS.labor_day.keywords;
   // Halloween
   if (inRange(10, 15, 10, 31)) return HOLIDAY_KEYWORDS.halloween.keywords;
-  // Thanksgiving (4th Thursday Nov — Nov 10-27 window)
-  if (inRange(11, 10, 11, 27)) return HOLIDAY_KEYWORDS.thanksgiving.keywords;
+  // Thanksgiving (Nov 1-27 window — full month)
+  if (inRange(11, 1, 11, 27)) return HOLIDAY_KEYWORDS.thanksgiving.keywords;
   // Christmas
   if (inRange(12, 15, 12, 25)) return HOLIDAY_KEYWORDS.christmas.keywords;
 
