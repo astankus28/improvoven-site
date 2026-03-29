@@ -351,54 +351,313 @@ function getKeywordPoolForMealType() {
   }
 }
 
-function isEasterSeason() {
+// ============================================================
+// HOLIDAY KEYWORD SYSTEM
+// Automatically switches to seasonal keywords around major US
+// food holidays. Each holiday has a window of days before/after.
+// ============================================================
+
+const HOLIDAY_KEYWORDS = {
+  // NEW YEAR (Dec 28 - Jan 3)
+  'new_year': {
+    keywords: [
+      "easy New Year's Eve appetizers recipe",
+      "simple New Year's Day black eyed peas recipe",
+      "easy champagne punch recipe New Years",
+      "simple party finger foods recipe New Years Eve",
+      "easy New Year's Day brunch recipe",
+      "homemade shrimp cocktail recipe New Years",
+      "simple stuffed mushrooms recipe party",
+      "easy New Year's Eve dinner recipe",
+      "simple meatballs recipe party appetizer",
+      "easy crab dip recipe New Years party",
+    ]
+  },
+  // VALENTINE'S DAY (Feb 7-14)
+  'valentines': {
+    keywords: [
+      "easy Valentine's Day dinner recipe for two",
+      "simple chocolate lava cake recipe Valentine's",
+      "easy red velvet cake recipe Valentine's Day",
+      "simple heart shaped cookies recipe Valentine's",
+      "easy romantic pasta dinner recipe for two",
+      "simple chocolate covered strawberries recipe",
+      "easy Valentine's Day breakfast in bed recipe",
+      "simple lobster tail recipe Valentine's dinner",
+      "easy chocolate mousse recipe Valentine's Day",
+      "simple steak dinner recipe for two Valentine's",
+    ]
+  },
+  // ST PATRICK'S DAY (Mar 10-17)
+  'st_patricks': {
+    keywords: [
+      "easy corned beef and cabbage recipe",
+      "simple Irish soda bread recipe homemade",
+      "easy colcannon recipe Irish mashed potatoes",
+      "simple shepherd's pie recipe St Patrick's Day",
+      "easy Irish stew recipe homemade",
+      "simple boxty Irish potato pancakes recipe",
+      "easy green smoothie recipe St Patrick's Day",
+      "homemade soda bread recipe easy",
+      "simple Dublin coddle recipe Irish",
+      "easy Guinness beef stew recipe",
+    ]
+  },
+  // EASTER / LENT (2 weeks before Easter through Easter)
+  'easter': {
+    keywords: [
+      "easy Easter lamb recipe for dinner",
+      "simple deviled eggs recipe for Easter",
+      "easy hot cross buns recipe homemade",
+      "simple Easter ham recipe glazed",
+      "easy lenten fish recipe for Good Friday",
+      "simple tuna casserole recipe lent",
+      "easy meatless Friday dinner recipe",
+      "simple lenten pasta recipe no meat",
+      "easy baked cod recipe lenten",
+      "homemade Easter bread recipe easy",
+      "simple Greek Easter soup recipe",
+      "easy lenten lentil soup recipe",
+      "simple meatless lasagna recipe lent",
+      "easy shrimp pasta recipe lenten Friday",
+      "easy vegetarian Easter side dishes",
+      "simple roasted asparagus recipe Easter",
+      "easy scalloped potatoes recipe Easter",
+      "homemade carrot cake recipe Easter",
+      "simple Easter sugar cookies recipe decorated",
+      "easy Easter brunch recipe ideas",
+    ]
+  },
+  // CINCO DE MAYO (Apr 28 - May 5)
+  'cinco_de_mayo': {
+    keywords: [
+      "easy Cinco de Mayo recipes homemade",
+      "simple homemade guacamole recipe Cinco de Mayo",
+      "easy street tacos recipe authentic",
+      "simple elote Mexican street corn recipe",
+      "easy Mexican rice recipe homemade",
+      "simple churros recipe Cinco de Mayo",
+      "easy horchata recipe homemade",
+      "simple carne asada recipe easy",
+      "easy queso dip recipe homemade",
+      "simple michelada recipe Cinco de Mayo",
+      "easy birria tacos recipe homemade",
+      "simple Mexican beans recipe from scratch",
+    ]
+  },
+  // MOTHER'S DAY (1 week before 2nd Sunday in May)
+  'mothers_day': {
+    keywords: [
+      "easy Mother's Day brunch recipe ideas",
+      "simple quiche recipe Mother's Day brunch",
+      "easy crepes recipe sweet Mother's Day",
+      "simple mimosa recipe Mother's Day brunch",
+      "easy French toast casserole recipe brunch",
+      "simple strawberry shortcake recipe Mother's Day",
+      "easy eggs benedict recipe Mother's Day",
+      "simple Mother's Day cake recipe homemade",
+      "easy brunch casserole recipe Mother's Day",
+      "simple afternoon tea sandwiches recipe",
+    ]
+  },
+  // MEMORIAL DAY (1 week before last Monday in May)
+  'memorial_day': {
+    keywords: [
+      "easy Memorial Day BBQ recipes",
+      "simple grilled burgers recipe Memorial Day",
+      "easy potato salad recipe BBQ",
+      "simple coleslaw recipe Memorial Day cookout",
+      "easy grilled chicken recipe BBQ Memorial Day",
+      "simple BBQ ribs recipe Memorial Day",
+      "easy corn on the cob recipe grilled",
+      "simple pasta salad recipe cookout",
+      "easy deviled eggs recipe Memorial Day",
+      "simple watermelon salad recipe summer",
+      "easy grilled hot dogs recipe Memorial Day",
+      "simple baked beans recipe BBQ",
+    ]
+  },
+  // FATHER'S DAY (1 week before 3rd Sunday in June)
+  'fathers_day': {
+    keywords: [
+      "easy Father's Day dinner recipe ideas",
+      "simple grilled steak recipe Father's Day",
+      "easy ribs recipe Father's Day BBQ",
+      "simple smash burger recipe Father's Day",
+      "easy grilled salmon recipe Father's Day",
+      "simple BBQ chicken recipe Father's Day",
+      "easy loaded baked potato recipe",
+      "simple chocolate cake recipe Father's Day",
+      "easy beer can chicken recipe",
+      "simple grilled corn recipe Father's Day",
+    ]
+  },
+  // 4TH OF JULY (Jun 27 - Jul 4)
+  'fourth_of_july': {
+    keywords: [
+      "easy 4th of July BBQ recipes",
+      "simple red white and blue dessert recipe",
+      "easy patriotic punch recipe 4th of July",
+      "simple grilled chicken recipe 4th of July",
+      "easy American potato salad recipe",
+      "simple 4th of July cake recipe",
+      "easy cookout side dishes recipe",
+      "simple strawberry shortcake recipe 4th of July",
+      "easy grilled corn recipe summer BBQ",
+      "simple watermelon lemonade recipe summer",
+      "easy hamburger recipe 4th of July BBQ",
+      "simple berry cobbler recipe 4th of July",
+    ]
+  },
+  // LABOR DAY (1 week before first Monday in September)
+  'labor_day': {
+    keywords: [
+      "easy Labor Day BBQ recipes",
+      "simple end of summer cookout recipes",
+      "easy grilled shrimp recipe Labor Day",
+      "simple pasta salad recipe Labor Day",
+      "easy pulled pork recipe Labor Day BBQ",
+      "simple summer fruit salad recipe",
+      "easy grilled vegetables recipe Labor Day",
+      "simple Labor Day dessert recipe easy",
+    ]
+  },
+  // HALLOWEEN (Oct 15-31)
+  'halloween': {
+    keywords: [
+      "easy Halloween dinner recipe ideas",
+      "simple pumpkin soup recipe Halloween",
+      "easy Halloween party food recipe",
+      "simple spooky Halloween treats recipe",
+      "easy pumpkin chili recipe Halloween",
+      "simple mummy hot dogs recipe Halloween",
+      "easy Halloween cookies recipe decorated",
+      "simple caramel apple recipe Halloween",
+      "easy witch finger breadsticks recipe",
+      "simple pumpkin dip recipe Halloween party",
+      "easy skeleton pizza recipe Halloween",
+      "simple Halloween punch recipe party",
+    ]
+  },
+  // THANKSGIVING (2 weeks before 4th Thursday in November)
+  'thanksgiving': {
+    keywords: [
+      "easy Thanksgiving turkey recipe homemade",
+      "simple mashed potatoes recipe Thanksgiving",
+      "easy green bean casserole recipe Thanksgiving",
+      "simple stuffing recipe homemade Thanksgiving",
+      "easy sweet potato casserole recipe Thanksgiving",
+      "simple cranberry sauce recipe homemade",
+      "easy pumpkin pie recipe from scratch",
+      "simple pecan pie recipe Thanksgiving",
+      "easy gravy recipe homemade Thanksgiving",
+      "simple roasted brussels sprouts recipe Thanksgiving",
+      "easy cornbread recipe Thanksgiving",
+      "simple apple pie recipe Thanksgiving",
+      "easy leftover turkey recipe ideas",
+      "simple turkey soup recipe leftover",
+      "easy Thanksgiving appetizers recipe",
+    ]
+  },
+  // CHRISTMAS (Dec 15-25)
+  'christmas': {
+    keywords: [
+      "easy Christmas dinner recipe ideas",
+      "simple prime rib recipe Christmas dinner",
+      "easy Christmas cookies recipe decorated",
+      "simple eggnog recipe homemade Christmas",
+      "easy Christmas ham recipe glazed",
+      "simple gingerbread cookies recipe Christmas",
+      "easy Christmas punch recipe party",
+      "simple yule log cake recipe Christmas",
+      "easy Christmas morning breakfast recipe",
+      "simple Christmas candy recipe homemade",
+      "easy roasted goose recipe Christmas",
+      "simple Christmas cake recipe fruitcake",
+      "easy mulled wine recipe Christmas",
+      "simple Christmas fudge recipe easy",
+      "easy Christmas bread recipe homemade",
+    ]
+  },
+};
+
+function getSeasonalKeywords() {
   const now = new Date();
-  const end = new Date('2026-04-06'); // Through Easter Sunday
-  return now < end;
+  const month = now.getMonth() + 1; // 1-12
+  const day = now.getDate();
+  const year = now.getFullYear();
+
+  // Helper to check date range
+  function inRange(startMonth, startDay, endMonth, endDay) {
+    const start = new Date(year, startMonth - 1, startDay);
+    const end = new Date(year, endMonth - 1, endDay);
+    return now >= start && now <= end;
+  }
+
+  // Easter calculation (approximate — works for 2026: April 5)
+  function getEasterDate(y) {
+    const a = y % 19, b = Math.floor(y/100), c = y % 100;
+    const d = Math.floor(b/4), e = b % 4, f = Math.floor((b+8)/25);
+    const g = Math.floor((b-f+1)/3), h = (19*a+b-d-g+15) % 30;
+    const i = Math.floor(c/4), k = c % 4, l = (32+2*e+2*i-h-k) % 7;
+    const m = Math.floor((a+11*h+22*l)/451);
+    const eMonth = Math.floor((h+l-7*m+114)/31);
+    const eDay = ((h+l-7*m+114) % 31) + 1;
+    return new Date(y, eMonth-1, eDay);
+  }
+
+  const easter = getEasterDate(year);
+  const easterStart = new Date(easter); easterStart.setDate(easter.getDate() - 14);
+  const easterEnd = new Date(easter); easterEnd.setDate(easter.getDate() + 1);
+  if (now >= easterStart && now <= easterEnd) return HOLIDAY_KEYWORDS.easter.keywords;
+
+  // New Year
+  if ((month === 12 && day >= 28) || (month === 1 && day <= 3)) return HOLIDAY_KEYWORDS.new_year.keywords;
+  // Valentine's
+  if (inRange(2, 7, 2, 14)) return HOLIDAY_KEYWORDS.valentines.keywords;
+  // St Patrick's
+  if (inRange(3, 10, 3, 17)) return HOLIDAY_KEYWORDS.st_patricks.keywords;
+  // Cinco de Mayo
+  if (inRange(4, 28, 5, 5)) return HOLIDAY_KEYWORDS.cinco_de_mayo.keywords;
+  // Mother's Day (approx 2nd Sunday in May — May 4-11 window)
+  if (inRange(5, 4, 5, 11)) return HOLIDAY_KEYWORDS.mothers_day.keywords;
+  // Memorial Day (last Monday May — May 18-26 window)
+  if (inRange(5, 18, 5, 26)) return HOLIDAY_KEYWORDS.memorial_day.keywords;
+  // Father's Day (3rd Sunday June — Jun 8-15 window)
+  if (inRange(6, 8, 6, 15)) return HOLIDAY_KEYWORDS.fathers_day.keywords;
+  // 4th of July
+  if (inRange(6, 27, 7, 4)) return HOLIDAY_KEYWORDS.fourth_of_july.keywords;
+  // Labor Day (first Monday Sep — Aug 29 - Sep 1 window)
+  if (inRange(8, 29, 9, 7)) return HOLIDAY_KEYWORDS.labor_day.keywords;
+  // Halloween
+  if (inRange(10, 15, 10, 31)) return HOLIDAY_KEYWORDS.halloween.keywords;
+  // Thanksgiving (4th Thursday Nov — Nov 10-27 window)
+  if (inRange(11, 10, 11, 27)) return HOLIDAY_KEYWORDS.thanksgiving.keywords;
+  // Christmas
+  if (inRange(12, 15, 12, 25)) return HOLIDAY_KEYWORDS.christmas.keywords;
+
+  return null;
 }
 
-const EASTER_KEYWORDS = [
-  "easy Easter lamb recipe for dinner",
-  "simple deviled eggs recipe for Easter",
-  "easy hot cross buns recipe homemade",
-  "simple Easter ham recipe glazed",
-  "easy lenten fish recipe for Good Friday",
-  "simple tuna casserole recipe lent",
-  "easy meatless Friday dinner recipe",
-  "simple lenten pasta recipe no meat",
-  "easy baked cod recipe lenten",
-  "homemade Easter bread recipe easy",
-  "simple Greek Easter soup recipe",
-  "easy lenten lentil soup recipe",
-  "simple meatless lasagna recipe lent",
-  "easy shrimp pasta recipe lenten Friday",
-  "simple cheese and spinach stuffed shells lent",
-  "easy vegetarian Easter side dishes",
-  "simple roasted asparagus recipe Easter",
-  "easy scalloped potatoes recipe Easter",
-  "homemade carrot cake recipe Easter",
-  "simple Easter sugar cookies recipe decorated",
-];
-
 function getNextKeyword() {
-  // During Easter season, use Easter keywords
-  if (isEasterSeason()) {
+  // Check for holiday season first
+  const holidayKeywords = getSeasonalKeywords();
+  if (holidayKeywords) {
     const usedPath = require('path').join(process.cwd(), 'used-keywords.json');
     let used = [];
     if (require('fs').existsSync(usedPath)) {
       used = JSON.parse(require('fs').readFileSync(usedPath, 'utf8'));
     }
-    const unusedEaster = EASTER_KEYWORDS.filter(k => !used.includes(k));
-    if (unusedEaster.length > 0) {
-      const keyword = unusedEaster[Math.floor(Math.random() * unusedEaster.length)];
-      used.push(keyword);
-      if (used.length > 200) used = used.slice(-200);
-      require('fs').writeFileSync(usedPath, JSON.stringify(used, null, 2));
-      console.log(`🐣 Easter season keyword: ${keyword}`);
-      return keyword;
-    }
+    const unused = holidayKeywords.filter(k => !used.includes(k));
+    const candidates = unused.length > 0 ? unused : holidayKeywords;
+    const keyword = candidates[Math.floor(Math.random() * candidates.length)];
+    used.push(keyword);
+    if (used.length > 200) used = used.slice(-200);
+    require('fs').writeFileSync(usedPath, JSON.stringify(used, null, 2));
+    console.log(`🎉 Holiday keyword: ${keyword}`);
+    return keyword;
   }
-  
+
   const pool = getKeywordPoolForMealType();
   const usedPath = path.join(process.cwd(), 'used-keywords.json');
   let used = [];
