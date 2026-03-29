@@ -371,6 +371,13 @@ const HOLIDAY_KEYWORDS = {
       "easy New Year's Eve dinner recipe",
       "simple meatballs recipe party appetizer",
       "easy crab dip recipe New Years party",
+      // Latin New Year
+      "easy matambre a la pizza recipe Argentine New Years",
+      "simple lentils recipe New Year's Day Latin tradition",
+      "easy caldo gallego recipe Cuban New Year",
+      "simple pan dulce recipe Argentine New Years Eve",
+      "easy ensalada rusa recipe New Year's Eve Latin",
+      "simple hallacas recipe Venezuelan New Year",
     ]
   },
   // VALENTINE'S DAY (Feb 7-14)
@@ -613,6 +620,16 @@ const HOLIDAY_KEYWORDS = {
       "simple rosca de reyes recipe Three Kings Day",
       "easy tamales recipe Christmas homemade",
       "simple buñuelos recipe Christmas Latin",
+      "easy pan dulce recipe Argentine Christmas",
+      "simple conchas recipe Mexican pan dulce Christmas",
+      "easy pan de jamon recipe Venezuelan Christmas",
+      "simple pionono recipe Argentine Christmas roll",
+      "easy vitel tone recipe Argentine Christmas Eve",
+      "simple ensalada rusa recipe Argentine Christmas",
+      "easy tembleque recipe Puerto Rican Christmas coconut pudding",
+      "simple arroz con dulce recipe Puerto Rican Christmas",
+      "easy cola de mono recipe Chilean Christmas eggnog",
+      "simple chicha morada recipe Peruvian Christmas drink",
     ]
   },
 };
@@ -660,6 +677,12 @@ function getSeasonalKeywords() {
       "simple meatless stuffed peppers recipe",
       "easy shrimp and grits recipe Good Friday",
       "simple lentil soup recipe Good Friday meatless",
+      // Latin Good Friday
+      "easy empanadas de vigilia recipe Good Friday Argentine",
+      "simple bacalao recipe Good Friday Latin",
+      "easy capirotada recipe Mexican Good Friday bread pudding",
+      "simple romeritos recipe Mexican Good Friday",
+      "easy fish soup recipe Latin Good Friday",
     ];
   }
   
