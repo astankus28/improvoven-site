@@ -609,6 +609,39 @@ function getSeasonalKeywords() {
   const easter = getEasterDate(year);
   const easterStart = new Date(easter); easterStart.setDate(easter.getDate() - 14);
   const easterEnd = new Date(easter); easterEnd.setDate(easter.getDate() + 1);
+  
+  // Good Friday — fish and vegetarian only
+  const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate() - 2);
+  if (now.toDateString() === goodFriday.toDateString()) {
+    return [
+      "easy baked cod recipe Good Friday",
+      "simple fish tacos recipe Good Friday",
+      "easy shrimp pasta recipe meatless",
+      "simple tuna casserole recipe Good Friday",
+      "easy salmon recipe Good Friday dinner",
+      "simple clam chowder recipe Good Friday",
+      "easy vegetarian lasagna recipe Good Friday",
+      "simple meatless stuffed peppers recipe",
+      "easy shrimp and grits recipe Good Friday",
+      "simple lentil soup recipe Good Friday meatless",
+    ];
+  }
+  
+  // Also no meat on Lenten Fridays (any Friday during Lent)
+  const lentStart = new Date(easter); lentStart.setDate(easter.getDate() - 46);
+  if (now >= lentStart && now <= easter && now.getDay() === 5) {
+    return [
+      "easy meatless Friday dinner recipe",
+      "simple fish recipe lenten Friday",
+      "easy shrimp recipe Friday lent",
+      "simple vegetarian pasta recipe Friday",
+      "easy baked fish recipe lenten",
+      "simple tuna noodle casserole recipe",
+      "easy meatless soup recipe Friday",
+      "simple cheese pizza recipe homemade Friday",
+    ];
+  }
+
   if (now >= easterStart && now <= easterEnd) return HOLIDAY_KEYWORDS.easter.keywords;
 
   // New Year
