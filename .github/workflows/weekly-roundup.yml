@@ -2,7 +2,7 @@ name: Weekly Round-Up Generator
 
 on:
   schedule:
-    - cron: '0 14 * * 0'  # 9:00 AM EST every Sunday
+    - cron: '0 13 * * 0'  # 9:00 AM EDT every Sunday
   workflow_dispatch:
 
 jobs:
