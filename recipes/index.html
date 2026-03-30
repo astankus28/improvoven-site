@@ -4,12 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>All Recipes - Improv Oven | Simple Budget-Friendly Meals</title>
-<meta name="description" content="Browse 106+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.">
+<meta name="description" content="Browse 109+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.">
 <link rel="canonical" href="https://www.improvoven.com/recipes/">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
@@ -31,6 +27,10 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;disp
 .search-box:focus{border-color:var(--green)}
 .search-box::placeholder{color:var(--muted)}
 .no-results{grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem;font-size:1.1rem}
+.filter-wrap{max-width:1100px;margin:0 auto;padding:0 2rem 1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap}
+.filter-btn{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;font-family:'Lato',sans-serif;padding:0.4rem 1rem;border:2px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:all .15s}
+.filter-btn:hover{border-color:var(--green);color:var(--green)}
+.filter-btn.active{background:var(--green);border-color:var(--green);color:#fff}
 .recipes-grid{max-width:1100px;margin:0 auto;padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
 .recipe-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
 .recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
@@ -51,18 +51,46 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 <nav>
   <a href="/" class="nav-logo">Improv <span>Oven</span></a>
   <ul class="nav-links">
-    <li><a href="/recipes/">Recipes</a></li>
-    <li><a href="/about/">About</a></li>
+    <li><a href="/recipes/index.html">Recipes</a></li>
+    <li><a href="/about/index.html">About</a></li>
   </ul>
 </nav>
 <div class="page-header">
   <h1>All Recipes</h1>
-  <p>Simple dishes with simple ingredients — 106 recipes and counting.</p>
+  <p>Simple dishes with simple ingredients — 109 recipes and counting.</p>
 </div>
 <div class="search-wrap">
   <input class="search-box" type="search" id="recipe-search" placeholder="Search recipes... try 'chicken', 'Latin', 'quick'" autocomplete="off">
 </div>
+<div class="filter-wrap" id="filter-wrap"></div>
 <div class="recipes-grid">
+    <a href="/recipes/easy-baked-cod-recipe-for-lenten-fridays-and-any-night-honestly-2026-03-30/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/easy-baked-cod-recipe-for-lenten-fridays-and-any-night-honestly-2026-03-30/images/hero.webp" alt="Easy Baked Cod Recipe for Lenten Fridays (And Any Night, Honestly)" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">American</span></div>
+        <h3>Easy Baked Cod Recipe for Lenten Fridays (And Any Night, Honestly)</h3>
+        <p>This easy baked cod recipe for Lenten season is the one you'll want saved on your phone before Friday sneaks up on you...</p>
+        <div class="card-meta">30 mins · Serves 4</div>
+      </div>
+    </a>
+    <a href="/recipes/simple-meatless-lasagna-recipe-for-lent-that-everyone-will-actually-love-2026-03-30/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/simple-meatless-lasagna-recipe-for-lent-that-everyone-will-actually-love-2026-03-30/images/hero.webp" alt="Simple Meatless Lasagna Recipe for Lent (That Everyone Will Actually Love)" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">Italian-American</span></div>
+        <h3>Simple Meatless Lasagna Recipe for Lent (That Everyone Will Actually Love)</h3>
+        <p>This simple meatless lasagna recipe for Lent is proof that giving up meat doesn't mean giving up flavor — not in this...</p>
+        <div class="card-meta">1 hr 15 mins · Serves 8</div>
+      </div>
+    </a>
+    <a href="/recipes/simple-lenten-pasta-recipe-with-no-meat-that-actually-tastes-amazing-2026-03-29/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/simple-lenten-pasta-recipe-with-no-meat-that-actually-tastes-amazing-2026-03-29/images/hero.webp" alt="Simple Lenten Pasta Recipe With No Meat (That Actually Tastes Amazing)" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">Mediterranean-Caribbean</span></div>
+        <h3>Simple Lenten Pasta Recipe With No Meat (That Actually Tastes Amazing)</h3>
+        <p>If you need a simple Lenten pasta recipe with no meat that doesn't feel like a punishment, this one right here is your...</p>
+        <div class="card-meta">30 mins · Serves 4</div>
+      </div>
+    </a>
     <a href="/recipes/homemade-carrot-cake-recipe-for-easter-moist-simple-crowd-pleasing-2026-03-29/" class="recipe-card">
       <div class="card-img"><img src="/recipes/homemade-carrot-cake-recipe-for-easter-moist-simple-crowd-pleasing-2026-03-29/images/hero.webp" alt="Homemade Carrot Cake Recipe for Easter (Moist, Simple, Crowd-Pleasing)" loading="lazy"></div>
       <div class="card-body">
@@ -962,18 +990,96 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
         <p></p>
         <div class="card-meta">35 mins · Serves 4</div>
       </div>
+    </a>
+    <a href="/recipes/quick-and-easy-hot-cocoa-with-mashmallows-caramel-and-chocolate-sauce/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/quick-and-easy-hot-cocoa-with-mashmallows-caramel-and-chocolate-sauce/images/hero.webp" alt="Quick and Easy Hot Cocoa with Mashmallows, Caramel and Chocolate Sauce" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Breakfast</span><span class="ctag">American</span></div>
+        <h3>Quick and Easy Hot Cocoa with Mashmallows, Caramel and Chocolate Sauce</h3>
+        <p></p>
+        <div class="card-meta">35 mins · Serves 4</div>
+      </div>
+    </a>
+    <a href="/recipes/sausage-peppers-and-onions/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/sausage-peppers-and-onions/images/hero.webp" alt="Sausage, Peppers, and Onions" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">American</span></div>
+        <h3>Sausage, Peppers, and Onions</h3>
+        <p></p>
+        <div class="card-meta">35 mins · Serves 4</div>
+      </div>
+    </a>
+    <a href="/recipes/slow-cooker-pulled-pork-sandwich/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/slow-cooker-pulled-pork-sandwich/images/hero.webp" alt="Slow Cooker Pulled Pork Sandwich with Purple Slaw" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">American</span></div>
+        <h3>Slow Cooker Pulled Pork Sandwich with Purple Slaw</h3>
+        <p></p>
+        <div class="card-meta">35 mins · Serves 4</div>
+      </div>
+    </a>
+    <a href="/recipes/snickerdoodle-cookies/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/snickerdoodle-cookies/images/hero.webp" alt="Easy Snickerdoodles Cookie Recipe" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Breakfast</span><span class="ctag">American</span></div>
+        <h3>Easy Snickerdoodles Cookie Recipe</h3>
+        <p></p>
+        <div class="card-meta">35 mins · Serves 4</div>
+      </div>
+    </a>
+    <a href="/recipes/the-best-chocolate-chip-cookies-from-scratch/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/the-best-chocolate-chip-cookies-from-scratch/images/hero.webp" alt="The Best Chocolate Chip Cookies from Scratch" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Breakfast</span><span class="ctag">American</span></div>
+        <h3>The Best Chocolate Chip Cookies from Scratch</h3>
+        <p></p>
+        <div class="card-meta">35 mins · Serves 4</div>
+      </div>
+    </a>
+    <a href="/recipes/linguine-with-white-clam-sauce-recipe/" class="recipe-card">
+      <div class="card-img"><img src="/recipes/linguine-with-white-clam-sauce-recipe/images/hero.webp" alt="Linguine with White Clam Sauce" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-tags"><span class="ctag">Entree</span><span class="ctag">Italian</span></div>
+        <h3>Linguine with White Clam Sauce</h3>
+        <p>A classic Italian linguine with white clam sauce that takes only 25 minutes to make. Easy, budget-friendly, and...</p>
+        <div class="card-meta">25 mins · Serves 2</div>
+      </div>
     </a></div>
 <footer>© 2026 Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 <script>
 const search = document.getElementById('recipe-search');
 const grid = document.querySelector('.recipes-grid');
+const filterWrap = document.getElementById('filter-wrap');
 const cards = Array.from(grid.querySelectorAll('.recipe-card'));
-search.addEventListener('input', () => {
+
+// Build category filters from actual card data
+const categories = ['All', ...new Set(cards.flatMap(c => 
+  Array.from(c.querySelectorAll('.ctag')).map(t => t.textContent.trim())
+))];
+
+let activeFilter = 'All';
+
+categories.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn' + (cat === 'All' ? ' active' : '');
+  btn.textContent = cat;
+  btn.addEventListener('click', () => {
+    activeFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterCards();
+  });
+  filterWrap.appendChild(btn);
+});
+
+function filterCards() {
   const q = search.value.toLowerCase().trim();
   let visible = 0;
   cards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    const show = !q || text.includes(q);
+    const matchesSearch = !q || card.textContent.toLowerCase().includes(q);
+    const matchesFilter = activeFilter === 'All' || 
+      Array.from(card.querySelectorAll('.ctag')).some(t => t.textContent.trim() === activeFilter);
+    const show = matchesSearch && matchesFilter;
     card.style.display = show ? '' : 'none';
     if (show) visible++;
   });
@@ -982,10 +1088,14 @@ search.addEventListener('input', () => {
   if (visible === 0) {
     const msg = document.createElement('p');
     msg.className = 'no-results';
-    msg.textContent = 'No recipes found for "' + search.value + '" — try another search.';
+    msg.textContent = activeFilter !== 'All' 
+      ? 'No ' + activeFilter + ' recipes yet — check back soon!'
+      : 'No recipes found for "' + search.value + '" — try another search.';
     grid.appendChild(msg);
   }
-});
+}
+
+search.addEventListener('input', filterCards);
 </script>
 </body>
 </html>
