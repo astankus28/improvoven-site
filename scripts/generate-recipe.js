@@ -13,7 +13,6 @@ const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner 
 // Add new keywords any time by editing this file.
 // ============================================================
 const KEYWORD_POOL = [
-  // BUDGET
   "cheap chicken dinner ideas under $10",
   "budget friendly pasta recipes",
   "meals to make with ground beef under $10",
@@ -34,8 +33,6 @@ const KEYWORD_POOL = [
   "inexpensive vegetarian dinner ideas",
   "budget friendly slow cooker meals",
   "cheap protein meals on a budget",
-
-  // PANTRY STAPLES
   "what to make with rice and canned tomatoes",
   "recipes using pantry staples only",
   "what to cook with chicken and rice",
@@ -56,8 +53,6 @@ const KEYWORD_POOL = [
   "recipes using cornmeal",
   "what to make with canned tuna and pasta",
   "easy dinner with ground beef and potatoes",
-
-  // LATIN AND MIAMI INFLUENCED
   "easy Cuban black beans and rice recipe",
   "simple arroz con pollo recipe",
   "easy homemade sofrito recipe",
@@ -83,8 +78,6 @@ const KEYWORD_POOL = [
   "easy Haitian rice and beans recipe",
   "simple ceviche recipe easy",
   "easy green plantain recipes",
-
-  // COMFORT FOOD
   "easy homemade mac and cheese recipe",
   "simple beef stew recipe",
   "easy chicken pot pie recipe",
@@ -105,8 +98,6 @@ const KEYWORD_POOL = [
   "easy french onion soup recipe",
   "simple beef chili recipe easy",
   "easy baked chicken thighs recipe",
-
-  // QUICK WEEKNIGHT
   "easy 20 minute chicken dinner",
   "quick weeknight pasta recipe",
   "15 minute stir fry recipe",
@@ -127,8 +118,6 @@ const KEYWORD_POOL = [
   "fast shrimp tacos recipe",
   "quick turkey meatball recipe",
   "easy 30 minute chicken curry recipe",
-
-  // BREAKFAST AND BRUNCH
   "easy homemade pancake recipe from scratch",
   "simple French toast recipe",
   "easy breakfast burrito recipe",
@@ -139,8 +128,6 @@ const KEYWORD_POOL = [
   "easy egg muffin recipe",
   "homemade granola recipe easy",
   "simple breakfast hash recipe",
-
-  // SOUPS AND STEWS
   "easy chicken tortilla soup recipe",
   "simple lentil soup recipe",
   "easy black bean soup recipe",
@@ -151,8 +138,6 @@ const KEYWORD_POOL = [
   "simple white bean soup recipe",
   "easy Cuban black bean soup recipe",
   "homemade chicken vegetable soup recipe",
-
-  // SALADS AND SIDES
   "easy pasta salad recipe",
   "simple coleslaw recipe",
   "easy roasted vegetables recipe",
@@ -163,8 +148,6 @@ const KEYWORD_POOL = [
   "simple garlic bread recipe",
   "easy roasted sweet potatoes recipe",
   "homemade coleslaw recipe easy",
-
-  // SAUCES AND BASICS
   "easy homemade marinara sauce recipe",
   "simple garlic butter sauce recipe",
   "easy homemade salsa recipe",
@@ -175,8 +158,6 @@ const KEYWORD_POOL = [
   "easy cheese sauce recipe",
   "homemade hot sauce recipe easy",
   "simple curry sauce recipe",
-
-  // SEAFOOD
   "easy garlic butter shrimp recipe",
   "simple baked salmon recipe",
   "easy fish tacos recipe",
@@ -187,7 +168,6 @@ const KEYWORD_POOL = [
   "easy tuna patties recipe",
   "homemade fish stew recipe easy",
   "simple pan seared tilapia recipe",
-  // ARGENTINIAN AND SOUTH AMERICAN
   "easy Argentine empanadas recipe",
   "simple asado recipe at home",
   "easy milanesa recipe Argentine",
@@ -208,8 +188,6 @@ const KEYWORD_POOL = [
   "easy Argentine chimichurri chicken",
   "homemade Argentine potato salad recipe",
   "simple Argentine grilled vegetables recipe",
-
-  // MEAL PREP
   "easy meal prep ideas for the week",
   "simple batch cooking recipes",
   "meal prep chicken recipes for the week",
@@ -225,8 +203,6 @@ const KEYWORD_POOL = [
   "make ahead breakfast recipes easy",
   "simple freezer friendly soup recipes",
   "easy meal prep with ground beef",
-
-  // ONE POT AND SHEET PAN
   "easy one pot pasta recipe",
   "simple one pot chicken and rice",
   "easy sheet pan chicken and vegetables",
@@ -242,8 +218,6 @@ const KEYWORD_POOL = [
   "one pot vegetable curry recipe",
   "easy sheet pan breakfast recipe",
   "simple one pot jambalaya recipe",
-
-  // HEALTHY AND LIGHT
   "easy healthy chicken recipe low calorie",
   "simple healthy salad with protein",
   "easy low carb dinner recipe",
@@ -259,8 +233,6 @@ const KEYWORD_POOL = [
   "healthy egg recipe for dinner",
   "easy vegetable curry recipe healthy",
   "simple healthy taco recipe",
-
-  // GRILLING AND BBQ
   "easy grilled chicken marinade recipe",
   "simple BBQ ribs recipe at home",
   "easy grilled corn recipe",
@@ -271,8 +243,6 @@ const KEYWORD_POOL = [
   "simple BBQ chicken recipe easy",
   "easy grilled pork tenderloin recipe",
   "simple grilled steak marinade recipe",
-
-  // SNACKS AND APPETIZERS
   "easy homemade hummus recipe",
   "simple guacamole recipe easy",
   "easy deviled eggs recipe",
@@ -283,8 +253,6 @@ const KEYWORD_POOL = [
   "simple stuffed mushrooms recipe",
   "easy nachos recipe homemade",
   "simple cheese quesadilla recipe",
-
-  // SIMPLE DESSERTS
   "easy chocolate mug cake recipe",
   "simple banana bread recipe easy",
   "easy no bake cheesecake recipe",
@@ -295,8 +263,6 @@ const KEYWORD_POOL = [
   "simple rice pudding recipe",
   "easy arroz con leche recipe",
   "homemade vanilla pudding recipe easy",
-
-  // EASTER & LENTEN SEASONAL (March-April 2026)
   "easy Easter lamb recipe for dinner",
   "simple deviled eggs recipe for Easter",
   "easy hot cross buns recipe homemade",
@@ -317,6 +283,66 @@ const KEYWORD_POOL = [
   "easy scalloped potatoes recipe Easter",
   "homemade carrot cake recipe Easter",
   "simple Easter sugar cookies recipe decorated",
+  "quick Cuban black beans weeknight recipe",
+  "easy Cuban picadillo ground beef recipe",
+  "budget friendly pernil pork shoulder recipe",
+  "simple Cuban ropa vieja slow cooker",
+  "homemade sofrito pantry staple recipe",
+  "best Cuban sandwich pressed recipe",
+  "quick Puerto Rican jibarito recipe",
+  "easy Venezuelan arepa homemade recipe",
+  "simple Cuban congri rice beans",
+  "budget Miami style croquetas recipe",
+  "homemade Venezuelan empanada filling recipe",
+  "quick Puerto Rican pasteles recipe",
+  "easy Cuban lechon asado recipe",
+  "simple Miami mojo pork recipe",
+  "budget Cuban bistec palomilla recipe",
+  "quick Puerto Rican tostones recipe",
+  "easy Venezuelan tequeños cheese recipe",
+  "homemade Cuban flan dessert recipe",
+  "simple Argentine chimichurri steak recipe",
+  "budget Mexican carnitas weeknight recipe",
+  "quick Cuban cortadito coffee breakfast",
+  "easy Puerto Rican quesito recipe",
+  "simple Venezuelan cachapas corn pancakes",
+  "budget Miami Cuban toast recipe",
+  "homemade tres leches cake recipe",
+  "quick Puerto Rican alcapurrias recipe",
+  "easy Cuban croqueta ham recipe",
+  "simple Venezuelan hallacas recipe",
+  "budget Argentine milanesa chicken recipe",
+  "quick Mexican chilaquiles breakfast recipe",
+  "easy Cuban tres golpes dessert",
+  "simple Puerto Rican tembleque recipe",
+  "homemade Venezuelan pabellón criollo recipe",
+  "budget Cuban media noche sandwich",
+  "quick Miami cafecito recipe",
+  "easy Puerto Rican bacalaitos recipe",
+  "simple Cuban maduros sweet plantains",
+  "homemade Venezuelan patacones recipe",
+  "budget Argentine alfajores cookies recipe",
+  "quick Mexican huevos rancheros recipe",
+  "easy Cuban picadillo pasta bake",
+  "simple Puerto Rican sancocho soup",
+  "homemade Venezuelan arepas breakfast recipe",
+  "budget Cuban sandwich soup recipe",
+  "quick Miami style café con leche",
+  "easy Puerto Rican jibarito lunch",
+  "simple Venezuelan black bean soup",
+  "budget Cuban sandwich wrap recipe",
+  "homemade tres leches pancakes recipe",
+  "quick Puerto Rican mofongo recipe",
+  "easy two ingredient Japanese cheesecake",
+  "simple protein cottage cheese bowl",
+  "homemade pickled red onions recipe",
+  "quick air fryer plantain chips",
+  "budget five ingredient pasta recipe",
+  "simple black currant sauce recipe",
+  "easy cabbage steaks with herbs",
+  "homemade high protein muffins recipe",
+  "quick spring asparagus pasta recipe",
+  "budget matcha latte homemade recipe",
 ];
 
 
