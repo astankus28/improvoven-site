@@ -1,13 +1,176 @@
 {
-  "date": "2026-04-02T13:15:11.475Z",
+  "date": "2026-04-02T13:22:52.610Z",
   "summary": {
-    "upgraded": 0,
-    "already_good": 4,
-    "needs_manual": 31,
+    "upgraded": 40,
+    "already_good": 6,
+    "needs_manual": 8,
     "no_html": 0
   },
-  "upgraded": [],
+  "upgraded": [
+    {
+      "slug": "apple-walnut-salad-with-creamy-lemon-dressing",
+      "newTitle": "Apple Walnut Salad with Creamy Lemon Dressing | Improv Oven"
+    },
+    {
+      "slug": "avocado-on-toast-recipe",
+      "newTitle": "Avocado On Toast Recipe - 20 Min Budget Meal | Improv Oven"
+    },
+    {
+      "slug": "bacon-egg-cheese-breakfast-wrap",
+      "newTitle": "Bacon, Egg & Cheese Breakfast Wrap - 20 Min Budget Recipe | Improv Oven"
+    },
+    {
+      "slug": "baked-chicken-and-rice-casserole",
+      "newTitle": "Oven Baked Chicken and Rice Casserole - Easy One-Dish | Improv Oven"
+    },
+    {
+      "slug": "baked-rigatoni-recipe",
+      "newTitle": "Baked Rigatoni Recipe - Easy 35-Min Dinner | Improv Oven"
+    },
+    {
+      "slug": "belgian-waffles",
+      "newTitle": "Belgian Waffles Recipe - Crispy & Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "best-bloody-mary-drink-mix-and-cocktail-recipe",
+      "newTitle": "Best Bloody Mary Mix Recipe - Homemade & Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "best-fried-baked-eggplant-parmesan-recipe",
+      "newTitle": "Best Eggplant Parmesan Recipe - Crispy & Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "best-homemade-pepperoni-pizza-dough-sauce",
+      "newTitle": "Homemade Pepperoni Pizza Dough & Sauce - Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "creamy-spinach-and-italian-sausage-pasta-recipe",
+      "newTitle": "Creamy Spinach Italian Sausage Pasta - Budget Weeknight | Improv Oven"
+    },
+    {
+      "slug": "crispy-roasted-baked-balsamic-brussels-sprouts-recipe",
+      "newTitle": "Crispy Roasted Balsamic Brussels Sprouts - 20 Min Recipe | Improv Oven"
+    },
+    {
+      "slug": "curry-chicken-sandwich",
+      "newTitle": "Curry Chicken Sandwich - Easy 20-Min Dinner | Improv Oven"
+    },
+    {
+      "slug": "double-swiss-cheeseburger-with-fried-egg-on-everything-bagel",
+      "newTitle": "Double Swiss Cheeseburger with Fried Egg on Everything Bagel | Improv Oven"
+    },
+    {
+      "slug": "easy-banana-nut-bread-recipe",
+      "newTitle": "Easy Banana Nut Bread Recipe - 20 Min Breakfast | Improv Oven"
+    },
+    {
+      "slug": "easy-cheesy-chicken-alfredo",
+      "newTitle": "Easy-Cheesy Chicken Alfredo - Budget Pasta in 35 Mins | Improv Oven"
+    },
+    {
+      "slug": "easy-cilantro-lime-shrimp-tacos-recipe",
+      "newTitle": "Cilantro Lime Shrimp Tacos - 20 Min Budget Recipe | Improv Oven"
+    },
+    {
+      "slug": "easy-crepe-recipe-sweet-blueberry-stuffed-crepes",
+      "newTitle": "Easy Blueberry Stuffed Crepes - 35 Mins | Improv Oven"
+    },
+    {
+      "slug": "easy-fried-chicken-tenders",
+      "newTitle": "Easy Fried Chicken Tenders - 3 Ingredients | Improv Oven"
+    },
+    {
+      "slug": "easy-mac-and-cheese",
+      "newTitle": "Easy Mac and Cheese - 20 Minute Comfort Food | Improv Oven"
+    },
+    {
+      "slug": "easy-shrimp-and-cheese-grits-recipe",
+      "newTitle": "Easy Shrimp and Cheese Grits Recipe - Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "easy-smothered-and-fried-pork-chops-and-rice-recipe",
+      "newTitle": "Easy Smothered & Fried Pork Chops & Rice - 35 Mins | Improv Oven"
+    },
+    {
+      "slug": "easy-stuffed-red-peppers-italian-sausage-rice",
+      "newTitle": "Easy Stuffed Red Peppers with Italian Sausage & Rice | Improv Oven"
+    },
+    {
+      "slug": "fried-chicken-sandwich-recipe",
+      "newTitle": "Fried Chicken Sandwich - 3 Ingredients, 35 Mins | Improv Oven"
+    },
+    {
+      "slug": "grape-and-hummus-tuna-salad-sandwich",
+      "newTitle": "Grape and Hummus Tuna Salad Sandwich - Budget Lunch | Improv Oven"
+    },
+    {
+      "slug": "grilled-chili-lime-corn-on-the-cob",
+      "newTitle": "Grilled Chili Lime Corn - Budget-Friendly & Flavorful | Improv Oven"
+    },
+    {
+      "slug": "grilled-steak-fajitas-recipe",
+      "newTitle": "Grilled Steak Fajitas Recipe - Budget-Friendly & Ready in 35 Mins | Improv Oven"
+    },
+    {
+      "slug": "ground-chicken-meatballs-recipe",
+      "newTitle": "Ground Chicken Meatballs Recipe - Easy & Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "handful-spinach-eggs-over-easy-recipe",
+      "newTitle": "Spinach and Eggs Over Easy - 20 Minute Breakfast | Improv Oven"
+    },
+    {
+      "slug": "how-to-make-cheese-omelette",
+      "newTitle": "Easy Cheese Omelette Recipe - 20 Mins | Improv Oven"
+    },
+    {
+      "slug": "how-to-make-creamy-garlic-mashed-potatoes-recipe",
+      "newTitle": "Creamy Garlic Mashed Potatoes Recipe - Easy & Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "how-to-make-easy-buttermilk-biscuits-sage-sausage-gravy",
+      "newTitle": "Easy Buttermilk Biscuits and Sage Sausage Gravy | Improv Oven"
+    },
+    {
+      "slug": "how-to-make-pizza-dough-from-scratch-home",
+      "newTitle": "Homemade Pizza Dough from Scratch - Budget Easy | Improv Oven"
+    },
+    {
+      "slug": "milk-chocolate-covered-clusters-with-marshmallows-raisins-and-golden-grahams",
+      "newTitle": "Chocolate Clusters with Marshmallows & Raisins | Improv Oven"
+    },
+    {
+      "slug": "oven-baked-bbq-mahi-mahi",
+      "newTitle": "Oven Baked BBQ Mahi-Mahi - 35 Min Weeknight Dinner | Improv Oven"
+    },
+    {
+      "slug": "peruvian-tilapia-ceviche",
+      "newTitle": "Peruvian Tilapia Ceviche - Fresh & Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "quick-and-easy-hot-cocoa-with-mashmallows-caramel-and-chocolate-sauce",
+      "newTitle": "Easy Hot Cocoa with Caramel & Marshmallows | Improv Oven"
+    },
+    {
+      "slug": "sausage-peppers-and-onions",
+      "newTitle": "Sausage, Peppers, and Onions - Easy 30-Min Dinner | Improv Oven"
+    },
+    {
+      "slug": "slow-cooker-pulled-pork-sandwich",
+      "newTitle": "Slow Cooker Pulled Pork Sandwich - Budget-Friendly | Improv Oven"
+    },
+    {
+      "slug": "snickerdoodle-cookies",
+      "newTitle": "Easy Snickerdoodles Recipe - Budget-Friendly & Quick | Improv Oven"
+    },
+    {
+      "slug": "the-best-chocolate-chip-cookies-from-scratch",
+      "newTitle": "The Best Chocolate Chip Cookies from Scratch | Improv Oven"
+    }
+  ],
   "already_good": [
+    "arancini-italian-rice-balls-recipe",
+    "bacon-egg-and-cheese-sandwich",
     "easy-shepherds-pie-recipe",
     "how-to-bake-flounder-fillets-recipe-with-tomato-salad",
     "how-to-make-guacamole-recipe",
@@ -15,14 +178,14 @@
   ],
   "needs_manual": [
     {
-      "slug": "easy-cilantro-lime-shrimp-tacos-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Cilantro Lime Shrimp Tacos Recipe - Improv Oven"
+      "slug": "bacon-egg-and-cheese-sandwich-on-a-croissant",
+      "reason": "No ingredients/instructions in schema — placeholder or malformed",
+      "title": "Bacon Egg and Cheese Sandwich on a Croissant - Improv Oven"
     },
     {
-      "slug": "easy-crepe-recipe-sweet-blueberry-stuffed-crepes",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Crepe Recipe: Sweet Blueberry Stuffed Crepes - Improv Oven"
+      "slug": "easy-baked-salmon-recipe-2-ingredients",
+      "reason": "No ingredients/instructions in schema — placeholder or malformed",
+      "title": "Easy Baked Salmon Recipe — 2 Ingredients - Improv Oven"
     },
     {
       "slug": "easy-egg-white-omelette-recipe",
@@ -30,34 +193,9 @@
       "title": "Easy Egg White Omelette Recipe - Improv Oven"
     },
     {
-      "slug": "easy-fried-chicken-tenders",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Fried Chicken Tenders - Improv Oven"
-    },
-    {
       "slug": "easy-homemade-chicken-wings-recipe",
       "reason": "No ingredients/instructions in schema — placeholder or malformed",
       "title": "Easy Homemade Chicken Wings Recipe - Improv Oven"
-    },
-    {
-      "slug": "easy-mac-and-cheese",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Mac and Cheese - Improv Oven"
-    },
-    {
-      "slug": "easy-shrimp-and-cheese-grits-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Shrimp and Cheese Grits Recipe - Improv Oven"
-    },
-    {
-      "slug": "easy-smothered-and-fried-pork-chops-and-rice-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Smothered And Fried Pork Chops And Rice Recipe - Improv Oven"
-    },
-    {
-      "slug": "easy-stuffed-red-peppers-italian-sausage-rice",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Stuffed Red Peppers with Italian Sausage and Rice - Improv Oven"
     },
     {
       "slug": "eggs-in-a-basket-simple-3-ingredient-egg-cups",
@@ -65,104 +203,14 @@
       "title": "Eggs in a Basket - Simple 3 Ingredient Egg Cups - Improv Oven"
     },
     {
-      "slug": "fried-chicken-sandwich-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Fried Chicken Sandwich Recipe - Improv Oven"
-    },
-    {
-      "slug": "grape-and-hummus-tuna-salad-sandwich",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Grape and Hummus Tuna Salad Sandwich - Improv Oven"
-    },
-    {
-      "slug": "grilled-chili-lime-corn-on-the-cob",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Grilled Chili Lime Corn On The Cob - Improv Oven"
-    },
-    {
-      "slug": "grilled-steak-fajitas-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Grilled Steak Fajitas Recipe - Improv Oven"
-    },
-    {
-      "slug": "ground-chicken-meatballs-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Ground Chicken Meatballs Recipe - Improv Oven"
-    },
-    {
-      "slug": "handful-spinach-eggs-over-easy-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Handful of Spinach and Eggs Over Easy - Improv Oven"
-    },
-    {
-      "slug": "how-to-make-cheese-omelette",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "How to Make an Easy Cheese Omelette - Improv Oven"
-    },
-    {
-      "slug": "how-to-make-creamy-garlic-mashed-potatoes-recipe",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Creamy Garlic Mashed Potatoes Recipe - Improv Oven"
-    },
-    {
-      "slug": "how-to-make-easy-buttermilk-biscuits-sage-sausage-gravy",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "How to Make Easy Buttermilk Biscuits and Sage Sausage Gravy - Improv Oven"
-    },
-    {
-      "slug": "how-to-make-pizza-dough-from-scratch-home",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "How to Make Homemade Pizza Dough from Scratch - Improv Oven"
-    },
-    {
       "slug": "linguine-with-white-clam-sauce-recipe",
       "reason": "No ingredients/instructions in schema — placeholder or malformed",
       "title": "Linguine with White Clam Sauce Recipe - Improv Oven"
     },
     {
-      "slug": "milk-chocolate-covered-clusters-with-marshmallows-raisins-and-golden-grahams",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Milk Chocolate Covered Clusters with Marshmallows, Raisins and Golden Grahams - Improv Oven"
-    },
-    {
-      "slug": "oven-baked-bbq-mahi-mahi",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Oven Baked BBQ Mahi-Mahi - Improv Oven"
-    },
-    {
-      "slug": "peruvian-tilapia-ceviche",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Peruvian Tilapia Ceviche - Improv Oven"
-    },
-    {
       "slug": "potato-lasagna-with-creamy-white-sauce",
       "reason": "No ingredients/instructions in schema — placeholder or malformed",
       "title": "Potato Lasagna With Creamy White Sauce - Improv Oven"
-    },
-    {
-      "slug": "quick-and-easy-hot-cocoa-with-mashmallows-caramel-and-chocolate-sauce",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Quick and Easy Hot Cocoa with Mashmallows, Caramel and Chocolate Sauce - Improv Oven"
-    },
-    {
-      "slug": "sausage-peppers-and-onions",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Sausage, Peppers, and Onions - Improv Oven"
-    },
-    {
-      "slug": "slow-cooker-pulled-pork-sandwich",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Slow Cooker Pulled Pork Sandwich with Purple Slaw - Improv Oven"
-    },
-    {
-      "slug": "snickerdoodle-cookies",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "Easy Snickerdoodles Cookie Recipe - Improv Oven"
-    },
-    {
-      "slug": "the-best-chocolate-chip-cookies-from-scratch",
-      "reason": "API returned unparseable response after 3 attempts",
-      "title": "The Best Chocolate Chip Cookies from Scratch - Improv Oven"
     },
     {
       "slug": "venezuelan-teque-os-fried-cheese-sticks-recipe",
