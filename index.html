@@ -1,635 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cleveland Lithuanian American Community</title>
-  <meta name="description" content="The heartbeat of Lithuanian culture in Northeast Ohio. Events, heritage, and community news for the Cleveland Lithuanian American Community.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Improv Oven — Cure Refrigerator Blindness</title>
+<meta name="description" content="Improv Oven is a food blog about improvising with simple pantry ingredients. Budget-friendly, quick weeknight recipes with Miami and Latin American influence.">
+<meta property="og:title" content="Improv Oven — Cure Refrigerator Blindness">
+<meta property="og:description" content="Simple recipes using pantry staples. Budget-friendly meals with Miami influence.">
+<meta property="og:image" content="https://www.improvoven.com/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.improvoven.com/og-image.jpg">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.improvoven.com/">
+<link rel="canonical" href="https://www.improvoven.com/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Improv Oven",
+  "url": "https://www.improvoven.com",
+  "description": "A food blog about improvising with simple pantry ingredients. Budget-friendly, quick weeknight recipes.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://www.improvoven.com/recipes/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#2d6a4f;
+  --green-light:#52b788;
+  --green-pale:#d8f3dc;
+  --cream:#faf7f2;
+  --text:#1a1a1a;
+  --muted:#666;
+  --border:#e8e0d0;
+}
+body{background:var(--cream);color:var(--text);font-family:'Lato',sans-serif;font-size:17px;line-height:1.7}
+a{color:var(--green);text-decoration:none}
+a:hover{color:var(--green-light)}
+
+/* Nav */
+nav{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--green)}
+.nav-logo span{font-style:italic;font-weight:400}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center}
+.nav-links a{font-size:0.85rem;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);font-weight:700;transition:color .2s}
+.nav-links a:hover{color:var(--green)}
+
+/* Hero */
+.hero{background:#fff;border-bottom:1px solid var(--border);padding:5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(82,183,136,0.08) 0%,transparent 70%);pointer-events:none}
+.hero-eyebrow{font-size:0.75rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--green-light);font-weight:700;margin-bottom:1.5rem}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;line-height:1.1;color:var(--text);max-width:700px;margin:0 auto 1.5rem}
+.hero-title em{font-style:italic;color:var(--green)}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.8}
+.hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--green);color:#fff;font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:0.9rem 2rem;transition:background .2s,transform .2s;display:inline-block}
+.btn-primary:hover{background:#1f4f3a;color:#fff;transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--green);border:2px solid var(--green);font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:0.85rem 2rem;transition:all .2s;display:inline-block}
+.btn-ghost:hover{background:var(--green);color:#fff}
+
+/* Features strip */
+.features{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:#fff}
+.feature{padding:2rem;text-align:center;border-right:1px solid var(--border)}
+.feature:last-child{border-right:none}
+.feature-icon{font-size:1.8rem;margin-bottom:0.8rem}
+.feature h3{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:0.4rem}
+.feature p{font-size:0.88rem;color:var(--muted);line-height:1.6}
+
+/* Latest recipes */
+.latest{max-width:1100px;margin:0 auto;padding:4rem 2rem}
+.section-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2.5rem}
+.section-header h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700}
+.section-header a{font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--green)}
+.recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem}
+.recipe-card{background:#fff;border:1px solid var(--border);overflow:hidden;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column}
+.recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+.card-img{aspect-ratio:16/9;overflow:hidden;background:var(--green-pale)}
+.card-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.recipe-card:hover .card-img img{transform:scale(1.04)}
+.card-body{padding:1.2rem 1.4rem;flex:1;display:flex;flex-direction:column}
+.card-tags{display:flex;gap:0.4rem;margin-bottom:0.7rem;flex-wrap:wrap}
+.ctag{font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--green);color:#fff;padding:0.2rem 0.5rem}
+.card-body h3{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;color:var(--text);line-height:1.3}
+.card-body p{font-size:0.88rem;color:var(--muted);line-height:1.6;flex:1;margin-bottom:0.8rem}
+.card-meta{font-size:0.75rem;color:var(--green);font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+
+/* Email signup */
+.signup-strip{background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:4rem 2rem;text-align:center}
+.signup-strip h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin-bottom:0.5rem}
+.signup-strip p{color:var(--muted);max-width:480px;margin:0 auto 2rem;line-height:1.7}
+.signup-form{display:flex;gap:0;max-width:480px;margin:0 auto}
+.signup-input{flex:1;padding:0.9rem 1.2rem;font-size:1rem;font-family:'Lato',sans-serif;border:2px solid var(--border);border-right:none;background:#fff;color:var(--text);outline:none}
+.signup-input:focus{border-color:var(--green)}
+.signup-btn{padding:0.9rem 1.8rem;background:var(--green);color:#fff;font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;border:2px solid var(--green);cursor:pointer;font-family:'Lato',sans-serif;transition:background .2s;white-space:nowrap}
+.signup-btn:hover{background:var(--green-light);border-color:var(--green-light)}
+.signup-note{font-size:0.75rem;color:var(--muted);margin-top:0.8rem}
+@media(max-width:500px){.signup-form{flex-direction:column}.signup-input{border-right:2px solid var(--border);border-bottom:none}.signup-btn{border:2px solid var(--green)}}
+/* About strip */
+.about-strip{background:var(--green);color:#fff;padding:4rem 2rem;text-align:center}
+.about-strip h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin-bottom:1rem}
+.about-strip p{max-width:580px;margin:0 auto 2rem;opacity:0.85;line-height:1.8}
+.btn-white{background:#fff;color:var(--green);font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;padding:0.9rem 2rem;transition:all .2s;display:inline-block}
+.btn-white:hover{background:var(--green-pale);color:var(--green)}
+
+/* Empty state */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted)}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:0.8rem;color:var(--text)}
+
+footer{background:#fff;border-top:1px solid var(--border);padding:2.5rem 2rem;text-align:center;font-size:0.82rem;color:var(--muted)}
+footer a{color:var(--green);font-weight:700}
+
+@media(max-width:768px){
+  .features{grid-template-columns:1fr}
+  .feature{border-right:none;border-bottom:1px solid var(--border)}
+  .feature:last-child{border-bottom:none}
+  .nav-links{display:none}
+  .recipes-grid{grid-template-columns:1fr}
+}
+</style>
+<!-- MailerLite Universal -->
+<script>
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '2222920');
+</script>
+<!-- End MailerLite Universal -->
 </head>
 <body>
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <div><span data-en="Cleveland, Ohio — Est. 1951" data-lt="Klivlandas, Ohajas — Įkurta 1951 m.">Cleveland, Ohio — Est. 1951</span> &nbsp;·&nbsp; <a href="https://javlb.lt/en/" target="_blank"><span data-en="Part of Lithuanian American Community, Inc." data-lt="JAV Lietuvių Bendruomenės narys">Part of Lithuanian American Community, Inc.</span></a></div>
-  <div class="topbar-social">
-    <a href="https://www.facebook.com/profile.php?id=61565856471983" target="_blank">Facebook</a>
-    <a href="https://www.instagram.com/cleveland_lietuviu_bendruomene" target="_blank">Instagram</a>
-    <a href="mailto:info@clacleveland.org" data-en="Contact" data-lt="Susisiekti">Contact</a>
-  </div>
-</div>
-
-<!-- NAV -->
-<nav class="main-nav" id="main-nav">
-  <a href="index.html" class="nav-logo">
-    <div class="nav-logo-en">Cleveland Lithuanian American Community</div>
-    <div class="nav-logo-lt">Clevelando Lietuvių Bendruomenė</div>
-  </a>
-    <ul class="nav-links" id="nav-links">
-    <li><a href="index.html" class="active" data-en="Home" data-lt="Pradžia">Home</a></li>
-    <li><a href="index.html#upcoming" data-en="Events" data-lt="Renginiai">Events</a></li>
-    <li><a href="community.html" data-en="Community Calendar" data-lt="Bendruomenės Kalendorius">Community Calendar</a></li>
-    <li><a href="gallery.html" data-en="Gallery" data-lt="Galerija">Gallery</a></li>
-    <li><a href="index.html#journal" data-en="Journal" data-lt="Archyvas">Journal</a></li>
-    <li><a href="index.html#announcements" data-en="News" data-lt="Žinios">News</a></li>
-    <li><a href="about.html" data-en="About" data-lt="Apie Mus">About</a></li>
-    <li><a href="join.html" data-en="Join" data-lt="Prisijunkite">Join</a></li>
+<nav>
+  <a href="/" class="nav-logo">Improv <span>Oven</span></a>
+  <ul class="nav-links">
+    <li><a href="/recipes/">Recipes</a></li>
+    <li><a href="/recipes/dinner/">Dinner</a></li>
+    <li><a href="/recipes/breakfast/">Breakfast</a></li>
+    <li><a href="/recipes/quick/">Quick</a></li>
+    <li><a href="/recipes/latin/">Latin</a></li>
+    <li><a href="/about/">About</a></li>
   </ul>
-  <div class="nav-right">
-    <div class="nav-lang">
-      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
-      <button class="lang-btn" data-lang="lt" onclick="setLang('lt')">LT</button>
-    </div>
-    <div class="hamburger" onclick="document.getElementById('nav-links').classList.toggle('open')">
-      <span></span><span></span><span></span>
-    </div>
-  </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero" style="padding:0;">
-  <div class="hero-texture"></div>
-  <div class="hero-left">
-    <div class="hero-overline">Clevelando Lietuvių Bendruomenė</div>
-    <div>
-      <h1 class="hero-headline" id="hero-headline">One community.<br><em>Many stories.</em><br>One Cleveland.</h1>
-      <p class="hero-sub" id="hero-sub">The heartbeat of Lithuanian culture in Northeast Ohio — celebrating our heritage, connecting generations, and building a living community here on the shores of Lake Erie.</p>
-    </div>
-    <div class="hero-actions">
-      <a href="#upcoming" class="btn-primary" data-en="Upcoming Events" data-lt="Artėjantys Renginiai">Upcoming Events</a>
-      <a href="#journal" class="btn-ghost-inv" data-en="Photo Journal" data-lt="Nuotraukų Archyvas">Photo Journal</a>
-    </div>
-    <div class="hero-meta">
-      <div><div class="hero-stat-num" id="stat1-num">70+</div><div class="hero-stat-label" id="stat1-label" data-en="Years Active" data-lt="Veiklos Metai">Years Active</div></div>
-      <div><div class="hero-stat-num" id="stat2-num">E. 185th</div><div class="hero-stat-label" id="stat2-label" data-en="Heritage Corridor" data-lt="Paveldo Koridorius">Heritage Corridor</div></div>
-      <div><div class="hero-stat-num">LAC</div><div class="hero-stat-label" data-en="National Affiliate" data-lt="Nacionalinis Narys">National Affiliate</div></div>
-    </div>
-  </div>
-  <div class="hero-right">
-    <a class="hero-featured-card" id="hero-featured" href="#">
-      <div class="hfc-bg" id="hfc-bg"></div>
-      <div class="hfc-overlay"></div>
-      <span class="hero-card-tag">Featured Event</span>
-      <h2 class="hero-card-title" id="hfc-title">Loading...</h2>
-      <div class="hero-card-date" id="hfc-date"></div>
-    </a>
+<section class="hero">
+  <div class="hero-eyebrow">A Simple Food Blog</div>
+  <h1 class="hero-title">Cure your <em>refrigerator blindness</em></h1>
+  <p class="hero-sub">Fridge full but nothing to eat? Improv Oven is about taking simple pantry ingredients and turning them into delicious, budget-friendly meals — fast.</p>
+  <div class="hero-actions">
+    <a href="/recipes/" class="btn-primary">Browse all recipes</a>
+    <a href="/about/" class="btn-ghost">Our story</a>
   </div>
 </section>
 
-<!-- TICKER -->
-<div class="ticker"><div class="ticker-inner" id="ticker-inner">Loading...</div></div>
-
-<!-- UPCOMING EVENTS -->
-<section id="upcoming" style="padding: 72px 0; background: var(--linen);">
-  <div class="container">
-    <div class="section-header">
-      <div>
-        <div class="section-title" data-en="Upcoming Events" data-lt="Artėjantys Renginiai">Upcoming Events</div>
-        <div class="section-title-lt" data-en="Upcoming Events (LT)" data-lt="Artėjantys Renginiai" style="display:none;">Artėjantys Renginiai</div>
-      </div>
-      <a href="#" class="section-link" data-en="Full Calendar →" data-lt="Visas Kalendorius →">Full Calendar →</a>
-    </div>
-    <div class="two-col">
-      <div class="upcoming-list" id="upcoming-list">
-        <div style="color:var(--text-muted); padding:40px 0;">Loading events...</div>
-      </div>
-      <div>
-        <div class="sidebar-widget">
-          <div class="sidebar-widget-title" data-en="Follow Our Community" data-lt="Sekite Mus">Follow Our Community</div>
-          <div class="social-grid">
-            <a href="https://www.facebook.com/profile.php?id=61565856471983" target="_blank" class="social-btn">
-              <span class="si">f</span><span>Facebook</span>
-            </a>
-            <a href="https://www.instagram.com/cleveland_lietuviu_bendruomene" target="_blank" class="social-btn">
-              <span class="si">◉</span><span>Instagram</span>
-            </a>
-          </div>
-        </div>
-        <div class="sidebar-widget">
-          <div class="sidebar-widget-title" data-en="Quick Links" data-lt="Nuorodos">Quick Links</div>
-          <ul class="sidebar-link-list">
-            <li><a href="https://javlb.lt/en/" target="_blank">National LAC (javlb.lt) <span>↗</span></a></li>
-            <li><a href="#">Membership Information <span>→</span></a></li>
-            <li><a href="#">Board &amp; Leadership <span>→</span></a></li>
-            <li><a href="#">Lithuanian Cultural Garden <span>→</span></a></li>
-            <li><a href="http://www.saintcasimirparish.org" target="_blank">St. Casimir Parish <span>↗</span></a></li>
-            <li><a href="#">Donate / Support <span>→</span></a></li>
-          </ul>
-        </div>
-        <div class="sidebar-widget">
-          <div class="sidebar-widget-title">National Organization</div>
-          <div style="border: 1px solid rgba(200,144,58,0.3); padding:18px; margin-top:4px;">
-            <p style="font-size:13px; color:rgba(242,237,228,0.6); line-height:1.6; margin-bottom:12px;"><span data-en="A chapter of the Lithuanian American Community, Inc. — active since 1951 with 50 chapters across 26 states." data-lt="JAV Lietuvių Bendruomenės skyrius — veikia nuo 1951 m., 50 skyrių 26 valstijose.">A chapter of the Lithuanian American Community, Inc. — active since 1951 with 50 chapters across 26 states.</span></p>
-            <a href="https://javlb.lt/en/" target="_blank" style="font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.1em; color:var(--amber); text-decoration:none; text-transform:uppercase;">Visit javlb.lt ↗</a>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="features">
+  <div class="feature">
+    <div class="feature-icon">🕐</div>
+    <h3>Quick & Easy</h3>
+    <p>Most recipes are ready in 30 minutes or less. No culinary school required.</p>
   </div>
-</section>
-
-<!-- PHOTO JOURNAL -->
-<section id="journal" style="background: var(--forest); padding: 72px 0;">
-  <div class="container">
-    <div class="section-header" style="border-color: rgba(255,255,255,0.12);">
-      <div>
-        <div class="section-title" style="color:var(--cream);">Photo Journal</div>
-        <div class="section-title-lt">Archyvas / Nuotraukos</div>
-      </div>
-      <a href="#" class="section-link" data-en="Full Archive →" data-lt="Visas Archyvas →">Full Archive →</a>
-    </div>
-    <div class="journal-grid" id="journal-grid">
-      <div style="color:rgba(242,237,228,0.4); padding:40px; grid-column:span 4;">Loading...</div>
-    </div>
-    <div style="text-align:center; margin-top:36px;">
-      <a href="#" class="btn-ghost-inv" data-en="View Full Archive — All Years →" data-lt="Peržiūrėti Visą Archyvą →">View Full Archive — All Years →</a>
-    </div>
+  <div class="feature">
+    <div class="feature-icon">💰</div>
+    <h3>Budget Friendly</h3>
+    <p>Real meals using pantry staples and affordable ingredients you already have.</p>
   </div>
-</section>
-
-<!-- EVENT HIGHLIGHTS -->
-<section id="highlights" style="background: var(--cream); padding: 72px 0;">
-  <div class="container">
-    <div class="section-header">
-      <div>
-        <div class="section-title" data-en="Event Highlights" data-lt="Renginių Akimirkos">Event Highlights</div>
-        <div class="section-title-lt">Renginių Akimirkos</div>
-      </div>
-      <a href="#" class="section-link" data-en="All Past Events →" data-lt="Visi Buvę Renginiai →">All Past Events →</a>
-    </div>
-    <div class="events-grid" id="events-grid">
-      <div style="color:var(--text-muted); padding:40px; grid-column:span 3;">Loading...</div>
-    </div>
-  </div>
-</section>
-
-<!-- ANNOUNCEMENTS -->
-<section id="announcements" style="padding: 72px 0; background: var(--linen);">
-  <div class="container">
-    <div class="section-header">
-      <div>
-        <div class="section-title" data-en="News &amp; Announcements" data-lt="Žinios ir Pranešimai">News &amp; Announcements</div>
-        <div class="section-title-lt">Žinios ir Pranešimai</div>
-      </div>
-      <a href="#" class="section-link" data-en="All News →" data-lt="Visos Žinios →">All News →</a>
-    </div>
-    <div class="two-col">
-      <div id="announce-list">
-        <div style="color:var(--text-muted); padding:20px 0;">Loading...</div>
-      </div>
-      <div>
-        <div class="sidebar-widget">
-          <div class="sidebar-widget-title">Lithuanian Heritage in Cleveland</div>
-          <ul class="sidebar-link-list">
-            <li><a href="http://www.saintcasimirparish.org" target="_blank">St. Casimir Parish <span>↗</span></a></li>
-            <li><a href="#">Lithuanian Cultural Garden <span>→</span></a></li>
-            <li><a href="#">Our Lady of Perpetual Help <span>→</span></a></li>
-            <li><a href="#">E. 185th Heritage Corridor <span>→</span></a></li>
-          </ul>
-        </div>
-        <div class="sidebar-widget">
-          <div class="sidebar-widget-title" data-en="Submit News or Photos" data-lt="Siųskite Žinias ar Nuotraukas">Submit News or Photos</div>
-          <p style="font-size:13px; color:rgba(242,237,228,0.6); line-height:1.65; margin-bottom:14px;"><span data-en="Have photos from a recent event? Want to share a community announcement? Send them our way." data-lt="Turite nuotraukų iš nesenų renginių? Norite pasidalinti bendruomenės pranešimu? Siųskite mums.">Have photos from a recent event? Want to share a community announcement? Send them our way.</span></p>
-          <a href="mailto:info@clacleveland.org" class="btn-primary" style="font-size:11px; padding:10px 18px;" data-en="Send to Us →" data-lt="Siųsti →">Send to Us →</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- COMMUNITY FEED PREVIEW -->
-<section id="community" style="background: var(--linen); padding: 72px 0;">
-  <div class="container">
-    <div class="section-header">
-      <div>
-        <div class="section-title" data-en="Cleveland Lithuanian Community" data-lt="Klivlando Lietuvių Bendruomenė">Cleveland Lithuanian Community</div>
-        <div class="section-title-lt">Clevelando Lietuvių Renginiai — All Organizations</div>
-      </div>
-      <a href="community.html" class="section-link">Full Calendar →</a>
-    </div>
-    <div style="margin-bottom: 20px; display:flex; gap:12px; flex-wrap:wrap;">
-      <span style="font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; padding:4px 12px; border:1px solid rgba(109,184,122,0.4); color:#6db87a; background:rgba(109,184,122,0.08);">★ CLAC</span>
-      <span style="font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; padding:4px 12px; border:1px solid rgba(122,172,224,0.4); color:#7aace0; background:rgba(122,172,224,0.08);">ltcle.org</span>
-      <span style="font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; padding:4px 12px; border:1px solid rgba(224,176,122,0.4); color:#e0b07a; background:rgba(224,176,122,0.08);">St. Casimir Parish</span>
-      <span id="cf-status" style="font-family:'DM Mono',monospace; font-size:10px; color:var(--text-faint); align-self:center; margin-left:auto;">Loading...</span>
-    </div>
-    <div id="cf-preview" style="display:flex; flex-direction:column;">
-      <!-- Skeleton -->
-      <div id="cf-skeleton">
-        <div style="border-top:1px solid var(--rule);">
-          <div style="display:grid; grid-template-columns:72px 1fr; gap:20px; padding:18px 0; border-bottom:1px solid var(--rule);"><div style="width:56px; height:64px; background:var(--cream-dark);"></div><div><div style="width:60px; height:11px; background:var(--cream-dark); margin-bottom:8px;"></div><div style="width:60%; height:16px; background:var(--cream-dark); margin-bottom:6px;"></div><div style="width:40%; height:11px; background:var(--cream-dark);"></div></div></div>
-          <div style="display:grid; grid-template-columns:72px 1fr; gap:20px; padding:18px 0; border-bottom:1px solid var(--rule);"><div style="width:56px; height:64px; background:var(--cream-dark);"></div><div><div style="width:55px; height:11px; background:var(--cream-dark); margin-bottom:8px;"></div><div style="width:55%; height:16px; background:var(--cream-dark); margin-bottom:6px;"></div><div style="width:35%; height:11px; background:var(--cream-dark);"></div></div></div>
-          <div style="display:grid; grid-template-columns:72px 1fr; gap:20px; padding:18px 0; border-bottom:1px solid var(--rule);"><div style="width:56px; height:64px; background:var(--cream-dark);"></div><div><div style="width:50px; height:11px; background:var(--cream-dark); margin-bottom:8px;"></div><div style="width:65%; height:16px; background:var(--cream-dark); margin-bottom:6px;"></div><div style="width:45%; height:11px; background:var(--cream-dark);"></div></div></div>
-        </div>
-      </div>
-      <div id="cf-list" style="display:none;"></div>
-    </div>
-    <div style="text-align:center; margin-top:32px;">
-      <a href="community.html" class="btn-primary" data-en="View Full Community Calendar →" data-lt="Peržiūrėti Visą Bendruomenės Kalendorių →">View Full Community Calendar →</a>
-    </div>
-  </div>
-</section>
-
-<!-- ABOUT -->
-<div class="about-strip" id="about">
-  <div class="about-inner">
-    <div>
-      <div class="ab-label" id="ab1-label" data-en="Who We Are" data-lt="Kas Mes Esame">Who We Are</div>
-      <div class="ab-heading" id="ab1-heading">Clevelando Lietuvių Bendruomenė</div>
-      <div class="ab-body" id="ab1-body" data-en="We are the Cleveland chapter of the Lithuanian American Community, Inc. — a national nonprofit active since 1951. Our roots run deep along Cleveland's E. 185th Street corridor, where generations of Lithuanian immigrants built a church, a community, and a lasting legacy." data-lt="Mes esame JAV Lietuvių Bendruomenės Klivlando skyrius — nacionalinė ne pelno organizacija, veikianti nuo 1951 m. Mūsų šaknys giliai įleidusios palei E. 185-osios gatvės koridorių, kur lietuvių imigrantų kartos pastatė bažnyčią, bendruomenę ir paliko ilgalaikį palikimą.">We are the Cleveland chapter of the Lithuanian American Community, Inc. — a national nonprofit active since 1951. Our roots run deep along Cleveland's E. 185th Street corridor, where generations of Lithuanian immigrants built a church, a community, and a lasting legacy.</div>
-    </div>
-    <div class="ab-divider"></div>
-    <div>
-      <div class="ab-label" id="ab2-label" data-en="What We Do" data-lt="Ką Mes Darome">What We Do</div>
-      <div class="ab-heading" id="ab2-heading" data-en="Celebrating Culture &amp; Building Connections" data-lt="Švenčiame Kultūrą ir Kuriame Ryšius">Celebrating Culture &amp; Building Connections</div>
-      <div class="ab-body" id="ab2-body" data-en="We organize cultural events throughout the year — spring gatherings, summer picnics, Christmas Eve Kūčios, and appearances at One World Day. We connect members to the national and global Lithuanian diaspora through javlb.lt." data-lt="Ištisus metus organizuojame kultūrinius renginius — pavasario susibūrimus, vasaros pikniką, Kūčias ir dalyvavimą One World Day šventėje. Jungiame narius su nacionaline ir pasauline lietuvių diaspora per javlb.lt.">We organize cultural events throughout the year — spring gatherings, summer picnics, Christmas Eve Kūčios, and appearances at One World Day. We connect members to the national and global Lithuanian diaspora through <a href="https://javlb.lt/en/">javlb.lt</a>.</div>
-    </div>
-    <div class="ab-divider"></div>
-    <div>
-      <div class="ab-label" id="ab3-label" data-en="Get Involved" data-lt="Prisijunkite">Get Involved</div>
-      <div class="ab-heading" id="ab3-heading" data-en="Everyone with Lithuanian Roots is Welcome" data-lt="Visi, turintys lietuviškų šaknų, yra laukiami">Everyone with Lithuanian Roots is Welcome</div>
-      <div class="ab-body" id="ab3-body" data-en="Whether you speak Lithuanian at home or are just discovering your heritage — you belong here. Follow us on Facebook and Instagram, or reach out to join as a member." data-lt="Nesvarbu, ar kalbate lietuviškai namuose, ar tik atrandate savo paveldą — čia jūsų vieta. Sekite mus Facebook ir Instagram arba susisiekite, kad taptumėte nariu.">Whether you speak Lithuanian at home or are just discovering your heritage — you belong here. Follow us on <a href="https://www.facebook.com/profile.php?id=61565856471983">Facebook</a> and <a href="https://www.instagram.com/cleveland_lietuviu_bendruomene">Instagram</a>, or reach out to join as a member.</div>
-    </div>
+  <div class="feature">
+    <div class="feature-icon">🌴</div>
+    <h3>Miami Influenced</h3>
+    <p>Latin American and Caribbean flavors woven into everyday home cooking.</p>
   </div>
 </div>
 
-<!-- NEWSLETTER -->
-<div class="newsletter-strip">
-  <div class="newsletter-inner">
-    <div>
-      <div class="newsletter-heading" data-en="Stay in the loop." data-lt="Likite prisijungę.">Stay in the loop.</div>
-      <div class="newsletter-sub" data-en="Events, news, and community updates delivered to your inbox." data-lt="Renginiai, žinios ir bendruomenės naujienos — tiesiai į jūsų paštą.">Events, news, and community updates delivered to your inbox.</div>
-    </div>
-    <div class="newsletter-form">
-      <input type="email" class="newsletter-input" data-en-placeholder="Your email address" data-lt-placeholder="Jūsų el. pašto adresas" placeholder="Your email address">
-      <button class="newsletter-submit" onclick="handleSubscribe(this)" data-en="Subscribe →" data-lt="Prenumeruoti →">Subscribe →</button>
-    </div>
+<!-- Category Navigation -->
+<div style="background:#fff;border-bottom:1px solid var(--border);padding:2rem;text-align:center">
+  <div style="font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--green-light);font-weight:700;margin-bottom:1rem">Browse by Category</div>
+  <div style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center">
+    <a href="/recipes/dinner/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍽 Dinner</a>
+    <a href="/recipes/breakfast/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍳 Breakfast</a>
+    <a href="/recipes/quick/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">⚡ 30-Minute Meals</a>
+    <a href="/recipes/latin/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🌶 Latin</a>
+    <a href="/recipes/italian/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍝 Italian</a>
+    <a href="/recipes/budget/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">💰 Budget Meals</a>
+    <a href="/recipes/dessert/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">🍰 Desserts</a>
+    <a href="/recipes/" style="padding:0.5rem 1.2rem;border-radius:100px;border:1px solid var(--border);font-size:0.85rem;color:var(--muted);transition:all .2s;text-decoration:none" onmouseover="this.style.background='#2d6a4f';this.style.color='#fff';this.style.borderColor='#2d6a4f'" onmouseout="this.style.background='';this.style.color='';this.style.borderColor='var(--border)'">📖 All Recipes</a>
   </div>
 </div>
 
-<!-- FOOTER -->
-<footer class="main-footer" id="contact">
-  <div class="footer-grid">
-    <div>
-      <div class="footer-brand-name">Cleveland Lithuanian American Community</div>
-      <div class="footer-brand-lt">Clevelando Lietuvių Bendruomenė</div>
-      <div class="footer-desc">A chapter of the Lithuanian American Community, Inc. — preserving Lithuanian culture and heritage in Northeast Ohio since 1951. Affiliated with <a href="https://javlb.lt/en/" style="color:var(--amber);">javlb.lt</a>.</div>
-    </div>
-    <div>
-      <div class="footer-col-title" data-en="Navigate" data-lt="Naršyti">Navigate</div>
-      <ul class="footer-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="#upcoming">Events</a></li>
-    <li><a href="community.html">Community Calendar</a></li>
-        <li><a href="#journal">Photo Journal</a></li>
-        <li><a href="#announcements">News</a></li>
-        <li><a href="about.html">About</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-col-title" data-en="Heritage Sites" data-lt="Paveldo Vietos">Heritage Sites</div>
-      <ul class="footer-links">
-        <li><a href="http://www.saintcasimirparish.org" target="_blank">St. Casimir Parish ↗</a></li>
-        <li><a href="#">Lithuanian Cultural Garden</a></li>
-        <li><a href="#">E. 185th Corridor</a></li>
-        <li><a href="#">Our Lady of Perpetual Help</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-col-title" data-en="Connect" data-lt="Ryšiai">Connect</div>
-      <ul class="footer-links">
-        <li><a href="https://www.facebook.com/profile.php?id=61565856471983" target="_blank">Facebook</a></li>
-        <li><a href="https://www.instagram.com/cleveland_lietuviu_bendruomene" target="_blank">Instagram</a></li>
-        <li><a href="https://javlb.lt/en/" target="_blank">National LAC</a></li>
-        <li><a href="mailto:info@clacleveland.org">Email Us</a></li>
-        <li><a href="dashboard.html" data-en="Board Login" data-lt="Valdybos Prisijungimas">Board Login</a></li>
-      </ul>
+<!-- Email Signup -->
+<div class="signup-strip">
+  <div class="ml-embedded" data-form="JCaDP7"></div>
+</div>
+<section class="latest">
+  <div class="section-header">
+    <h2>Latest Recipes</h2>
+    <a href="/recipes/index.html">View all →</a>
+  </div>
+  <div class="recipes-grid" id="recipes-grid">
+    <div class="empty-state" style="grid-column:1/-1">
+      <h3>First recipe coming tomorrow!</h3>
+      <p>The kitchen is heating up. Check back soon — new recipes publish daily.</p>
     </div>
   </div>
-  <div class="footer-bottom">
-    <div>© 2025 Cleveland Lithuanian American Community, Inc. &nbsp;·&nbsp; A chapter of <a href="https://javlb.lt/en/">Lithuanian American Community, Inc.</a></div>
-    <div style="font-family:'DM Mono',monospace; font-size:11px; color:rgba(242,237,228,0.3);">Vienybėje Mūsų Stiprybė — In Unity Our Strength</div>
+  <div style="text-align:center;padding:2rem 0 1rem">
+    <a href="/recipes/" style="font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--green);border-bottom:2px solid var(--green);padding-bottom:0.2rem;">View all recipes →</a>
   </div>
+</section>
+
+
+<div class="about-strip">
+  <h2>What is Improv Oven?</h2>
+  <p>How often do you make a trip to your full refrigerator to find nothing to eat — then go back 5 minutes later and stare at that same fridge? This site is about showing you how to turn those dull ingredients into something delicious.</p>
+  <a href="/about/" class="btn-white">Read our story</a>
+</div>
+
+<footer>
+  © <span id="year"></span> Improv Oven · Simple recipes, simple ingredients · <a href="/recipes/index.html">All Recipes</a> · <a href="/about/index.html">About</a> · <a href="/privacy-policy/">Privacy Policy</a>
 </footer>
 
-<script src="assets/data.js"></script>
-<script src="assets/feed.js"></script>
 <script>
-  const ICONS    = ['◆','✶','⬡','◈','◇','✦','◉','▲','✿','◊'];
-  const PALETTES = ['#2d4a33','#3d2e1a','#1e2e3a','#2a1e2e','#2e3a1e','#3a3010','#1a3038','#38281a','#1a3022','#2e1a38'];
+document.getElementById('year').textContent = new Date().getFullYear();
 
-  /* ── HERO ── */
-  function buildHero() {
-    const featured = CLAC.events.upcoming()[0] || CLAC.events.past()[0];
-    const lang = localStorage.getItem('clac_lang') || 'en';
-    if (featured) {
-      const bg = document.getElementById('hfc-bg');
-      if (featured.coverPhoto) {
-        bg.style.background = `url(${featured.coverPhoto}) center/cover no-repeat`;
-        bg.style.backgroundImage = '';
-      } else {
-        bg.style.background = featured.coverColor || '#2d4a33';
-        bg.style.backgroundImage = 'repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,0.015) 20px,rgba(255,255,255,0.015) 21px)';
-      }
-      const title = (lang === 'lt' && featured.titleLt) ? featured.titleLt : featured.title;
-      document.getElementById('hfc-title').textContent = title;
-      document.getElementById('hfc-date').textContent  = CLAC.formatDate(featured.date) + ' · ' + featured.location;
-      document.getElementById('hero-featured').href    = 'event.html?id=' + featured.id;
-    }
-    const s = CLAC.settings.get();
-    const headline = (lang === 'lt' && s.heroHeadlineLt) ? s.heroHeadlineLt : (s.heroHeadline || 'One community. Many stories. One Cleveland.');
-    const sub      = (lang === 'lt' && s.heroSubLt)      ? s.heroSubLt      : (s.heroSub || '');
-    document.getElementById('hero-headline').innerHTML = headline.replace(/\. /g, '.<br>').replace('Many stories', '<em>Many stories</em>').replace('Daug istorijų', '<em>Daug istorijų</em>');
-    document.getElementById('hero-sub').textContent  = sub;
-  }
-
-  /* ── TICKER ── */
-  function buildTicker() {
-    const s        = CLAC.settings.get();
-    const upcoming = CLAC.events.upcoming().slice(0, 4).map(e => 'Upcoming: ' + e.title + ' — ' + CLAC.formatDateShort(e.date));
-    const all      = [...upcoming, s.tickerText].join(' ◆ ');
-    const doubled  = all + '  ◆  ' + all;
-    document.getElementById('ticker-inner').textContent = doubled;
-  }
-
-  /* ── UPCOMING LIST ── */
-  function buildUpcoming() {
-    const lang = localStorage.getItem('clac_lang') || 'en';
-    const events = CLAC.events.upcoming();
-    const el     = document.getElementById('upcoming-list');
-    if (!events.length) {
-      el.innerHTML = `<div style="color:var(--text-muted);padding:40px 0;">${lang === 'lt' ? 'Šiuo metu artėjančių renginių nėra. Grįžkite netrukus.' : 'No upcoming events at this time. Check back soon.'}</div>`;
-      return;
-    }
-    el.innerHTML = events.map(e => {
-      const md  = CLAC.monthDay(e.date);
-      const cat = (e.category || 'cultural').toLowerCase();
-      return `<a class="upcoming-item" href="event.html?id=${e.id}">
-        <div class="ud-box"><div class="ud-month">${md.month}</div><div class="ud-day">${md.day}</div></div>
-        <div>
-          <div class="ui-title">${(lang === 'lt' && e.titleLt) ? e.titleLt : e.title}</div>
-          <div class="ui-details"><span>📍 ${e.location}</span><span>🕐 ${e.time}</span></div>
-          <div class="ui-desc">${e.description ? e.description.split('\n')[0] : ''}</div>
-        </div>
-        <div class="ui-tag">${e.category}</div>
-      </a>`;
-    }).join('');
-  }
-
-  /* ── JOURNAL GRID ── */
-  function buildJournal() {
-    const past = CLAC.events.past();
-    const el   = document.getElementById('journal-grid');
-    if (!past.length) {
-      el.innerHTML = `<div style="color:rgba(242,237,228,0.4);padding:40px;grid-column:span 4;">${lang === 'lt' ? 'Kol kas nėra praeities renginių.' : 'No past events yet.'}</div>`;
-      return;
-    }
-    el.innerHTML = past.slice(0, 8).map((e, i) => {
-      const icon  = ICONS[i % ICONS.length];
-      const color = e.coverColor || PALETTES[i % PALETTES.length];
-      const angle = 45 + i * 15;
-      const bgStyle = e.coverPhoto
-        ? `background:url(${e.coverPhoto}) center/cover no-repeat;`
-        : `background:${color}; background-image:repeating-linear-gradient(${angle}deg,transparent,transparent 12px,rgba(255,255,255,0.02) 12px,rgba(255,255,255,0.02) 13px);`;
-      return `<a class="journal-item" href="event.html?id=${e.id}" style="text-decoration:none;">
-        <div class="jg-bg" style="${bgStyle}">
-          <span class="jg-icon">${icon}</span>
-        </div>
-        <div class="jg-overlay">
-          <div class="jg-title">${e.title}</div>
-          <div class="jg-date">${CLAC.formatDateShort(e.date)} · ${e.location.split(',')[0]}</div>
-        </div>
-      </a>`;
-    }).join('');
-  }
-
-  /* ── EVENT HIGHLIGHTS ── */
-  function buildHighlights() {
-    const lang = localStorage.getItem('clac_lang') || 'en';
-    const past = CLAC.events.past();
-    const el   = document.getElementById('events-grid');
-    if (!past.length) {
-      el.innerHTML = `<div style="color:var(--text-muted);padding:40px;grid-column:span 3;">${lang === 'lt' ? 'Kol kas nėra praeities renginių.' : 'No past events yet.'}</div>`;
-      return;
-    }
-    el.innerHTML = past.slice(0, 4).map((e, i) => {
-      const large = i === 0;
-      const color = e.coverColor || PALETTES[i % PALETTES.length];
-      const angle = 35 + i * 20;
-      const ecBgStyle = e.coverPhoto
-        ? `background:url(${e.coverPhoto}) center/cover no-repeat;`
-        : `background:${color}; background-image:repeating-linear-gradient(${angle}deg,transparent,transparent 15px,rgba(255,255,255,0.018) 15px,rgba(255,255,255,0.018) 16px);`;
-      return `<a class="event-card${large ? ' large' : ''}" href="event.html?id=${e.id}" style="text-decoration:none;">
-        <div class="ec-bg" style="${ecBgStyle}"></div>
-        <div class="ec-overlay"></div>
-        <div class="ec-content">
-          <div class="ec-tag">${e.category} — ${CLAC.formatDateShort(e.date)}</div>
-          <div class="ec-title">${e.title}</div>
-          <div class="ec-meta">
-            <span>${e.location.split(',')[0]}</span>
-            ${e.attendees ? '<span>' + e.attendees + '+ Attendees</span>' : ''}
+// Load latest recipes from recipes-data.json if available
+fetch('/recipes-data.json')
+  .then(r => r.json())
+  .then(recipes => {
+    if (!recipes || recipes.length === 0) return;
+    const grid = document.getElementById('recipes-grid');
+    const latest = recipes.slice(0, 6);
+    grid.innerHTML = latest.map(r => `
+      <a href="/recipes/${r.slug}/" class="recipe-card">
+        <div class="card-img"><img src="${r.image}" alt="${r.title}" loading="lazy"></div>
+        <div class="card-body">
+          <div class="card-tags">
+            <span class="ctag">${r.category}</span>
+            <span class="ctag">${r.cuisine}</span>
           </div>
+          <h3>${r.title}</h3>
+          <p>${r.description}</p>
+          <div class="card-meta">${r.totalTime} · Serves ${r.servings}</div>
         </div>
-      </a>`;
-    }).join('');
-  }
-
-  /* ── ANNOUNCEMENTS ── */
-  function buildAnnouncements() {
-    const lang = localStorage.getItem('clac_lang') || 'en';
-    const anns = CLAC.announcements.published();
-    const el   = document.getElementById('announce-list');
-    if (!anns.length) {
-      el.innerHTML = `<div style="color:var(--text-muted);padding:20px 0;">${lang === 'lt' ? 'Šiuo metu pranešimų nėra.' : 'No announcements at this time.'}</div>`;
-      return;
-    }
-    el.innerHTML = anns.slice(0, 5).map(a => `
-      <div class="announce-item">
-        <div>
-          <div class="ann-type">${a.type}</div>
-          <div class="ann-title">${a.title}</div>
-          <div class="ann-body">${a.body}</div>
-        </div>
-        <div class="ann-date">${CLAC.formatDateShort(a.date)}</div>
-      </div>`).join('');
-  }
-
-  /* ── NEWSLETTER ── */
-  function handleSubscribe(btn) {
-    const input = btn.previousElementSibling;
-    if (!input.value || !input.value.includes('@')) {
-      input.style.borderBottom = '2px solid var(--red)';
-      return;
-    }
-    btn.textContent = 'Subscribed ✓';
-    btn.style.background = 'var(--forest-light)';
-    input.value = '';
-    setTimeout(() => { btn.textContent = 'Subscribe →'; btn.style.background = ''; }, 3000);
-  }
-
-  /* ── STICKY NAV SHADOW ── */
-  window.addEventListener('scroll', () => {
-    document.getElementById('main-nav').style.boxShadow =
-      window.scrollY > 60 ? '0 1px 20px rgba(0,0,0,0.08)' : 'none';
-  });
-
-  /* ── BUILD ABOUT FROM SETTINGS ── */
-  function buildAbout() {
-    const s    = CLAC.settings.get();
-    const lang = localStorage.getItem('clac_lang') || 'en';
-    const ab = [
-      { label: s.ab1Label, labelLt: s.ab1LabelLt, heading: s.ab1Heading, headingLt: s.ab1HeadingLt, body: s.ab1Body, bodyLt: s.ab1BodyLt, ids: ['ab1-label','ab1-heading','ab1-body'] },
-      { label: s.ab2Label, labelLt: s.ab2LabelLt, heading: s.ab2Heading, headingLt: s.ab2HeadingLt, body: s.ab2Body, bodyLt: s.ab2BodyLt, ids: ['ab2-label','ab2-heading','ab2-body'] },
-      { label: s.ab3Label, labelLt: s.ab3LabelLt, heading: s.ab3Heading, headingLt: s.ab3HeadingLt, body: s.ab3Body, bodyLt: s.ab3BodyLt, ids: ['ab3-label','ab3-heading','ab3-body'] },
-    ];
-    ab.forEach(col => {
-      const [lid, hid, bid] = col.ids;
-      const lEl = document.getElementById(lid);
-      const hEl = document.getElementById(hid);
-      const bEl = document.getElementById(bid);
-      if (lEl) { lEl.dataset.en = col.label || ''; lEl.dataset.lt = col.labelLt || col.label || ''; lEl.textContent = lang === 'lt' ? (col.labelLt || col.label) : col.label; }
-      if (hEl) { hEl.dataset.en = col.heading || ''; hEl.dataset.lt = col.headingLt || col.heading || ''; hEl.textContent = lang === 'lt' ? (col.headingLt || col.heading) : col.heading; }
-      if (bEl) { bEl.dataset.en = col.body || ''; bEl.dataset.lt = col.bodyLt || col.body || ''; bEl.textContent = lang === 'lt' ? (col.bodyLt || col.body) : col.body; }
-    });
-    // Stats
-    const s1n = document.getElementById('stat1-num');
-    const s1l = document.getElementById('stat1-label');
-    const s2n = document.getElementById('stat2-num');
-    const s2l = document.getElementById('stat2-label');
-    if (s1n) s1n.textContent = s.stat1Num || '70+';
-    if (s1l) { s1l.textContent = s.stat1Label || 'Years Active'; s1l.dataset.en = s.stat1Label || ''; }
-    if (s2n) s2n.textContent = s.stat2Num || 'E. 185th';
-    if (s2l) { s2l.textContent = s.stat2Label || 'Heritage Corridor'; s2l.dataset.en = s.stat2Label || ''; }
-  }
-
-  /* ── BUILD QUICK LINKS ── */
-  function buildQuickLinks() {
-    const lang  = localStorage.getItem('clac_lang') || 'en';
-    const links = CLAC.quickLinks.all();
-    const el    = document.getElementById('quick-links-list');
-    if (!el || !links.length) return;
-    el.innerHTML = links.map(q => {
-      const label  = (lang === 'lt' && q.label_lt) ? q.label_lt : q.label;
-      const target = q.external ? ' target="_blank" rel="noopener"' : '';
-      const arrow  = q.external ? ' <span>↗</span>' : ' <span>→</span>';
-      return `<li><a href="${q.url}"${target}>${label}${arrow}</a></li>`;
-    }).join('');
-  }
-
-  /* ── INIT ── */
-  CLAC.ready().then(() => {
-    buildHero();
-    buildTicker();
-    buildUpcoming();
-    buildJournal();
-    buildHighlights();
-    buildAnnouncements();
-    buildAbout();
-    buildQuickLinks();
-  });
-
-  /* ── COMMUNITY FEED PREVIEW ── */
-  (async () => {
-    await CLAC.ready();
-    const BADGE = {
-      clac:      { text:'#6db87a', border:'#6db87a', bg:'rgba(109,184,122,0.1)' },
-      ltcle:     { text:'#7aace0', border:'#7aace0', bg:'rgba(122,172,224,0.1)' },
-      stcasimir: { text:'#e0b07a', border:'#e0b07a', bg:'rgba(224,176,122,0.1)' },
-    };
-    try {
-      const events = await CommunityFeed.load();
-      const top    = CommunityFeed.upcoming(6);
-      document.getElementById('cf-skeleton').style.display = 'none';
-      document.getElementById('cf-list').style.display     = 'block';
-      document.getElementById('cf-status').textContent     = events.length + ' upcoming events across all organizations';
-
-      document.getElementById('cf-list').innerHTML = top.map(e => {
-        const md = CLAC.monthDay(e.date);
-        const c  = BADGE[e.source] || BADGE.ltcle;
-        const bs = `color:${c.text}; border-color:${c.border}; background:${c.bg};`;
-        const url = e.url || '#';
-        const tgt = e.source === 'clac' ? '' : 'target="_blank" rel="noopener"';
-        return `<a href="${url}" ${tgt} style="display:grid; grid-template-columns:72px 1fr auto; gap:20px; align-items:start; padding:18px 0; border-bottom:1px solid var(--rule); text-decoration:none; color:inherit; transition:background 0.15s;" onmouseover="this.style.background='rgba(200,144,58,0.04)'" onmouseout="this.style.background=''">
-          <div style="text-align:center;">
-            <div style="background:var(--forest); color:var(--cream); padding:8px 6px; display:inline-block; min-width:56px; text-align:center;">
-              <div style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--amber-light);">${md.month}</div>
-              <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:900; line-height:1; margin-top:2px;">${md.day}</div>
-            </div>
-          </div>
-          <div>
-            <span style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; padding:2px 8px; border:1px solid; display:inline-block; margin-bottom:6px; ${bs}">${e.sourceBadge}</span>
-            <div style="font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--text-dark); line-height:1.25;">${e.title}</div>
-            <div style="font-size:12px; color:var(--text-muted); margin-top:4px; display:flex; gap:12px; flex-wrap:wrap; font-family:'DM Mono',monospace;">
-              ${e.time ? `<span>🕐 ${e.time}</span>` : ''}
-              ${e.location ? `<span>📍 ${e.location.split(',')[0]}</span>` : ''}
-            </div>
-          </div>
-          <div style="align-self:center; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber); white-space:nowrap;">
-            ${e.source === 'clac' ? 'Details →' : 'View ↗'}
-          </div>
-        </a>`;
-      }).join('');
-
-    } catch(err) {
-      document.getElementById('cf-skeleton').style.display = 'none';
-      document.getElementById('cf-status').textContent = 'Could not load community events';
-    }
-  })();
-</script>
-<script>
-// ── LANGUAGE TOGGLE ──────────────────────────────────────────────────────────
-(function() {
-  const LANG_KEY = 'clac_lang';
-
-  function setLang(lang) {
-    localStorage.setItem(LANG_KEY, lang);
-    document.documentElement.setAttribute('lang', lang);
-
-    // Swap all data-en / data-lt elements
-    document.querySelectorAll('[data-en]').forEach(el => {
-      el.innerHTML = lang === 'lt' ? el.dataset.lt : el.dataset.en;
-    });
-
-    // Swap placeholders
-    document.querySelectorAll('[data-en-placeholder]').forEach(el => {
-      el.placeholder = lang === 'lt' ? el.dataset.ltPlaceholder : el.dataset.enPlaceholder;
-    });
-
-    // Update toggle buttons
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.lang === lang);
-    });
-
-    // Rebuild dynamic sections with new lang
-    if (window.CLAC) {
-      buildHero();
-      buildUpcoming();
-      buildAnnouncements();
-      buildAbout();
-      buildQuickLinks();
-    }
-  }
-
-  function initLang() {
-    const saved = localStorage.getItem(LANG_KEY) || 'en';
-    setLang(saved);
-  }
-
-  // Expose globally
-  window.setLang = setLang;
-  window.initLang = initLang;
-
-  // Init on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLang);
-  } else {
-    initLang();
-  }
-})();
+      </a>`).join('');
+  })
+  .catch(() => {}); // Keep empty state if no recipes yet
 </script>
 </body>
 </html>
