@@ -1,7 +1,6 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
 
 const REPLICATE_TOKEN = process.env.REPLICATE_API_TOKEN;
 const RECIPES_DIR = path.join(process.cwd(), 'recipes');
@@ -13,81 +12,95 @@ const recipesToGenerate = [
   },
   {
     slug: 'how-to-make-guacamole-recipe',
-    prompt: 'Fresh guacamole in a bowl with avocado halves and lime, cilantro garnish, professional food photography, bright natural lighting'
+    prompt: 'Fresh guacamole in a bowl with avocado and lime, cilantro garnish, professional food photography, bright lighting'
   },
   {
     slug: 'how-to-bake-flounder-fillets-recipe-with-tomato-salad',
-    prompt: 'Baked flounder fillet with fresh tomato salad, herbs, lemon, elegant plating, professional food photography, warm soft lighting'
+    prompt: 'Baked flounder fillet with fresh tomato salad, herbs, lemon, professional food photography, warm lighting'
   }
 ];
 
 async function generateImage(prompt) {
-  const body = JSON.stringify({
-    version: 'f1769f27c7d1d4c0b3bdfb30379e9dd74a0d4dab3e5b57fc19e6c1e3f5e0e8b', // FLUX model
-    input: { prompt }
+  console.log(`  Sending to Replicate API...`);
+  
+  const response = await fetch('https://api.replicate.com/v1/predictions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Token ${REPLICATE_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      version: 'db21e45d3f7023abc9571faf36591be0da5a27afb64f36132ccfd722797e1117', // Stable Diffusion 3
+      input: { prompt, aspect_ratio: '16:9' }
+    })
   });
 
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'api.replicate.com',
-      path: '/v1/predictions',
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${REPLICATE_TOKEN}`,
-        'Content-Type': 'application/json',
-        'Content-Length': body.length
-      }
-    };
+  const data = await response.json();
+  console.log(`  Response status: ${response.status}`);
+  
+  if (!response.ok) {
+    console.log(`  Error:`, data.detail || data.title || data);
+    return null;
+  }
 
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const parsed = JSON.parse(data);
-          resolve(parsed);
-        } catch (e) {
-          reject(e);
-        }
-      });
+  return data;
+}
+
+async function waitForPrediction(predictionUrl) {
+  let attempts = 0;
+  const maxAttempts = 120; // 10 minutes with 5s intervals
+  
+  while (attempts < maxAttempts) {
+    const response = await fetch(predictionUrl, {
+      headers: { 'Authorization': `Token ${REPLICATE_TOKEN}` }
     });
-
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
+    
+    const data = await response.json();
+    
+    if (data.status === 'succeeded') {
+      return data.output?.[0];
+    }
+    
+    if (data.status === 'failed') {
+      console.log(`  Prediction failed:`, data.error);
+      return null;
+    }
+    
+    console.log(`  Status: ${data.status}... (${attempts + 1}/${maxAttempts})`);
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    attempts++;
+  }
+  
+  return null;
 }
 
 async function downloadImage(url, filepath) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      const file = fs.createWriteStream(filepath);
-      res.pipe(file);
-      file.on('finish', () => {
-        file.close();
-        resolve();
-      });
-    }).on('error', reject);
-  });
+  console.log(`  Downloading image...`);
+  const response = await fetch(url);
+  const buffer = await response.buffer();
+  fs.writeFileSync(filepath, buffer);
+  console.log(`  ✓ Saved to ${path.basename(filepath)}`);
 }
 
 async function main() {
-  console.log(`🎨 Generating ${recipesToGenerate.length} hero images\n`);
+  console.log(`🎨 Generating ${recipesToGenerate.length} hero images with Stable Diffusion\n`);
 
   for (const recipe of recipesToGenerate) {
-    console.log(`[${recipe.slug}] Generating image...`);
+    console.log(`[${recipe.slug}]`);
     
     try {
       const prediction = await generateImage(recipe.prompt);
       
-      if (prediction.error) {
-        console.log(`  ✗ Error: ${prediction.error}`);
+      if (!prediction) {
+        console.log(`  ✗ Failed to start prediction\n`);
         continue;
       }
 
-      const imageUrl = prediction.output?.[0];
+      console.log(`  Waiting for image generation...`);
+      const imageUrl = await waitForPrediction(prediction.urls.get);
+      
       if (!imageUrl) {
-        console.log(`  ✗ No image URL in response`);
+        console.log(`  ✗ Generation timed out\n`);
         continue;
       }
 
@@ -99,14 +112,14 @@ async function main() {
       }
 
       await downloadImage(imageUrl, imagePath);
-      console.log(`  ✓ Saved to ${imagePath}`);
+      console.log('');
 
     } catch (err) {
-      console.log(`  ✗ Failed: ${err.message}`);
+      console.log(`  ✗ Error: ${err.message}\n`);
     }
   }
 
-  console.log(`\n🚀 Now run: git add . && git commit -m "add missing hero images" && git push`);
+  console.log(`✅ Done! Run: git add . && git commit -m "add missing hero images" && git push`);
 }
 
 main();
