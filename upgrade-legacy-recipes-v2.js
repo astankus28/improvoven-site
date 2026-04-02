@@ -187,7 +187,7 @@ Return ONLY a raw JSON object. No markdown. No backticks. No explanation. Start 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ANTHROPIC_API_KEY}`,
+        'x-api-key': ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
