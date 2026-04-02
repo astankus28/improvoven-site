@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join & Get Involved — Cleveland Lithuanian American Community</title>
+  <meta name="description" content="Get involved with the Cleveland Lithuanian American Community — join as a member, volunteer for events, or sign up for our newsletter.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <style>
+    .page-hero { background: var(--forest); padding: 60px 0 52px; position: relative; overflow: hidden; }
+    .page-hero::before { content: ''; position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(255,255,255,0.012) 60px,rgba(255,255,255,0.012) 61px),repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,255,255,0.012) 60px,rgba(255,255,255,0.012) 61px); pointer-events: none; }
+    .page-hero-inner { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+    .ph-overline { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .ph-overline::before { content: ''; width: 28px; height: 1px; background: var(--amber); display: block; }
+    .ph-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 54px); font-weight: 900; color: var(--cream); line-height: 1.05; }
+    .ph-sub { font-size: 15px; color: rgba(242,237,228,0.6); margin-top: 12px; font-weight: 300; max-width: 600px; line-height: 1.65; }
+
+    /* ── OPTIONS CARDS ── */
+    .options-section { padding: 72px 0; background: var(--linen); }
+    .options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 40px; }
+    .option-card { background: var(--white); border: 1px solid var(--rule); padding: 36px 32px; }
+    .option-icon { font-size: 32px; margin-bottom: 16px; }
+    .option-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; }
+    .option-body { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+
+    /* ── FORM ── */
+    .form-section { padding: 72px 0; background: var(--forest); }
+    .form-wrap { max-width: 680px; margin: 0 auto; }
+    .form-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--cream); margin-bottom: 8px; }
+    .form-sub { font-size: 14px; color: rgba(242,237,228,0.6); margin-bottom: 36px; line-height: 1.6; }
+
+    .jf-group { margin-bottom: 20px; }
+    .jf-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); display: block; margin-bottom: 8px; }
+    .jf-input, .jf-select, .jf-textarea {
+      width: 100%; padding: 12px 16px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: var(--cream); font-family: 'DM Sans', sans-serif;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .jf-input::placeholder, .jf-textarea::placeholder { color: rgba(242,237,228,0.3); }
+    .jf-input:focus, .jf-select:focus, .jf-textarea:focus { border-color: var(--amber); }
+    .jf-textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
+    .jf-select { cursor: pointer; }
+    .jf-select option { background: var(--forest-mid); }
+
+    .jf-checkboxes { display: flex; flex-direction: column; gap: 12px; }
+    .jf-checkbox { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+    .jf-checkbox input { width: 18px; height: 18px; accent-color: var(--amber); flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+    .jf-checkbox-label { font-size: 14px; color: rgba(242,237,228,0.85); line-height: 1.5; }
+    .jf-checkbox-desc { font-size: 12px; color: rgba(242,237,228,0.45); margin-top: 2px; }
+
+    .jf-submit {
+      width: 100%; background: var(--amber); color: var(--forest); border: none;
+      padding: 16px; font-family: 'DM Mono', monospace; font-size: 12px;
+      letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+      transition: background 0.2s; margin-top: 8px;
+    }
+    .jf-submit:hover { background: var(--amber-light); }
+    .jf-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .jf-error { display: none; font-size: 12px; color: #e07a7a; margin-top: 8px; font-family: 'DM Mono', monospace; }
+
+    .jf-success { display: none; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 48px 36px; text-align: center; }
+    .jf-success-icon { font-size: 48px; margin-bottom: 16px; }
+    .jf-success-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--cream); margin-bottom: 10px; }
+    .jf-success-sub { font-size: 14px; color: rgba(242,237,228,0.6); line-height: 1.7; }
+
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    @media (max-width: 768px) {
+      .options-grid { grid-template-columns: 1fr; }
+      .page-hero-inner { padding: 0 20px; }
+      .form-section .container { padding: 0 20px; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div><span data-en="Cleveland, Ohio — Est. 1951" data-lt="Klivlandas, Ohajas — Įkurta 1951 m.">Cleveland, Ohio — Est. 1951</span> &nbsp;·&nbsp; <a href="https://javlb.lt/en/" target="_blank"><span data-en="Part of Lithuanian American Community, Inc." data-lt="JAV Lietuvių Bendruomenės narys">Part of Lithuanian American Community, Inc.</span></a></div>
+  <div class="topbar-social">
+    <a href="https://www.facebook.com/profile.php?id=61565856471983" target="_blank">Facebook</a>
+    <a href="https://www.instagram.com/cleveland_lietuviu_bendruomene" target="_blank">Instagram</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="main-nav" id="main-nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-en">Cleveland Lithuanian American Community</div>
+    <div class="nav-logo-lt">Clevelando Lietuvių Bendruomenė</div>
+  </a>
+    <ul class="nav-links" id="nav-links">
+    <li><a href="index.html" data-en="Home" data-lt="Pradžia">Home</a></li>
+    <li><a href="index.html#upcoming" data-en="Events" data-lt="Renginiai">Events</a></li>
+    <li><a href="community.html" data-en="Community Calendar" data-lt="Bendruomenės Kalendorius">Community Calendar</a></li>
+    <li><a href="gallery.html" data-en="Gallery" data-lt="Galerija">Gallery</a></li>
+    <li><a href="index.html#journal" data-en="Journal" data-lt="Archyvas">Journal</a></li>
+    <li><a href="index.html#announcements" data-en="News" data-lt="Žinios">News</a></li>
+    <li><a href="about.html" data-en="About" data-lt="Apie Mus">About</a></li>
+    <li><a href="join.html" class="active" data-en="Join" data-lt="Prisijunkite">Join</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-lang">
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" data-lang="lt" onclick="setLang('lt')">LT</button>
+    </div>
+    <div class="hamburger" onclick="document.getElementById('nav-links').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="ph-overline" data-en="Get Involved" data-lt="Prisijunkite">Get Involved</div>
+    <h1 class="ph-title" data-en="You Belong Here." data-lt="Čia Jūsų Vieta.">You Belong Here.</h1>
+    <p class="ph-sub" data-en="Whether you have deep Lithuanian roots or are just discovering your heritage — our community is open to everyone. Join us, volunteer, or simply stay connected." data-lt="Nesvarbu, ar turite gilias lietuviškas šaknis, ar tik atrandate savo paveldą — mūsų bendruomenė atvira visiems. Prisijunkite, savanoriaukite arba tiesiog palaikykite ryšį.">Whether you have deep Lithuanian roots or are just discovering your heritage — our community is open to everyone. Join us, volunteer, or simply stay connected.</p>
+  </div>
+</div>
+
+<!-- OPTIONS -->
+<section class="options-section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-title" data-en="Ways to Get Involved" data-lt="Kaip Prisijungti">Ways to Get Involved</div>
+      </div>
+    </div>
+    <div class="options-grid">
+      <div class="option-card">
+        <div class="option-icon">🤝</div>
+        <div class="option-title" data-en="Become a Member" data-lt="Tapkite Nariu">Become a Member</div>
+        <div class="option-body" data-en="Formally join the Cleveland Lithuanian American Community. Members receive event updates, voting rights at annual meetings, and the satisfaction of supporting Lithuanian heritage in Northeast Ohio." data-lt="Oficialiai prisijunkite prie Klivlando Lietuvių Amerikiečių Bendruomenės. Nariai gauna renginių naujienas, balsavimo teises metiniuose susirinkimuose ir pasitenkinimą remia lietuvių paveldą Šiaurės Rytų Ohajuje.">Formally join the Cleveland Lithuanian American Community. Members receive event updates, voting rights at annual meetings, and the satisfaction of supporting Lithuanian heritage in Northeast Ohio.</div>
+      </div>
+      <div class="option-card">
+        <div class="option-icon">🙌</div>
+        <div class="option-title" data-en="Volunteer" data-lt="Savanoriaukite">Volunteer</div>
+        <div class="option-body" data-en="Help make our events happen. From setting up at the Lithuanian Cultural Garden to staffing the booth at One World Day — every pair of hands makes a difference. No experience needed, just enthusiasm." data-lt="Padėkite vykdyti mūsų renginius. Nuo pasiruošimo Lietuvių kultūros sode iki stendo priežiūros One World Day šventėje — kiekviena pora rankų daro skirtumą.">Help make our events happen. From setting up at the Lithuanian Cultural Garden to staffing the booth at One World Day — every pair of hands makes a difference. No experience needed, just enthusiasm.</div>
+      </div>
+      <div class="option-card">
+        <div class="option-icon">📬</div>
+        <div class="option-title" data-en="Stay Connected" data-lt="Palaikykite Ryšį">Stay Connected</div>
+        <div class="option-body" data-en="Sign up for event announcements and community news. We send updates about upcoming events, cultural programs, and community happenings — no spam, just Lithuanian community news." data-lt="Užsiregistruokite renginių pranešimams ir bendruomenės naujienoms. Siunčiame naujienas apie artėjančius renginius, kultūrines programas ir bendruomenės gyvenimą — tik lietuviška bendruomenės informacija.">Sign up for event announcements and community news. We send updates about upcoming events, cultural programs, and community happenings — no spam, just Lithuanian community news.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORM -->
+<section class="form-section">
+  <div class="container">
+    <div class="form-wrap">
+      <div id="jf-form-wrap">
+        <div class="form-title" data-en="Express Your Interest" data-lt="Išreikšite Susidomėjimą">Express Your Interest</div>
+        <div class="form-sub" data-en="Fill out the form below and we'll be in touch. There's no obligation — just let us know how you'd like to be part of the community." data-lt="Užpildykite žemiau esančią formą ir mes susisieksime. Jokių įsipareigojimų — tiesiog praneškite, kaip norėtumėte būti bendruomenės dalimi.">Fill out the form below and we'll be in touch. There's no obligation — just let us know how you'd like to be part of the community.</div>
+
+        <div class="form-grid-2">
+          <div class="jf-group">
+            <label class="jf-label" data-en="First & Last Name *" data-lt="Vardas ir Pavardė *">First & Last Name *</label>
+            <input class="jf-input" type="text" id="jf-name" placeholder="Vardas Pavardė">
+          </div>
+          <div class="jf-group">
+            <label class="jf-label" data-en="Email Address *" data-lt="El. pašto adresas *">Email Address *</label>
+            <input class="jf-input" type="email" id="jf-email" placeholder="jusu@email.com">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="jf-group">
+            <label class="jf-label" data-en="Phone — optional" data-lt="Telefonas — neprivaloma">Phone — optional</label>
+            <input class="jf-input" type="tel" id="jf-phone" placeholder="(216) 555-0000">
+          </div>
+          <div class="jf-group">
+            <label class="jf-label" data-en="How did you hear about us?" data-lt="Kaip sužinojote apie mus?">How did you hear about us?</label>
+            <select class="jf-select" id="jf-heard">
+              <option value="">Select one...</option>
+              <option value="Friend or family">Friend or family</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Instagram">Instagram</option>
+              <option value="One World Day">One World Day</option>
+              <option value="St. Casimir Parish">St. Casimir Parish</option>
+              <option value="Lithuanian Cultural Garden">Lithuanian Cultural Garden</option>
+              <option value="National LAC">National LAC (javlb.lt)</option>
+              <option value="Google search">Google search</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="jf-group">
+          <label class="jf-label" data-en="I'm interested in..." data-lt="Mane domina...">I'm interested in...</label>
+          <div class="jf-checkboxes">
+            <label class="jf-checkbox">
+              <input type="checkbox" id="jf-membership" value="membership">
+              <div>
+                <div class="jf-checkbox-label" data-en="Membership — formally joining CLAC" data-lt="Narystė — oficialus prisijungimas prie CLAC">Membership — formally joining CLAC</div>
+                <div class="jf-checkbox-desc" data-en="Receive voting rights, member updates, and official recognition" data-lt="Gaukite balsavimo teises, narių naujienas ir oficialų pripažinimą">Receive voting rights, member updates, and official recognition</div>
+              </div>
+            </label>
+            <label class="jf-checkbox">
+              <input type="checkbox" id="jf-volunteer" value="volunteer">
+              <div>
+                <div class="jf-checkbox-label" data-en="Volunteering — helping with events" data-lt="Savanorystė — pagalba renginiuose">Volunteering — helping with events</div>
+                <div class="jf-checkbox-desc" data-en="Set up, clean up, staff booths, cook, photograph — whatever you can offer" data-lt="Pasiruošimas, tvarkymas, stendų priežiūra, gaminimas, fotografavimas">Set up, clean up, staff booths, cook, photograph — whatever you can offer</div>
+              </div>
+            </label>
+            <label class="jf-checkbox">
+              <input type="checkbox" id="jf-newsletter" value="newsletter">
+              <div>
+                <div class="jf-checkbox-label" data-en="Newsletter — event announcements & news" data-lt="Naujienlaiškis — renginių pranešimai ir žinios">Newsletter — event announcements & news</div>
+                <div class="jf-checkbox-desc" data-en="Stay informed about upcoming events and community news" data-lt="Būkite informuoti apie artėjančius renginius ir bendruomenės naujienas">Stay informed about upcoming events and community news</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="jf-group">
+          <label class="jf-label" data-en="Anything else you'd like to share? — optional" data-lt="Dar kažkas, ką norėtumėte pasidalinti? — neprivaloma">Anything else you'd like to share? — optional</label>
+          <textarea class="jf-textarea" id="jf-message" placeholder="Lithuanian heritage, skills you can offer, questions..."></textarea>
+        </div>
+
+        <div class="jf-error" id="jf-error"></div>
+        <button class="jf-submit" id="jf-submit" onclick="submitJoinForm()">
+          <span data-en="Send My Interest →" data-lt="Siųsti →">Send My Interest →</span>
+        </button>
+      </div>
+
+      <div class="jf-success" id="jf-success">
+        <div class="jf-success-icon">✓</div>
+        <div class="jf-success-title" data-en="Thank you!" data-lt="Ačiū!">Thank you!</div>
+        <div class="jf-success-sub" data-en="We've received your interest and will be in touch soon. In the meantime, follow us on Facebook and Instagram to stay connected with the community." data-lt="Gavome jūsų susidomėjimą ir netrukus susisieksime. Tuo tarpu sekite mus Facebook ir Instagram, kad palaikytumėte ryšį su bendruomene.">We've received your interest and will be in touch soon. In the meantime, follow us on Facebook and Instagram to stay connected with the community.</div>
+        <div style="margin-top:24px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+          <a href="index.html" class="btn-ghost-inv">Back to Homepage</a>
+          <a href="index.html#upcoming" class="btn-ghost-inv">View Upcoming Events</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="main-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">Cleveland Lithuanian American Community</div>
+      <div class="footer-brand-lt">Clevelando Lietuvių Bendruomenė</div>
+      <div class="footer-desc" data-en="A chapter of the Lithuanian American Community, Inc. — preserving Lithuanian culture and heritage in Northeast Ohio since 1951." data-lt="JAV Lietuvių Bendruomenės skyrius — saugome lietuvių kultūrą ir paveldą Šiaurės Rytų Ohajuje nuo 1951 m.">A chapter of the Lithuanian American Community, Inc. — preserving Lithuanian culture and heritage in Northeast Ohio since 1951.</div>
+    </div>
+    <div>
+      <div class="footer-col-title" data-en="Navigate" data-lt="Naršyti">Navigate</div>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html#upcoming">Events</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="join.html">Join Us</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-en="Heritage Sites" data-lt="Paveldo Vietos">Heritage Sites</div>
+      <ul class="footer-links">
+        <li><a href="http://www.saintcasimirparish.org" target="_blank">St. Casimir Parish ↗</a></li>
+        <li><a href="https://culturalgardensncleveland.org/" target="_blank">Lithuanian Cultural Garden</a></li>
+        <li><a href="https://javlb.lt/en/" target="_blank">National LAC ↗</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-en="Connect" data-lt="Ryšiai">Connect</div>
+      <ul class="footer-links">
+        <li><a href="https://www.facebook.com/profile.php?id=61565856471983" target="_blank">Facebook</a></li>
+        <li><a href="https://www.instagram.com/cleveland_lietuviu_bendruomene" target="_blank">Instagram</a></li>
+        <li><a href="dashboard.html" data-en="Board Login" data-lt="Valdybos Prisijungimas">Board Login</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2025 Cleveland Lithuanian American Community, Inc.</div>
+    <div style="font-family:'DM Mono',monospace; font-size:11px; color:rgba(242,237,228,0.3);">Vienybėje Mūsų Stiprybė</div>
+  </div>
+</footer>
+
+<script>
+const SB_URL = 'https://pipgdibeustnvbiayixg.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpcGdkaWJldXN0bnZiaWF5aXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMDczODMsImV4cCI6MjA5MDU4MzM4M30.dkzUwPGg4q3bF9MfjLmc0Huf69Y1sadXXojuA62005w';
+
+async function submitJoinForm() {
+  const name    = document.getElementById('jf-name').value.trim();
+  const email   = document.getElementById('jf-email').value.trim();
+  const phone   = document.getElementById('jf-phone').value.trim();
+  const heard   = document.getElementById('jf-heard').value;
+  const message = document.getElementById('jf-message').value.trim();
+  const errEl   = document.getElementById('jf-error');
+  const btn     = document.getElementById('jf-submit');
+
+  const interests = ['membership','volunteer','newsletter'].filter(id =>
+    document.getElementById('jf-' + id).checked
+  );
+
+  errEl.style.display = 'none';
+
+  if (!name || !email) {
+    errEl.textContent = 'Please enter your name and email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!email.includes('@')) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!interests.length) {
+    errEl.textContent = 'Please select at least one interest.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Sending...';
+
+  try {
+    // Save to Supabase
+    const res = await fetch(`${SB_URL}/rest/v1/inquiries`, {
+      method: 'POST',
+      headers: {
+        'apikey':        SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({
+        id:         'inq-' + Date.now().toString(36),
+        name, email, phone: phone || null,
+        heard_from: heard || null,
+        interests,
+        message:    message || null,
+        status:     'new',
+      }),
+    });
+
+    if (!res.ok) throw new Error('Save failed');
+
+    // Also send email notification via worker
+    await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        email,
+        subject: 'New Community Interest Form',
+        message: `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nHeard from: ${heard || 'N/A'}\nInterests: ${interests.join(', ')}\n\nMessage:\n${message || 'None'}`,
+      }),
+    });
+
+    document.getElementById('jf-form-wrap').style.display = 'none';
+    document.getElementById('jf-success').style.display   = 'block';
+
+  } catch(e) {
+    errEl.textContent = 'Something went wrong. Please email us at info@clacleveland.org';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Send My Interest →';
+  }
+}
+
+// Sticky nav
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').style.boxShadow =
+    window.scrollY > 60 ? '0 1px 20px rgba(0,0,0,0.08)' : 'none';
+});
+</script>
+<script>
+(function() {
+  const LANG_KEY = 'clac_lang';
+  function setLang(lang) {
+    localStorage.setItem(LANG_KEY, lang);
+    document.documentElement.setAttribute('lang', lang);
+    document.querySelectorAll('[data-en]').forEach(el => {
+      el.innerHTML = lang === 'lt' ? el.dataset.lt : el.dataset.en;
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+  }
+  function initLang() {
+    const saved = localStorage.getItem(LANG_KEY) || 'en';
+    setLang(saved);
+  }
+  window.setLang = setLang;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLang);
+  } else {
+    initLang();
+  }
+})();
+</script>
+</body>
+</html>
