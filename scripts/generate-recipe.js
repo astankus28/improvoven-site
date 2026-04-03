@@ -1056,6 +1056,14 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
     "@type":"HowToStep","position":i+1,"name":"Step " + (i+1),"text":s,"url":"https://www.improvoven.com/recipes/${slug}/#step-"+(i+1)})))}
 }
 </script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-78N6SPVJ7F"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-78N6SPVJ7F');
+</script>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -1187,6 +1195,14 @@ async function updateRecipeIndex(recipes) {
 <title>All Recipes - Improv Oven | Simple Budget-Friendly Meals</title>
 <meta name="description" content="Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.">
 <link rel="canonical" href="https://www.improvoven.com/recipes/">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-78N6SPVJ7F"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-78N6SPVJ7F');
+</script>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
