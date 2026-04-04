@@ -105,7 +105,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </div>
 <div class="filter-wrap" id="filter-wrap"></div>
 <div class="recipes-grid">${cards || '<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy/">Privacy Policy</a></footer>
 <script>
 const search = document.getElementById('recipe-search');
 const grid = document.querySelector('.recipes-grid');
@@ -174,7 +174,7 @@ const staticPages = [
   { url: '/recipes/', priority: '0.9', changefreq: 'daily' },
   { url: '/about/', priority: '0.5', changefreq: 'monthly' },
   { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'yearly' },
-  { url: '/privacy-policy/', priority: '0.3', changefreq: 'yearly' },
+  { url: '/privacy/', priority: '0.3', changefreq: 'yearly' },
 ];
 
 /** Matches `rebuild-categories.js` — hub pages under /recipes/{slug}/ */

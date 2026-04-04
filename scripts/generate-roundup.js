@@ -210,7 +210,7 @@ footer a{color:var(--green);font-weight:700}
   </form>
 </div>
 <footer>
-  © ${year} Improv Oven · <a href="/recipes/">All Recipes</a> · <a href="/about/">About</a> · <a href="/privacy-policy/">Privacy Policy</a>
+  © ${year} Improv Oven · <a href="/recipes/">All Recipes</a> · <a href="/about/">About</a> · <a href="/privacy/">Privacy Policy</a>
 </footer>
 </body>
 </html>`;

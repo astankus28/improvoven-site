@@ -92,6 +92,13 @@ jobs:
           echo "⏳ Waiting 90 seconds for Cloudflare to deploy..."
           sleep 90
 
+      - name: IndexNow (new recipe URL)
+        if: steps.meal.outputs.skip != 'true'
+        continue-on-error: true
+        run: |
+          SLUG="${{ steps.generate.outputs.slug }}"
+          node scripts/submit-indexnow.js "https://www.improvoven.com/recipes/${SLUG}/"
+
       - name: Post to Pinterest
         if: steps.meal.outputs.skip != 'true'
         env:

@@ -34,3 +34,10 @@ jobs:
           git add -A
           git diff --staged --quiet || git commit -m "🔄 Rebuild index and categories"
           git push
+
+      - name: Wait for CDN deploy
+        run: sleep 60
+
+      - name: IndexNow (sitemap URLs)
+        continue-on-error: true
+        run: node scripts/submit-indexnow-sitemap.js

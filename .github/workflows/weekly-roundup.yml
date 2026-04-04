@@ -42,3 +42,10 @@ jobs:
           git add -A
           git diff --staged --quiet || git commit -m "🗞️ Weekly round-up: $(date +'%Y-%m-%d')"
           git push
+
+      - name: Wait for CDN deploy
+        run: sleep 90
+
+      - name: IndexNow (sitemap URLs)
+        continue-on-error: true
+        run: node scripts/submit-indexnow-sitemap.js

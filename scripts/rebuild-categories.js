@@ -213,7 +213,7 @@ footer a{color:rgba(255,255,255,0.5)}
   </div>
 </div>
 <footer>
-  <p>© ${year} Improv Oven · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></p>
+  <p>© ${year} Improv Oven · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy/">Privacy Policy</a></p>
 </footer>
 </body>
 </html>`;

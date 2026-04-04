@@ -3,10 +3,8 @@
 
 /**
  * Submits URLs to IndexNow (Bing, Yandex, etc.).
- * Setup:
- * 1. In Bing Webmaster Tools → IndexNow, generate a key.
- * 2. Host https://www.improvoven.com/{your-key}.txt with the key as the file body (plain text).
- * 3. Set INDEXNOW_KEY in the environment (or .env for local runs).
+ * Key file: repo root `{INDEXNOW_KEY}.txt` (see site-config.js). Must be deployed at keyLocation URL.
+ * Override key with env INDEXNOW_KEY.
  *
  * Usage:
  *   node scripts/submit-indexnow.js https://www.improvoven.com/recipes/foo/
@@ -21,7 +19,7 @@ try {
   require('dotenv').config();
 } catch (_) {}
 
-const { SITE_URL } = require('./site-config');
+const { SITE_URL, INDEXNOW_KEY, INDEXNOW_KEY_LOCATION } = require('./site-config');
 
 const HOST = (() => {
   try {
@@ -63,13 +61,11 @@ function postIndexNow(body) {
 }
 
 async function submitIndexNowUrls(urlList) {
-  const key = process.env.INDEXNOW_KEY;
-  if (!key || key.trim().length < 8) {
-    throw new Error('INDEXNOW_KEY missing or too short (set in env; host {key}.txt at site root)');
+  const trimmed = (process.env.INDEXNOW_KEY || INDEXNOW_KEY || '').trim();
+  if (!trimmed || trimmed.length < 8) {
+    throw new Error('INDEXNOW_KEY missing or too short (site-config or env; host {key}.txt at site root)');
   }
-  const trimmed = key.trim();
-  const keyLocation =
-    process.env.INDEXNOW_KEY_LOCATION || `${SITE_URL.replace(/\/$/, '')}/${trimmed}.txt`;
+  const keyLocation = process.env.INDEXNOW_KEY_LOCATION || INDEXNOW_KEY_LOCATION;
   const body = {
     host: HOST,
     key: trimmed,
