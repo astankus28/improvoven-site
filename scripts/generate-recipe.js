@@ -1394,8 +1394,23 @@ async function updateSitemap(recipes) {
     { url: '/recipes/index.html', priority: '0.9', changefreq: 'daily' },
     { url: '/about/index.html', priority: '0.5', changefreq: 'monthly' },
     { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'yearly' },
+    { url: '/privacy-policy/', priority: '0.3', changefreq: 'yearly' },
   ];
-  const recipeUrls = recipes.map(r => `  <url>\n    <loc>${SITE_URL}/recipes/${r.slug}/</loc>\n    <lastmod>${r.date || today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`).join('\n');
+  const categoryHubs = ['dinner', 'breakfast', 'italian', 'latin', 'budget', 'quick', 'dessert'];
+  const isRoundupStub = (slug) => typeof slug === 'string' && slug.startsWith('roundup-');
+  const recipesForSitemap = recipes.filter((r) => !isRoundupStub(r.slug));
+  const categoryUrls = categoryHubs
+    .map(
+      (slug) =>
+        `  <url>\n    <loc>${SITE_URL}/recipes/${slug}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`
+    )
+    .join('\n');
+  const recipeUrls = recipesForSitemap
+    .map(
+      (r) =>
+        `  <url>\n    <loc>${SITE_URL}/recipes/${r.slug}/</loc>\n    <lastmod>${r.date || today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`
+    )
+    .join('\n');
   const roundupsDir = path.join(process.cwd(), 'roundups');
   const roundupUrls = [];
   if (fs.existsSync(roundupsDir)) {
@@ -1407,9 +1422,10 @@ async function updateSitemap(recipes) {
     }
   }
   const staticUrls = staticPages.map(p => `  <url>\n    <loc>${SITE_URL}${p.url}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`).join('\n');
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${staticUrls}\n${roundupUrls.join('\n')}\n${recipeUrls}\n</urlset>`;
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${staticUrls}\n${roundupUrls.join('\n')}\n${categoryUrls}\n${recipeUrls}\n</urlset>`;
   fs.writeFileSync(path.join(process.cwd(), 'sitemap.xml'), sitemap);
-  console.log(`✓ Sitemap updated (${recipes.length + staticPages.length + roundupUrls.length} URLs)`);
+  const n = staticPages.length + roundupUrls.length + categoryHubs.length + recipesForSitemap.length;
+  console.log(`✓ Sitemap updated (${n} URLs)`);
 }
 
 async function main() {

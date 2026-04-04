@@ -177,7 +177,25 @@ const staticPages = [
   { url: '/privacy-policy/', priority: '0.3', changefreq: 'yearly' },
 ];
 
-const recipeUrls = recipes.map(r => `  <url>
+/** Matches `rebuild-categories.js` — hub pages under /recipes/{slug}/ */
+const RECIPE_CATEGORY_HUBS = ['dinner', 'breakfast', 'italian', 'latin', 'budget', 'quick', 'dessert'];
+
+function isRoundupStubSlug(slug) {
+  return typeof slug === 'string' && slug.startsWith('roundup-');
+}
+
+const recipesForSitemap = recipes.filter((r) => !isRoundupStubSlug(r.slug));
+
+const categoryUrls = RECIPE_CATEGORY_HUBS.map(
+  (slug) => `  <url>
+    <loc>${SITE_URL}/recipes/${slug}/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`
+).join('\n');
+
+const recipeUrls = recipesForSitemap.map(r => `  <url>
     <loc>${SITE_URL}/recipes/${r.slug}/</loc>
     <lastmod>${r.date || today}</lastmod>
     <changefreq>monthly</changefreq>
@@ -211,9 +229,11 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticUrls}
 ${roundupUrls.join('\n')}
+${categoryUrls}
 ${recipeUrls}
 </urlset>`;
 
-const sitemapCount = staticPages.length + roundupUrls.length + recipes.length;
+const sitemapCount =
+  staticPages.length + roundupUrls.length + RECIPE_CATEGORY_HUBS.length + recipesForSitemap.length;
 fs.writeFileSync(path.join(process.cwd(), 'sitemap.xml'), sitemap);
 console.log(`✓ Sitemap rebuilt (${sitemapCount} URLs)`);
