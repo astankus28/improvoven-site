@@ -5,7 +5,15 @@ try {
   require('dotenv').config();
 } catch (_) {}
 const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
-const { buildRecipeMetaDescription, buildRecipeJsonLdDescription } = require('./seo-description');
+const {
+  buildRecipeMetaDescription,
+  buildRecipeJsonLdDescription,
+  finalizeMetaDescription,
+} = require('./seo-description');
+
+function escAttrMeta(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
@@ -1204,7 +1212,8 @@ async function updateRecipeIndex(recipes) {
       </div>
     </a>`).join('');
 
-  const idxDesc = `Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.`.replace(/"/g, '&quot;');
+  const idxDescRaw = `Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples. Filter by category, search by ingredient, and find Latin- and Miami-inspired dinners.`;
+  const idxDesc = escAttrMeta(finalizeMetaDescription(idxDescRaw, 'all-recipes-index'));
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>

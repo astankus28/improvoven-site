@@ -5,6 +5,11 @@
 const fs = require('fs');
 const path = require('path');
 const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
+const { finalizeMetaDescription } = require('./seo-description');
+
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
 
 const recipes = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'recipes-data.json'), 'utf8'));
 const year = new Date().getFullYear();
@@ -100,16 +105,18 @@ function makeCard(r) {
 }
 
 function makePage(cat, matching) {
+  const pageDesc = finalizeMetaDescription(cat.description, `category-${cat.slug}`);
+  const pageDescEsc = escAttr(pageDesc);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${cat.title} — Improv Oven</title>
-<meta name="description" content="${cat.description}">
+<meta name="description" content="${pageDescEsc}">
 <meta name="keywords" content="${cat.keywords}">
 <meta property="og:title" content="${cat.title} — Improv Oven">
-<meta property="og:description" content="${cat.description}">
+<meta property="og:description" content="${pageDescEsc}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE_URL}/recipes/${cat.slug}/">
 <meta property="og:image" content="${SITE_URL}/og-image.jpg">
@@ -118,7 +125,7 @@ function makePage(cat, matching) {
 <link rel="canonical" href="${SITE_URL}/recipes/${cat.slug}/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${cat.title.replace(/"/g, '&quot;')} — Improv Oven">
-<meta name="twitter:description" content="${cat.description.replace(/"/g, '&quot;')}">
+<meta name="twitter:description" content="${pageDescEsc}">
 <meta name="twitter:image" content="${SITE_URL}/og-image.jpg">
 ${GTAG_SNIPPET}
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -129,7 +136,7 @@ ${GTAG_SNIPPET}
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": "${cat.title}",
-  "description": "${cat.description}",
+  "description": ${JSON.stringify(pageDesc)},
   "url": "${SITE_URL}/recipes/${cat.slug}/",
   "publisher": {"@type": "Organization", "name": "Improv Oven", "url": "${SITE_URL}"}
 }

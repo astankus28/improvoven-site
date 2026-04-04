@@ -72,7 +72,11 @@ function buildRecipeSchemaDescription(recipe, uniqueSeed) {
   return s.replace(/\s+/g, ' ').trim();
 }
 
-function truncateMeta(text, max = 158) {
+/** Bing / modern SERPs: avoid “too short” warnings (aim 152–165 visible chars). */
+const META_DESC_MIN = 152;
+const META_DESC_MAX = 165;
+
+function truncateMeta(text, max = META_DESC_MAX) {
   const t = (text || '').replace(/\s+/g, ' ').trim();
   if (t.length <= max) return t;
   const slice = t.slice(0, max - 1);
@@ -81,10 +85,42 @@ function truncateMeta(text, max = 158) {
 }
 
 /**
- * Meta / Open Graph description: unique, ~120–158 chars when possible.
+ * Pad short descriptions with seed-varied phrases, then clamp to META_DESC_MAX.
+ * @param {string} text
+ * @param {string} [seed] — slug or path so appended clauses differ by page
+ */
+function finalizeMetaDescription(text, seed = '') {
+  let t = (text || '').replace(/\s+/g, ' ').trim();
+  if (!t) t = 'Easy recipes and weeknight dinner ideas from Improv Oven.';
+  const pads = [
+    ' Step-by-step on Improv Oven with pantry swaps and timing.',
+    ' Full ingredients, tips, and related meals at improvoven.com.',
+    ' Budget weeknight cooking — Miami- and Latin-inspired ideas from Improv Oven.',
+    ' Practical home-cooking notes and serving ideas on the Improv Oven recipe page.',
+    ' More quick dinners and pantry-stretching ideas from Improv Oven.',
+    ' Simple techniques, real ingredients — read the full walkthrough on Improv Oven.',
+  ];
+  let h = 0;
+  const s = String(seed || t.slice(0, 48));
+  for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+  let i = 0;
+  while (t.length < META_DESC_MIN && i < 14) {
+    const pad = pads[(h + i) % pads.length];
+    if (!t.includes(pad.trim())) t += pad;
+    i += 1;
+  }
+  if (t.length < META_DESC_MIN) {
+    t += ' Discover more easy recipes at www.improvoven.com.';
+  }
+  return truncateMeta(t, META_DESC_MAX);
+}
+
+/**
+ * Meta / Open Graph description: unique per page, not below META_DESC_MIN when padded.
  */
 function buildRecipeMetaDescription(recipeLike) {
   const raw = (recipeLike.description || '').trim();
+  const seed = recipeLike.slug || recipeLike.title || recipeLike.name || '';
   const schemaShape = {
     name: recipeLike.title || recipeLike.name,
     recipeIngredient: recipeLike.ingredients || recipeLike.recipeIngredient,
@@ -98,11 +134,13 @@ function buildRecipeMetaDescription(recipeLike) {
     recipeCuisine: recipeLike.cuisine || recipeLike.recipeCuisine,
   };
 
+  let body;
   if (!isGenericRecipeDescription(raw) && raw.length >= 110) {
-    return truncateMeta(raw, 158);
+    body = raw;
+  } else {
+    body = buildRecipeSchemaDescription(schemaShape, seed);
   }
-  const seed = recipeLike.slug || recipeLike.title || recipeLike.name || '';
-  return truncateMeta(buildRecipeSchemaDescription(schemaShape, seed), 158);
+  return finalizeMetaDescription(body, seed);
 }
 
 /**
@@ -137,4 +175,7 @@ module.exports = {
   buildRecipeJsonLdDescription,
   formatIsoDuration,
   truncateMeta,
+  finalizeMetaDescription,
+  META_DESC_MIN,
+  META_DESC_MAX,
 };

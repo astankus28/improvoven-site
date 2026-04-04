@@ -6,6 +6,11 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
+const { finalizeMetaDescription } = require('./seo-description');
+
+function escAttrRoundup(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
@@ -72,7 +77,9 @@ function slugify(str) {
 function buildRoundupPage(theme, recipes, intro, slug, date) {
   const year = new Date().getFullYear();
   const title = `${recipes.length} ${theme} — Improv Oven`;
-  const description = intro.substring(0, 160);
+  const introLine = intro.replace(/\s+/g, ' ').trim();
+  const descPlain = finalizeMetaDescription(introLine, slug);
+  const description = escAttrRoundup(descPlain);
 
   const recipeCards = recipes.map((r, i) => `
     <div class="roundup-item">
@@ -116,7 +123,7 @@ ${GTAG_SNIPPET}
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "${title}",
-  "description": "${description}",
+  "description": ${JSON.stringify(descPlain)},
   "datePublished": "${date}",
   "url": "${SITE_URL}/roundups/${slug}/",
   "publisher": {"@type": "Organization", "name": "Improv Oven", "url": "${SITE_URL}"},

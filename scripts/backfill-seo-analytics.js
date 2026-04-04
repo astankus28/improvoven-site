@@ -20,6 +20,8 @@ const {
   isGenericRecipeDescription,
   buildRecipeSchemaDescription,
   buildRecipeMetaDescription,
+  finalizeMetaDescription,
+  META_DESC_MIN,
 } = require('./seo-description');
 
 /** Old JSON-LD closing shared by many recipe pages — Bing flags as duplicate meta-like text. */
@@ -28,6 +30,13 @@ const DUPLICATE_LD_CLOSING = 'Budget-friendly recipe from Improv Oven — Miami-
 const HTML_ROOTS = [
   path.join(process.cwd(), 'recipes'),
   path.join(process.cwd(), 'roundups'),
+];
+
+const EXTRA_HTML_FILES = [
+  path.join(process.cwd(), 'index.html'),
+  path.join(process.cwd(), 'about', 'index.html'),
+  path.join(process.cwd(), 'affiliate-disclosure', 'index.html'),
+  path.join(process.cwd(), 'privacy', 'index.html'),
 ];
 
 function walkHtmlFiles(dir, out = []) {
@@ -63,6 +72,38 @@ function extractTitleTag(html) {
 
 function escAttr(s) {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+/** Bing: pad meta/og/twitter descriptions below META_DESC_MIN. */
+function fixMetaMinLength(html, canonical) {
+  const md = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  if (!md || md[1].length >= META_DESC_MIN) return { html, changed: false };
+  const old = md[1];
+  const seed = (canonical || '').replace(/^https?:\/\/[^/]+/i, '') || 'page';
+  const nu = finalizeMetaDescription(old, seed);
+  let out = html.replace(
+    /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="description" content="${escAttr(nu)}">`,
+  );
+  const ogOld = extractMetaProperty(html, 'og:description');
+  if (!ogOld || ogOld === old || ogOld.length < META_DESC_MIN) {
+    if (/property="og:description"/i.test(out)) {
+      out = out.replace(
+        /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:description" content="${escAttr(nu)}">`,
+      );
+    }
+  }
+  const twOld = extractMetaName(html, 'twitter:description');
+  if (!twOld || twOld === old || twOld.length < META_DESC_MIN) {
+    if (/name="twitter:description"/i.test(out)) {
+      out = out.replace(
+        /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:description" content="${escAttr(nu)}">`,
+      );
+    }
+  }
+  return { html: out, changed: true };
 }
 
 function fixRecipeLdAndMeta(html) {
@@ -264,11 +305,20 @@ function fixHtml(html) {
     changed = true;
   }
 
+  const lenFix = fixMetaMinLength(out, canonical);
+  if (lenFix.changed) {
+    out = lenFix.html;
+    changed = true;
+  }
+
   return { out, changed, skip: null };
 }
 
 function main() {
-  const files = HTML_ROOTS.flatMap((root) => walkHtmlFiles(root));
+  const files = [
+    ...HTML_ROOTS.flatMap((root) => walkHtmlFiles(root)),
+    ...EXTRA_HTML_FILES.filter((p) => fs.existsSync(p)),
+  ];
   let n = 0;
   for (const file of files) {
     const raw = fs.readFileSync(file, 'utf8');

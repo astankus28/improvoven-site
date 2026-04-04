@@ -5,6 +5,11 @@
 const fs = require('fs');
 const path = require('path');
 const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
+const { finalizeMetaDescription } = require('./seo-description');
+
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
 
 const recipesDataPath = path.join(process.cwd(), 'recipes-data.json');
 let recipes = [];
@@ -25,7 +30,8 @@ const cards = recipes.slice(0, 200).map(r => `
       </div>
     </a>`).join('');
 
-const idxDesc = `Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.`.replace(/"/g, '&quot;');
+const idxDescRaw = `Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples. Filter by category, search by ingredient, and find Latin- and Miami-inspired dinners.`;
+const idxDesc = escAttr(finalizeMetaDescription(idxDescRaw, 'all-recipes-index'));
 
 const indexHtml = `<!DOCTYPE html>
 <html lang="en">
