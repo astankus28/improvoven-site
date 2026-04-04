@@ -1000,8 +1000,8 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   const pageUrl = `${SITE_URL}/recipes/${slug}/`;
   const absImage = imageUrl.startsWith('http') ? imageUrl : `${SITE_URL}${imageUrl}`;
   const ogTitle = `${recipe.title} - Improv Oven`.replace(/"/g, '&quot;');
-  const metaDesc = buildRecipeMetaDescription(recipe);
-  const schemaDesc = buildRecipeJsonLdDescription(recipe);
+  const metaDesc = buildRecipeMetaDescription({ ...recipe, slug });
+  const schemaDesc = buildRecipeJsonLdDescription({ ...recipe, slug });
   const ogDesc = metaDesc.replace(/"/g, '&quot;');
 
   const ingredientsList = recipe.ingredients

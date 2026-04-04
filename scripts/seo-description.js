@@ -11,6 +11,26 @@ function isGenericRecipeDescription(s) {
   return GENERIC_DESC.test(t);
 }
 
+/** Rotating closings so JSON-LD / fallback meta are not identical across dozens of pages (Bing SEO). */
+function closingVariant(seed) {
+  const s = String(seed || 'improvoven');
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+  const variants = [
+    'Budget-friendly weeknight recipe from Improv Oven.',
+    'Pantry staples and Miami-inspired flavor from Improv Oven.',
+    'Simple ingredients, big taste — Improv Oven.',
+    'Home-cooked and budget-smart from Improv Oven.',
+    'Easy weeknight cooking from the Improv Oven blog.',
+    'Affordable comfort food from Improv Oven.',
+    'Quick to make, full of flavor — Improv Oven.',
+    'Real food, real easy — Improv Oven.',
+    'Weeknight-friendly dish from Improv Oven.',
+    'Pantry cooking with Latin flair from Improv Oven.',
+  ];
+  return variants[h % variants.length];
+}
+
 function formatIsoDuration(iso) {
   if (!iso || typeof iso !== 'string') return '';
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);
@@ -24,10 +44,11 @@ function formatIsoDuration(iso) {
 }
 
 /**
- * Rich, unique Recipe schema description from structured fields (not the marketing blurb).
+ * Rich Recipe schema description from structured fields (not the marketing blurb).
  * @param {object} recipe — shape like schema.org Recipe or site recipe object
+ * @param {string} [uniqueSeed] — URL slug or id so the closing line varies per page
  */
-function buildRecipeSchemaDescription(recipe) {
+function buildRecipeSchemaDescription(recipe, uniqueSeed) {
   const name = recipe.name || 'Recipe';
   const ing = Array.isArray(recipe.recipeIngredient) ? recipe.recipeIngredient : [];
   const top = ing
@@ -46,7 +67,8 @@ function buildRecipeSchemaDescription(recipe) {
   if (top) s += `Uses ${top}${ing.length > 5 ? ', and more' : ''}. `;
   if (time) s += `About ${time} total. `;
   if (yld) s += `Serves ${yld}. `;
-  s += 'Budget-friendly recipe from Improv Oven — Miami-inspired pantry cooking.';
+  const seed = uniqueSeed || recipe.slug || name;
+  s += closingVariant(seed);
   return s.replace(/\s+/g, ' ').trim();
 }
 
@@ -79,7 +101,8 @@ function buildRecipeMetaDescription(recipeLike) {
   if (!isGenericRecipeDescription(raw) && raw.length >= 110) {
     return truncateMeta(raw, 158);
   }
-  return truncateMeta(buildRecipeSchemaDescription(schemaShape), 158);
+  const seed = recipeLike.slug || recipeLike.title || recipeLike.name || '';
+  return truncateMeta(buildRecipeSchemaDescription(schemaShape, seed), 158);
 }
 
 /**
@@ -87,23 +110,28 @@ function buildRecipeMetaDescription(recipeLike) {
  */
 function buildRecipeJsonLdDescription(recipeLike) {
   const raw = (recipeLike.description || '').trim();
+  const seed = recipeLike.slug || recipeLike.title || recipeLike.name || '';
   if (!isGenericRecipeDescription(raw)) return raw;
-  return buildRecipeSchemaDescription({
-    name: recipeLike.title || recipeLike.name,
-    recipeIngredient: recipeLike.ingredients || recipeLike.recipeIngredient,
-    totalTime: recipeLike.totalTime?.startsWith?.('PT')
-      ? recipeLike.totalTime
-      : recipeLike.totalTime
-        ? `PT${String(recipeLike.totalTime).replace(/\D/g, '')}M`
-        : '',
-    recipeYield: recipeLike.recipeYield || (recipeLike.servings ? `${recipeLike.servings} servings` : ''),
-    recipeCategory: recipeLike.category || recipeLike.recipeCategory,
-    recipeCuisine: recipeLike.cuisine || recipeLike.recipeCuisine,
-  });
+  return buildRecipeSchemaDescription(
+    {
+      name: recipeLike.title || recipeLike.name,
+      recipeIngredient: recipeLike.ingredients || recipeLike.recipeIngredient,
+      totalTime: recipeLike.totalTime?.startsWith?.('PT')
+        ? recipeLike.totalTime
+        : recipeLike.totalTime
+          ? `PT${String(recipeLike.totalTime).replace(/\D/g, '')}M`
+          : '',
+      recipeYield: recipeLike.recipeYield || (recipeLike.servings ? `${recipeLike.servings} servings` : ''),
+      recipeCategory: recipeLike.category || recipeLike.recipeCategory,
+      recipeCuisine: recipeLike.cuisine || recipeLike.recipeCuisine,
+    },
+    seed,
+  );
 }
 
 module.exports = {
   isGenericRecipeDescription,
+  closingVariant,
   buildRecipeSchemaDescription,
   buildRecipeMetaDescription,
   buildRecipeJsonLdDescription,

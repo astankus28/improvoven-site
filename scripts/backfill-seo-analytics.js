@@ -8,7 +8,8 @@
  * - og:url and Twitter meta when missing
  * - GA4 from site-config when missing
  * - id="step-N" on instruction <li> when missing
- * - Duplicate JSON-LD Recipe.description (legacy placeholder) → unique text
+ * - Duplicate JSON-LD Recipe.description (legacy placeholder or shared closing line) → unique text
+ * - Legacy recipe pages missing og:title / og:description / og:type → filled from title + meta description
  * - Very short <meta name="description"> on recipe pages → expanded
  */
 
@@ -20,6 +21,9 @@ const {
   buildRecipeSchemaDescription,
   buildRecipeMetaDescription,
 } = require('./seo-description');
+
+/** Old JSON-LD closing shared by many recipe pages — Bing flags as duplicate meta-like text. */
+const DUPLICATE_LD_CLOSING = 'Budget-friendly recipe from Improv Oven — Miami-inspired pantry cooking.';
 
 const HTML_ROOTS = [
   path.join(process.cwd(), 'recipes'),
@@ -62,6 +66,10 @@ function escAttr(s) {
 }
 
 function fixRecipeLdAndMeta(html) {
+  const canonicalUrl = extractCanonical(html);
+  const slugMatch = canonicalUrl && canonicalUrl.match(/\/recipes\/([^/]+)\/$/);
+  const slug = slugMatch ? slugMatch[1] : '';
+
   const marker = '<script type="application/ld+json">';
   const start = html.indexOf(marker);
   if (start === -1) return { html, changed: false };
@@ -80,15 +88,36 @@ function fixRecipeLdAndMeta(html) {
   let out = html;
   let changed = false;
   const origGenericLd = isGenericRecipeDescription(data.description);
+  const origDuplicateClosing =
+    typeof data.description === 'string' && data.description.includes(DUPLICATE_LD_CLOSING);
 
-  if (origGenericLd) {
-    data.description = buildRecipeSchemaDescription(data);
+  if (origGenericLd || origDuplicateClosing) {
+    data.description = buildRecipeSchemaDescription(data, slug || data.name);
     const newScript = `${marker}\n${JSON.stringify(data)}\n</script>`;
     out = out.slice(0, start) + newScript + out.slice(end + '</script>'.length);
     changed = true;
   }
 
-  const metaMatch = out.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  let metaMatch = out.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  if (metaMatch && metaMatch[1].includes(DUPLICATE_LD_CLOSING)) {
+    const expanded = buildRecipeMetaDescription({
+      description: data.description,
+      title: data.name,
+      ingredients: data.recipeIngredient,
+      totalTime: data.totalTime,
+      recipeYield: data.recipeYield,
+      category: data.recipeCategory,
+      cuisine: data.recipeCuisine,
+      slug,
+    });
+    out = out.replace(
+      /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+      `<meta name="description" content="${escAttr(expanded)}">`,
+    );
+    changed = true;
+    metaMatch = out.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  }
+
   if (metaMatch && metaMatch[1].length < 120) {
     const expanded = buildRecipeMetaDescription({
       description: data.description,
@@ -98,6 +127,7 @@ function fixRecipeLdAndMeta(html) {
       recipeYield: data.recipeYield,
       category: data.recipeCategory,
       cuisine: data.recipeCuisine,
+      slug,
     });
     out = out.replace(
       /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
@@ -115,6 +145,29 @@ function fixRecipeLdAndMeta(html) {
         `<meta name="twitter:description" content="${escAttr(finalMeta[1])}">`,
       );
       changed = true;
+    }
+  }
+
+  if (slug && !/property="og:description"/i.test(out)) {
+    const ogDesc = extractMetaName(out, 'description');
+    if (ogDesc) {
+      const lines = [];
+      if (!/property="og:title"/i.test(out)) {
+        lines.push(`<meta property="og:title" content="${escAttr(extractTitleTag(out) || data.name || 'Recipe')}">`);
+      }
+      lines.push(`<meta property="og:description" content="${escAttr(ogDesc)}">`);
+      if (!/property="og:type"/i.test(out)) {
+        lines.push('<meta property="og:type" content="article">');
+      }
+      const block = lines.join('\n');
+      const anchor =
+        out.match(/<meta\s+property="og:image"[^>]*>/i) ||
+        out.match(/<meta\s+property="og:url"[^>]*>/i) ||
+        out.match(/<link\s+rel="canonical"[^>]*>/i);
+      if (anchor) {
+        out = out.replace(anchor[0], `${anchor[0]}\n${block}`);
+        changed = true;
+      }
     }
   }
 
