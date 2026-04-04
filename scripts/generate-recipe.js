@@ -1,6 +1,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
@@ -992,11 +993,16 @@ function slugify(title) {
 }
 
 function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
+  const pageUrl = `${SITE_URL}/recipes/${slug}/`;
+  const absImage = imageUrl.startsWith('http') ? imageUrl : `${SITE_URL}${imageUrl}`;
+  const ogTitle = `${recipe.title} - Improv Oven`.replace(/"/g, '&quot;');
+  const ogDesc = recipe.description.replace(/"/g, '&quot;');
+
   const ingredientsList = recipe.ingredients
     .map(i => `<li itemprop="recipeIngredient">${i}</li>`).join('\n');
 
   const instructionsList = recipe.instructions
-    .map((s, i) => `<li itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
+    .map((s, i) => `<li id="step-${i + 1}" itemprop="recipeInstructions" itemscope itemtype="https://schema.org/HowToStep">
       <span class="step-num">${i+1}</span><span itemprop="text">${s}</span></li>`).join('\n');
 
   const dateFormatted = new Date(date).toLocaleDateString('en-US', {
@@ -1030,19 +1036,26 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
 <title>${recipe.title} - Improv Oven</title>
 <meta name="description" content="${recipe.description.replace(/"/g,'&quot;')}">
 <meta name="keywords" content="${recipe.targetKeyword}, improv oven, easy recipes, budget meals">
-<meta property="og:title" content="${recipe.title} - Improv Oven">
-<meta property="og:description" content="${recipe.description.replace(/"/g,'&quot;')}">
-<meta property="og:image" content="${imageUrl}">
+<meta property="og:title" content="${ogTitle}">
+<meta property="og:description" content="${ogDesc}">
+<meta property="og:image" content="${absImage.replace(/"/g, '&quot;')}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
 <meta property="og:type" content="article">
-<link rel="canonical" href="https://www.improvoven.com/recipes/${slug}/">
+<meta property="og:url" content="${pageUrl}">
+<link rel="canonical" href="${pageUrl}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${ogTitle}">
+<meta name="twitter:description" content="${ogDesc}">
+<meta name="twitter:image" content="${absImage.replace(/"/g, '&quot;')}">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Recipe",
   "name": "${recipe.title.replace(/"/g,'\\"')}",
   "description": "${recipe.description.replace(/"/g,'\\"')}",
-  "image": ["https://www.improvoven.com${imageUrl}"],
-  "author": {"@type":"Organization","name":"Improv Oven","url":"https://www.improvoven.com"},
+  "image": ["${absImage.replace(/"/g, '\\"')}"],
+  "author": {"@type":"Organization","name":"Improv Oven","url":"${SITE_URL}"},
   "datePublished": "${date}",
   "prepTime": "PT${recipe.prepTime.replace(/\D/g,'')}M",
   "cookTime": "PT${recipe.cookTime.replace(/\D/g,'')}M",
@@ -1052,18 +1065,16 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   "recipeCuisine": "${recipe.cuisine}",
   "keywords": "${recipe.targetKeyword}",
   "recipeIngredient": ${JSON.stringify(recipe.ingredients)},
-  "recipeInstructions": ${JSON.stringify(recipe.instructions.map((s,i)=>({
-    "@type":"HowToStep","position":i+1,"name":"Step " + (i+1),"text":s,"url":"https://www.improvoven.com/recipes/${slug}/#step-"+(i+1)})))}
+  "recipeInstructions": ${JSON.stringify(recipe.instructions.map((s, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name: 'Step ' + (i + 1),
+    text: s,
+    url: `${SITE_URL}/recipes/${slug}/#step-${i + 1}`,
+  })))}
 }
 </script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-78N6SPVJ7F"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-78N6SPVJ7F');
-</script>
+${GTAG_SNIPPET}
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -1167,7 +1178,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   </div>
 </div>
 ${relatedHtml}
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 }
@@ -1187,22 +1198,27 @@ async function updateRecipeIndex(recipes) {
       </div>
     </a>`).join('');
 
+  const idxDesc = `Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.`.replace(/"/g, '&quot;');
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>All Recipes - Improv Oven | Simple Budget-Friendly Meals</title>
-<meta name="description" content="Browse ${recipes.length}+ simple budget-friendly recipes with Miami and Latin American influence. Quick weeknight meals using pantry staples.">
-<link rel="canonical" href="https://www.improvoven.com/recipes/">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-78N6SPVJ7F"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-78N6SPVJ7F');
-</script>
+<meta name="description" content="${idxDesc}">
+<meta property="og:title" content="All Recipes - Improv Oven | Simple Budget-Friendly Meals">
+<meta property="og:description" content="${idxDesc}">
+<meta property="og:image" content="${SITE_URL}/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="${SITE_URL}/recipes/">
+<link rel="canonical" href="${SITE_URL}/recipes/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="All Recipes - Improv Oven | Simple Budget-Friendly Meals">
+<meta name="twitter:description" content="${idxDesc}">
+<meta name="twitter:image" content="${SITE_URL}/og-image.jpg">
+${GTAG_SNIPPET}
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -1260,7 +1276,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   <input class="search-box" type="search" id="recipe-search" placeholder="Search recipes... try 'chicken', 'Latin', 'quick'" autocomplete="off">
 </div>
 <div class="recipes-grid">${cards||'<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 <script>
 const search = document.getElementById('recipe-search');
 const grid = document.querySelector('.recipes-grid');
@@ -1372,18 +1388,28 @@ img.save(output_path, 'JPEG', quality=92)
 }
 
 async function updateSitemap(recipes) {
-  const baseUrl = 'https://www.improvoven.com';
   const today = new Date().toISOString().split('T')[0];
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily' },
     { url: '/recipes/index.html', priority: '0.9', changefreq: 'daily' },
     { url: '/about/index.html', priority: '0.5', changefreq: 'monthly' },
+    { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'yearly' },
   ];
-  const recipeUrls = recipes.map(r => `  <url>\n    <loc>${baseUrl}/recipes/${r.slug}/</loc>\n    <lastmod>${r.date || today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`).join('\n');
-  const staticUrls = staticPages.map(p => `  <url>\n    <loc>${baseUrl}${p.url}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`).join('\n');
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${staticUrls}\n${recipeUrls}\n</urlset>`;
+  const recipeUrls = recipes.map(r => `  <url>\n    <loc>${SITE_URL}/recipes/${r.slug}/</loc>\n    <lastmod>${r.date || today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n  </url>`).join('\n');
+  const roundupsDir = path.join(process.cwd(), 'roundups');
+  const roundupUrls = [];
+  if (fs.existsSync(roundupsDir)) {
+    for (const name of fs.readdirSync(roundupsDir)) {
+      const sub = path.join(roundupsDir, name);
+      if (!fs.statSync(sub).isDirectory()) continue;
+      if (!fs.existsSync(path.join(sub, 'index.html'))) continue;
+      roundupUrls.push(`  <url>\n    <loc>${SITE_URL}/roundups/${name}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.65</priority>\n  </url>`);
+    }
+  }
+  const staticUrls = staticPages.map(p => `  <url>\n    <loc>${SITE_URL}${p.url}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>`).join('\n');
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${staticUrls}\n${roundupUrls.join('\n')}\n${recipeUrls}\n</urlset>`;
   fs.writeFileSync(path.join(process.cwd(), 'sitemap.xml'), sitemap);
-  console.log(`✓ Sitemap updated (${recipes.length + staticPages.length} URLs)`);
+  console.log(`✓ Sitemap updated (${recipes.length + staticPages.length + roundupUrls.length} URLs)`);
 }
 
 async function main() {

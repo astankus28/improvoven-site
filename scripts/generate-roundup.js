@@ -5,9 +5,9 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const SITE_URL = 'https://www.improvoven.com';
 
 // Round-up themes — Claude picks the best one based on available recipes
 const ROUNDUP_THEMES = [
@@ -103,6 +103,11 @@ function buildRoundupPage(theme, recipes, intro, slug, date) {
 <meta property="og:type" content="article">
 <meta property="og:url" content="${SITE_URL}/roundups/${slug}/">
 <link rel="canonical" href="${SITE_URL}/roundups/${slug}/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title.replace(/"/g, '&quot;')}">
+<meta name="twitter:description" content="${description.replace(/"/g, '&quot;')}">
+<meta name="twitter:image" content="${SITE_URL}/recipes/${recipes[0].slug}/images/hero.webp">
+${GTAG_SNIPPET}
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">

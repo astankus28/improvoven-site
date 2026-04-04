@@ -4,9 +4,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
 
 const recipes = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'recipes-data.json'), 'utf8'));
-const SITE_URL = 'https://www.improvoven.com';
 const year = new Date().getFullYear();
 
 const CATEGORY_PAGES = [
@@ -112,7 +112,15 @@ function makePage(cat, matching) {
 <meta property="og:description" content="${cat.description}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE_URL}/recipes/${cat.slug}/">
+<meta property="og:image" content="${SITE_URL}/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <link rel="canonical" href="${SITE_URL}/recipes/${cat.slug}/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${cat.title.replace(/"/g, '&quot;')} — Improv Oven">
+<meta name="twitter:description" content="${cat.description.replace(/"/g, '&quot;')}">
+<meta name="twitter:image" content="${SITE_URL}/og-image.jpg">
+${GTAG_SNIPPET}
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -205,7 +213,7 @@ footer a{color:rgba(255,255,255,0.5)}
   </div>
 </div>
 <footer>
-  <p>© ${year} Improv Oven · <a href="/privacy-policy/">Privacy Policy</a></p>
+  <p>© ${year} Improv Oven · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></p>
 </footer>
 </body>
 </html>`;
