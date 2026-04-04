@@ -8,11 +8,18 @@
  * - og:url and Twitter meta when missing
  * - GA4 from site-config when missing
  * - id="step-N" on instruction <li> when missing
+ * - Duplicate JSON-LD Recipe.description (legacy placeholder) → unique text
+ * - Very short <meta name="description"> on recipe pages → expanded
  */
 
 const fs = require('fs');
 const path = require('path');
 const { SITE_URL, GA_MEASUREMENT_ID, GTAG_SNIPPET } = require('./site-config');
+const {
+  isGenericRecipeDescription,
+  buildRecipeSchemaDescription,
+  buildRecipeMetaDescription,
+} = require('./seo-description');
 
 const HTML_ROOTS = [
   path.join(process.cwd(), 'recipes'),
@@ -52,6 +59,66 @@ function extractTitleTag(html) {
 
 function escAttr(s) {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+function fixRecipeLdAndMeta(html) {
+  const marker = '<script type="application/ld+json">';
+  const start = html.indexOf(marker);
+  if (start === -1) return { html, changed: false };
+  const after = start + marker.length;
+  const end = html.indexOf('</script>', after);
+  if (end === -1) return { html, changed: false };
+  const jsonStr = html.slice(after, end).trim();
+  let data;
+  try {
+    data = JSON.parse(jsonStr);
+  } catch {
+    return { html, changed: false };
+  }
+  if (data['@type'] !== 'Recipe') return { html, changed: false };
+
+  let out = html;
+  let changed = false;
+  const origGenericLd = isGenericRecipeDescription(data.description);
+
+  if (origGenericLd) {
+    data.description = buildRecipeSchemaDescription(data);
+    const newScript = `${marker}\n${JSON.stringify(data)}\n</script>`;
+    out = out.slice(0, start) + newScript + out.slice(end + '</script>'.length);
+    changed = true;
+  }
+
+  const metaMatch = out.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  if (metaMatch && metaMatch[1].length < 120) {
+    const expanded = buildRecipeMetaDescription({
+      description: data.description,
+      title: data.name,
+      ingredients: data.recipeIngredient,
+      totalTime: data.totalTime,
+      recipeYield: data.recipeYield,
+      category: data.recipeCategory,
+      cuisine: data.recipeCuisine,
+    });
+    out = out.replace(
+      /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+      `<meta name="description" content="${escAttr(expanded)}">`,
+    );
+    changed = true;
+  }
+
+  const finalMeta = out.match(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  if (finalMeta && /twitter:description/i.test(out)) {
+    const tw = out.match(/<meta\s+name="twitter:description"\s+content="([^"]*)"/i);
+    if (tw && isGenericRecipeDescription(tw[1])) {
+      out = out.replace(
+        /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:description" content="${escAttr(finalMeta[1])}">`,
+      );
+      changed = true;
+    }
+  }
+
+  return { html: out, changed };
 }
 
 function fixHtml(html) {
@@ -137,6 +204,12 @@ function fixHtml(html) {
       return `<li id="step-${step}"${attrs}>`;
     }
   );
+
+  const ldMeta = fixRecipeLdAndMeta(out);
+  if (ldMeta.changed) {
+    out = ldMeta.html;
+    changed = true;
+  }
 
   return { out, changed, skip: null };
 }

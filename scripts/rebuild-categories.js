@@ -13,7 +13,7 @@ const CATEGORY_PAGES = [
   {
     slug: 'dinner',
     title: 'Easy Dinner Recipes',
-    description: 'Quick and easy dinner recipes for busy weeknights. From pasta to chicken to budget-friendly meals — find your next favorite dinner.',
+    description: 'Quick and easy dinner recipes for busy weeknights. From pasta to chicken to budget-friendly meals — find your next favorite dinner. Curated by Improv Oven with Miami and Latin pantry-friendly ideas.',
     h1: 'Easy Dinner Recipes',
     filter: r => ['entree'].includes(r.category?.toLowerCase()) || r.category?.toLowerCase().includes('dinner'),
     keywords: 'easy dinner recipes, quick weeknight dinners, simple dinner ideas',
@@ -23,7 +23,7 @@ const CATEGORY_PAGES = [
   {
     slug: 'breakfast',
     title: 'Easy Breakfast Recipes',
-    description: 'Simple and delicious breakfast recipes to start your day right. From eggs to pancakes to quick morning meals.',
+    description: 'Simple and delicious breakfast recipes to start your day right. From eggs to pancakes to quick morning meals. Easy, budget-conscious ideas from Improv Oven.',
     h1: 'Easy Breakfast Recipes',
     filter: r => r.category?.toLowerCase() === 'breakfast' || r.category?.toLowerCase().includes('breakfast'),
     keywords: 'easy breakfast recipes, quick breakfast ideas, simple morning meals',
@@ -33,7 +33,7 @@ const CATEGORY_PAGES = [
   {
     slug: 'italian',
     title: 'Italian Recipes',
-    description: 'Classic Italian recipes made simple. Pasta, pizza, arancini and more — authentic Italian flavors for home cooks.',
+    description: 'Classic Italian recipes made simple. Pasta, pizza, arancini and more — authentic Italian flavors for home cooks. Step-by-step dinners from Improv Oven.',
     h1: 'Italian Recipes',
     filter: r => r.cuisine?.toLowerCase().includes('italian'),
     keywords: 'italian recipes, easy pasta recipes, homemade italian food',
@@ -43,7 +43,7 @@ const CATEGORY_PAGES = [
   {
     slug: 'latin',
     title: 'Latin Recipes',
-    description: 'Bold and flavorful Latin recipes inspired by Miami and South American cuisine. Empanadas, ceviche, rice and beans and more.',
+    description: 'Bold and flavorful Latin recipes inspired by Miami and South American cuisine. Empanadas, ceviche, rice and beans and more. Home-cook friendly recipes from Improv Oven.',
     h1: 'Latin & Miami-Inspired Recipes',
     filter: r => ['latin', 'mexican', 'cuban', 'puerto rican', 'venezuelan', 'argentine', 'peruvian'].some(x => r.cuisine?.toLowerCase().includes(x)),
     keywords: 'latin recipes, Cuban recipes, Miami food, South American recipes',
@@ -53,7 +53,7 @@ const CATEGORY_PAGES = [
   {
     slug: 'budget',
     title: 'Budget Meal Recipes',
-    description: "Delicious meals that won't break the bank. Easy budget recipes under $10 per serving for families and meal preppers.",
+    description: "Delicious meals that won't break the bank. Easy budget recipes under $10 per serving for families and meal preppers. Real weeknight cooking from Improv Oven.",
     h1: 'Budget-Friendly Recipes',
     filter: r => ['budget', 'cheap', 'affordable', 'under $'].some(x => (r.targetKeyword || '' + r.description || '').toLowerCase().includes(x)),
     keywords: 'budget meals, cheap dinner ideas, affordable recipes, meals under $10',
@@ -63,7 +63,7 @@ const CATEGORY_PAGES = [
   {
     slug: 'quick',
     title: '30-Minute Recipes',
-    description: 'Fast and easy recipes ready in 30 minutes or less. Perfect for busy weeknights when you need dinner on the table fast.',
+    description: 'Fast and easy recipes ready in 30 minutes or less. Perfect for busy weeknights when you need dinner on the table fast. Quick pantry dinners from Improv Oven.',
     h1: 'Quick 30-Minute Recipes',
     filter: r => ['30 minute', '20 minute', '15 minute', 'quick', 'fast'].some(x => (r.targetKeyword || '' + r.title || '' + r.description || '').toLowerCase().includes(x)),
     keywords: '30 minute meals, quick easy recipes, fast dinner ideas',
@@ -73,7 +73,7 @@ const CATEGORY_PAGES = [
   {
     slug: 'dessert',
     title: 'Dessert Recipes',
-    description: 'Easy and delicious dessert recipes. Cookies, cakes, chocolate treats and more sweet recipes for every occasion.',
+    description: 'Easy and delicious dessert recipes. Cookies, cakes, chocolate treats and more sweet recipes for every occasion. Simple sweets from Improv Oven.',
     h1: 'Dessert Recipes',
     filter: r => r.category?.toLowerCase() === 'dessert' || r.category?.toLowerCase().includes('dessert'),
     keywords: 'easy dessert recipes, simple sweet treats, homemade cookies cakes',

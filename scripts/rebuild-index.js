@@ -92,8 +92,8 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 <nav>
   <a href="/" class="nav-logo">Improv <span>Oven</span></a>
   <ul class="nav-links">
-    <li><a href="/recipes/index.html">Recipes</a></li>
-    <li><a href="/about/index.html">About</a></li>
+    <li><a href="/recipes/">Recipes</a></li>
+    <li><a href="/about/">About</a></li>
   </ul>
 </nav>
 <div class="page-header">
@@ -105,7 +105,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
 </div>
 <div class="filter-wrap" id="filter-wrap"></div>
 <div class="recipes-grid">${cards || '<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 <script>
 const search = document.getElementById('recipe-search');
 const grid = document.querySelector('.recipes-grid');
@@ -171,8 +171,8 @@ const today = new Date().toISOString().split('T')[0];
 
 const staticPages = [
   { url: '/', priority: '1.0', changefreq: 'daily' },
-  { url: '/recipes/index.html', priority: '0.9', changefreq: 'daily' },
-  { url: '/about/index.html', priority: '0.5', changefreq: 'monthly' },
+  { url: '/recipes/', priority: '0.9', changefreq: 'daily' },
+  { url: '/about/', priority: '0.5', changefreq: 'monthly' },
   { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'yearly' },
   { url: '/privacy-policy/', priority: '0.3', changefreq: 'yearly' },
 ];

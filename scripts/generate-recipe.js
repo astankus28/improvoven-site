@@ -1,7 +1,11 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+try {
+  require('dotenv').config();
+} catch (_) {}
 const { SITE_URL, GTAG_SNIPPET } = require('./site-config');
+const { buildRecipeMetaDescription, buildRecipeJsonLdDescription } = require('./seo-description');
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
@@ -996,7 +1000,9 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   const pageUrl = `${SITE_URL}/recipes/${slug}/`;
   const absImage = imageUrl.startsWith('http') ? imageUrl : `${SITE_URL}${imageUrl}`;
   const ogTitle = `${recipe.title} - Improv Oven`.replace(/"/g, '&quot;');
-  const ogDesc = recipe.description.replace(/"/g, '&quot;');
+  const metaDesc = buildRecipeMetaDescription(recipe);
+  const schemaDesc = buildRecipeJsonLdDescription(recipe);
+  const ogDesc = metaDesc.replace(/"/g, '&quot;');
 
   const ingredientsList = recipe.ingredients
     .map(i => `<li itemprop="recipeIngredient">${i}</li>`).join('\n');
@@ -1034,7 +1040,7 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${recipe.title} - Improv Oven</title>
-<meta name="description" content="${recipe.description.replace(/"/g,'&quot;')}">
+<meta name="description" content="${metaDesc.replace(/"/g, '&quot;')}">
 <meta name="keywords" content="${recipe.targetKeyword}, improv oven, easy recipes, budget meals">
 <meta property="og:title" content="${ogTitle}">
 <meta property="og:description" content="${ogDesc}">
@@ -1053,7 +1059,7 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   "@context": "https://schema.org",
   "@type": "Recipe",
   "name": "${recipe.title.replace(/"/g,'\\"')}",
-  "description": "${recipe.description.replace(/"/g,'\\"')}",
+  "description": ${JSON.stringify(schemaDesc)},
   "image": ["${absImage.replace(/"/g, '\\"')}"],
   "author": {"@type":"Organization","name":"Improv Oven","url":"${SITE_URL}"},
   "datePublished": "${date}",
@@ -1178,7 +1184,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   </div>
 </div>
 ${relatedHtml}
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 </body>
 </html>`;
 }
@@ -1276,7 +1282,7 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   <input class="search-box" type="search" id="recipe-search" placeholder="Search recipes... try 'chicken', 'Latin', 'quick'" autocomplete="off">
 </div>
 <div class="recipes-grid">${cards||'<p style="grid-column:1/-1;text-align:center;color:#999;padding:3rem">First recipe coming soon!</p>'}</div>
-<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/index.html">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
+<footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy-policy/">Privacy Policy</a></footer>
 <script>
 const search = document.getElementById('recipe-search');
 const grid = document.querySelector('.recipes-grid');
@@ -1391,8 +1397,8 @@ async function updateSitemap(recipes) {
   const today = new Date().toISOString().split('T')[0];
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily' },
-    { url: '/recipes/index.html', priority: '0.9', changefreq: 'daily' },
-    { url: '/about/index.html', priority: '0.5', changefreq: 'monthly' },
+    { url: '/recipes/', priority: '0.9', changefreq: 'daily' },
+    { url: '/about/', priority: '0.5', changefreq: 'monthly' },
     { url: '/affiliate-disclosure/', priority: '0.3', changefreq: 'yearly' },
     { url: '/privacy-policy/', priority: '0.3', changefreq: 'yearly' },
   ];
@@ -1469,6 +1475,16 @@ async function main() {
     console.log(`\n✅ Published: "${recipe.title}"`);
     console.log(`   Keyword: "${keyword}"`);
     console.log(`   URL: /recipes/${slug}/`);
+
+    if (process.env.INDEXNOW_KEY) {
+      try {
+        const { submitIndexNowUrls } = require('./submit-indexnow.js');
+        await submitIndexNowUrls([`${SITE_URL}/recipes/${slug}/`]);
+        console.log('✓ IndexNow submitted');
+      } catch (e) {
+        console.log('⚠ IndexNow:', e.message);
+      }
+    }
 
     // Post to Pinterest
     try {

@@ -2,7 +2,8 @@
   "scripts": {
     "rebuild:index": "node scripts/rebuild-index.js",
     "rebuild:categories": "node scripts/rebuild-categories.js",
-    "backfill:seo": "node scripts/backfill-seo-analytics.js"
+    "backfill:seo": "node scripts/backfill-seo-analytics.js",
+    "indexnow": "node scripts/submit-indexnow.js"
   },
   "dependencies": {
     "dotenv": "^17.4.0"

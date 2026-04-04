@@ -1,6 +1,7 @@
 'use strict';
 
-/** Shared URLs and GA4 snippet for static HTML generators and backfill scripts. */
+/** Shared URLs and GA4 snippet for static HTML generators and backfill scripts.
+ * Optional: INDEXNOW_KEY (+ INDEXNOW_KEY_LOCATION) for scripts/submit-indexnow.js and new-recipe publishes. */
 const SITE_URL = 'https://www.improvoven.com';
 const GA_MEASUREMENT_ID = 'G-78N6SPVJ7F';
 
