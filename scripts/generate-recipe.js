@@ -106,6 +106,162 @@ function filterKeywordsByExistingTopics(keywords, blockedIds) {
   return filtered.length > 0 ? filtered : keywords;
 }
 
+// ============================================================
+// EASTER STRATEGY — time-aware lead-up + avoid feast-topic pile-ups
+// ============================================================
+
+/** matchRecipe(blob) / matchKw(lowerKeyword) — oversaturated themes skip new picks */
+const EASTER_THEME_COOLDOWN = [
+  {
+    id: 'ham',
+    matchRecipe: (b) => /\bham\b|glazed ham|pineapple ham|honey ham|spiral ham/i.test(b),
+    matchKw: (k) =>
+      /\bham\b|glazed ham|pineapple ham|honey.*ham|ham glaze|ham stock|ham prep|brown sugar.*ham/i.test(k),
+  },
+  {
+    id: 'lamb',
+    matchRecipe: (b) => /\blamb\b/i.test(b),
+    matchKw: (k) => /\blamb\b|lamb marinade|compound butter.*lamb/i.test(k),
+  },
+  {
+    id: 'carrot_cake',
+    matchRecipe: (b) => /carrot cake/i.test(b),
+    matchKw: (k) => /carrot cake/i.test(k),
+  },
+  {
+    id: 'sugar_cookie',
+    matchRecipe: (b) => /sugar cookie|easter sugar cookie|decorated cookie|royal icing/i.test(b),
+    matchKw: (k) =>
+      /sugar cookie|easter.*cookie|decorated cookie|cookie dough freeze|cut out cookie/i.test(k),
+  },
+  {
+    id: 'deviled_egg',
+    matchRecipe: (b) => /deviled egg/i.test(b),
+    matchKw: (k) => /deviled egg/i.test(k),
+  },
+  {
+    id: 'hot_cross',
+    matchRecipe: (b) => /hot cross/i.test(b),
+    matchKw: (k) => /hot cross/i.test(k),
+  },
+  {
+    id: 'easter_bread',
+    matchRecipe: (b) =>
+      /easter bread|braided easter|sweet.*bread.*easter|dyed eggs baked in bread/i.test(b),
+    matchKw: (k) =>
+      /easter bread|sweet easter bread|braided easter|freezer.*easter bread dough|no knead easter bread/i.test(
+        k,
+      ),
+  },
+  {
+    id: 'scalloped_potato',
+    matchRecipe: (b) => /scalloped potato/i.test(b),
+    matchKw: (k) => /scalloped potato|potato gratin assemble/i.test(k),
+  },
+  {
+    id: 'brunch_casserole',
+    matchRecipe: (b) => /brunch casserole|overnight.*brunch|breakfast casserole/i.test(b),
+    matchKw: (k) => /overnight easter brunch|brunch casserole/i.test(k),
+  },
+];
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Themes that appear >= cap times in the newest `lookback` recipes are cooled down. */
+function getOversaturatedEasterThemes(recipes, lookback = 10, cap = 2) {
+  const saturated = new Set();
+  if (!Array.isArray(recipes)) return saturated;
+  const slice = recipes.slice(0, lookback);
+  const counts = new Map();
+  for (const r of slice) {
+    const blob = `${r.title || ''} ${r.slug || ''}`.toLowerCase();
+    for (const th of EASTER_THEME_COOLDOWN) {
+      if (th.matchRecipe(blob)) counts.set(th.id, (counts.get(th.id) || 0) + 1);
+    }
+  }
+  for (const [id, n] of counts.entries()) {
+    if (n >= cap) saturated.add(id);
+  }
+  return saturated;
+}
+
+function filterEasterKeywordsByCooldown(keywords, saturatedThemeIds) {
+  if (!saturatedThemeIds || saturatedThemeIds.size === 0) return keywords;
+  const hot = EASTER_THEME_COOLDOWN.filter((t) => saturatedThemeIds.has(t.id));
+  if (hot.length === 0) return keywords;
+  const out = keywords.filter((k) => {
+    const low = String(k).toLowerCase();
+    for (const th of hot) {
+      if (th.matchKw(low)) return false;
+    }
+    return true;
+  });
+  return out.length > 0 ? out : keywords;
+}
+
+/** Calendar days from `now` (local date) to Easter Sunday (local date): 1 = day before, 0 = Easter. */
+function daysBeforeEasterSunday(now, easterSunday) {
+  const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const t1 = new Date(
+    easterSunday.getFullYear(),
+    easterSunday.getMonth(),
+    easterSunday.getDate(),
+  ).getTime();
+  return Math.round((t1 - t0) / 86400000);
+}
+
+/**
+ * More Lent early in the window; more make-ahead / feast prep closer to Sunday.
+ * Repeats entries to weight random choice (holiday branch picks uniformly).
+ */
+function buildWeightedPreEasterKeywordPool(lent, lead, daysBeforeEaster) {
+  const d = Math.max(1, daysBeforeEaster);
+  let lentW;
+  let leadW;
+  if (d >= 8) {
+    lentW = 4;
+    leadW = 1;
+  } else if (d >= 4) {
+    lentW = 2;
+    leadW = 2;
+  } else {
+    lentW = 1;
+    leadW = 4;
+  }
+  const pool = [];
+  for (const k of lent) for (let i = 0; i < lentW; i++) pool.push(k);
+  for (const k of lead) for (let i = 0; i < leadW; i++) pool.push(k);
+  return shuffleArray(pool);
+}
+
+/** Themes touched by any of the newest `lookback` recipes (streak breaker). */
+function getEasterThemesInRecentRecipes(recipes, lookback = 3) {
+  const hit = new Set();
+  if (!Array.isArray(recipes)) return hit;
+  for (const r of recipes.slice(0, lookback)) {
+    const blob = `${r.title || ''} ${r.slug || ''}`.toLowerCase();
+    for (const th of EASTER_THEME_COOLDOWN) {
+      if (th.matchRecipe(blob)) hit.add(th.id);
+    }
+  }
+  return hit;
+}
+
+function applyEasterStrategicFilters(keywordList) {
+  const recipes = loadRecipesDataForDedupe();
+  const strong = getOversaturatedEasterThemes(recipes, 10, 2);
+  const recentBurst = getEasterThemesInRecentRecipes(recipes, 3);
+  const blocked = new Set([...strong, ...recentBurst]);
+  return filterEasterKeywordsByCooldown(keywordList, blocked);
+}
+
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner | dessert | any
@@ -999,12 +1155,15 @@ function getSeasonalKeywords() {
       m === easterMonday.getMonth() &&
       d === easterMonday.getDate();
     if (isEasterSunday || isEasterMonday) {
-      return HOLIDAY_KEYWORDS.easter.celebration;
+      return applyEasterStrategicFilters([...HOLIDAY_KEYWORDS.easter.celebration]);
     }
-    return [
-      ...HOLIDAY_KEYWORDS.easter.lent_window,
-      ...HOLIDAY_KEYWORDS.easter.lead_up,
-    ];
+    const daysBefore = daysBeforeEasterSunday(now, easter);
+    const weightedPre = buildWeightedPreEasterKeywordPool(
+      HOLIDAY_KEYWORDS.easter.lent_window,
+      HOLIDAY_KEYWORDS.easter.lead_up,
+      daysBefore,
+    );
+    return applyEasterStrategicFilters(weightedPre);
   }
 
   // Ash Wednesday (46 days before Easter) — meatless
