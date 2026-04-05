@@ -11,7 +11,9 @@ function escAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
-const recipes = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'recipes-data.json'), 'utf8'));
+const recipes = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'recipes-data.json'), 'utf8')).filter(
+  (r) => !r.isRoundup
+);
 const year = new Date().getFullYear();
 
 const CATEGORY_PAGES = [

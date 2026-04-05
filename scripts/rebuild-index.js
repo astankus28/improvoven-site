@@ -11,6 +11,11 @@ function escAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
+function recipePageHref(r) {
+  if (r.isRoundup && r.roundupUrl) return r.roundupUrl;
+  return `/recipes/${r.slug}/`;
+}
+
 const recipesDataPath = path.join(process.cwd(), 'recipes-data.json');
 let recipes = [];
 if (fs.existsSync(recipesDataPath)) {
@@ -20,13 +25,13 @@ if (fs.existsSync(recipesDataPath)) {
 // ── Rebuild recipe index ──────────────────────────────────────────────────────
 
 const cards = recipes.slice(0, 200).map(r => `
-    <a href="/recipes/${r.slug}/" class="recipe-card">
+    <a href="${recipePageHref(r)}" class="recipe-card">
       <div class="card-img"><img src="${r.image}" alt="${r.title}" loading="lazy"></div>
       <div class="card-body">
         <div class="card-tags"><span class="ctag">${r.category}</span><span class="ctag">${r.cuisine}</span></div>
         <h3>${r.title}</h3>
         <p>${r.description.length > 120 ? r.description.slice(0, r.description.lastIndexOf(' ', 120)) + '...' : r.description}</p>
-        <div class="card-meta">${r.totalTime} · Serves ${r.servings}</div>
+        <div class="card-meta">${r.isRoundup ? 'Weekly round-up' : `${r.totalTime} · Serves ${r.servings}`}</div>
       </div>
     </a>`).join('');
 

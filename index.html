@@ -249,8 +249,11 @@ fetch('/recipes-data.json')
     if (!recipes || recipes.length === 0) return;
     const grid = document.getElementById('recipes-grid');
     const latest = recipes.slice(0, 6);
-    grid.innerHTML = latest.map(r => `
-      <a href="/recipes/${r.slug}/" class="recipe-card">
+    grid.innerHTML = latest.map(r => {
+      const href = (r.isRoundup && r.roundupUrl) ? r.roundupUrl : `/recipes/${r.slug}/`;
+      const meta = r.isRoundup ? 'Weekly round-up' : `${r.totalTime} · Serves ${r.servings}`;
+      return `
+      <a href="${href}" class="recipe-card">
         <div class="card-img"><img src="${r.image}" alt="${r.title}" loading="lazy"></div>
         <div class="card-body">
           <div class="card-tags">
@@ -259,9 +262,10 @@ fetch('/recipes-data.json')
           </div>
           <h3>${r.title}</h3>
           <p>${r.description}</p>
-          <div class="card-meta">${r.totalTime} · Serves ${r.servings}</div>
+          <div class="card-meta">${meta}</div>
         </div>
-      </a>`).join('');
+      </a>`;
+    }).join('');
   })
   .catch(() => {}); // Keep empty state if no recipes yet
 </script>

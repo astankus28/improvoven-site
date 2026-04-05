@@ -74,6 +74,46 @@ function slugify(str) {
     .trim();
 }
 
+/** Recipes eligible for a theme — never mix unrelated categories (e.g. ham matching keyword "sweet"). */
+function categoryPool(theme, list) {
+  const c = (theme.category || 'any').toLowerCase();
+  if (c === 'any' || c === 'budget' || c === 'quick') return list;
+  if (c === 'dessert') {
+    return list.filter((r) => (r.category || '').toLowerCase().includes('dessert'));
+  }
+  if (c === 'dinner') {
+    return list.filter((r) => {
+      const cat = (r.category || '').toLowerCase();
+      return cat.includes('dinner') || cat.includes('entree') || cat.includes('main');
+    });
+  }
+  if (c === 'breakfast') {
+    return list.filter((r) => (r.category || '').toLowerCase().includes('breakfast'));
+  }
+  if (c === 'italian') {
+    return list.filter((r) => (r.cuisine || '').toLowerCase().includes('italian'));
+  }
+  if (c === 'latin') {
+    const lat = ['latin', 'mexican', 'cuban', 'puerto rican', 'venezuelan', 'argentine', 'peruvian'];
+    return list.filter((r) => lat.some((x) => (r.cuisine || '').toLowerCase().includes(x)));
+  }
+  return list.filter((r) => (r.category || '').toLowerCase().includes(c));
+}
+
+function recipeSearchBlob(r) {
+  return (
+    r.title +
+    ' ' +
+    (r.description || '') +
+    ' ' +
+    (r.targetKeyword || r.keyword || '') +
+    ' ' +
+    (r.category || '') +
+    ' ' +
+    (r.cuisine || '')
+  ).toLowerCase();
+}
+
 function buildRoundupPage(theme, recipes, intro, slug, date) {
   const year = new Date().getFullYear();
   const title = `${recipes.length} ${theme} — Improv Oven`;
@@ -226,7 +266,8 @@ footer a{color:var(--green);font-weight:700}
 async function main() {
   console.log('🗞️ Generating weekly round-up...');
 
-  const recipes = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'recipes-data.json'), 'utf8'));
+  const allRecipes = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'recipes-data.json'), 'utf8'));
+  const recipes = allRecipes.filter((r) => !r.isRoundup);
   const date = new Date().toISOString().split('T')[0];
 
   // Load used roundup slugs to avoid repeats
@@ -241,27 +282,23 @@ async function main() {
 
   console.log(`📋 Theme: ${theme.theme}`);
 
-  // Filter matching recipes
-  let matching = recipes.filter(r => {
-    const searchStr = (r.title + ' ' + r.description + ' ' + r.targetKeyword + ' ' + r.category + ' ' + r.cuisine).toLowerCase();
-    return theme.keywords.some(k => searchStr.includes(k));
-  });
+  const pool = categoryPool(theme, recipes);
+  let matching = pool.filter((r) => theme.keywords.some((k) => recipeSearchBlob(r).includes(k)));
 
-  // If not enough matching, pull from category
-  if (matching.length < 6) {
-    const catMatch = recipes.filter(r =>
-      r.category?.toLowerCase().includes(theme.category) ||
-      r.cuisine?.toLowerCase().includes(theme.category)
-    );
-    matching = [...new Set([...matching, ...catMatch])];
+  const seen = new Set(matching.map((r) => r.slug));
+  for (const r of pool) {
+    if (matching.length >= 10) break;
+    if (!seen.has(r.slug)) {
+      matching.push(r);
+      seen.add(r.slug);
+    }
   }
 
-  // If still not enough, just use all recipes
-  if (matching.length < 6) {
-    matching = recipes;
+  if (matching.length === 0) {
+    console.warn('⚠️ No recipes matched this theme; using full pool.');
+    matching = pool.length ? pool.slice(0, 10) : recipes.slice(0, 10);
   }
 
-  // Shuffle and pick 8-10
   matching = matching.sort(() => Math.random() - 0.5).slice(0, 10);
   console.log(`📝 Selected ${matching.length} recipes`);
 
@@ -281,6 +318,26 @@ async function main() {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'index.html'), html);
   console.log(`✓ Page saved: /roundups/${slug}/`);
+
+  // Stub under /recipes/ so old or mistaken links to roundup-* slugs redirect to the real page
+  const stubSlug = `roundup-${slug}`;
+  const stubDir = path.join(process.cwd(), 'recipes', stubSlug);
+  fs.mkdirSync(stubDir, { recursive: true });
+  const roundPath = `/roundups/${slug}/`;
+  const stubHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="0;url=${roundPath}">
+<link rel="canonical" href="${SITE_URL}${roundPath}">
+<title>Redirecting…</title>
+</head>
+<body>
+<p>This round-up has moved. If you are not redirected, <a href="${roundPath}">open the round-up</a>.</p>
+</body>
+</html>`;
+  fs.writeFileSync(path.join(stubDir, 'index.html'), stubHtml);
+  console.log(`✓ Redirect stub: /recipes/${stubSlug}/`);
 
   // Update used roundups
   usedSlugs.push(slugify(theme.theme));
@@ -303,8 +360,8 @@ async function main() {
     roundupUrl: `/roundups/${slug}/`
   };
 
-  recipes.unshift(roundupEntry);
-  fs.writeFileSync(path.join(process.cwd(), 'recipes-data.json'), JSON.stringify(recipes, null, 2));
+  allRecipes.unshift(roundupEntry);
+  fs.writeFileSync(path.join(process.cwd(), 'recipes-data.json'), JSON.stringify(allRecipes, null, 2));
   console.log(`✓ Added to recipes-data.json`);
 
   console.log(`\n✅ Round-up complete: /roundups/${slug}/`);

@@ -15,6 +15,11 @@ function escAttrMeta(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
+function recipePageHref(r) {
+  if (r.isRoundup && r.roundupUrl) return r.roundupUrl;
+  return `/recipes/${r.slug}/`;
+}
+
 // ============================================================
 // TOPIC DEDUPE — avoid generating near-duplicate recipes when
 // several holiday keywords differ in wording but target the same dish.
@@ -1633,13 +1638,13 @@ async function updateRecipeIndex(recipes) {
   fs.mkdirSync(path.dirname(indexPath), { recursive: true });
 
   const cards = recipes.slice(0, 100).map(r => `
-    <a href="/recipes/${r.slug}/" class="recipe-card">
+    <a href="${recipePageHref(r)}" class="recipe-card">
       <div class="card-img"><img src="${r.image}" alt="${r.title}" loading="lazy"></div>
       <div class="card-body">
         <div class="card-tags"><span class="ctag">${r.category}</span><span class="ctag">${r.cuisine}</span></div>
         <h3>${r.title}</h3>
         <p>${r.description.length > 120 ? r.description.slice(0, r.description.lastIndexOf(" ", 120)) + "..." : r.description}</p>
-        <div class="card-meta">${r.totalTime} · Serves ${r.servings}</div>
+        <div class="card-meta">${r.isRoundup ? 'Weekly round-up' : `${r.totalTime} · Serves ${r.servings}`}</div>
       </div>
     </a>`).join('');
 
