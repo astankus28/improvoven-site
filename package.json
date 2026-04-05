@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "audit:recipe-schema": "node scripts/audit-recipe-schema.js",
     "rebuild:index": "node scripts/rebuild-index.js",
     "rebuild:categories": "node scripts/rebuild-categories.js",
     "backfill:seo": "node scripts/backfill-seo-analytics.js",
