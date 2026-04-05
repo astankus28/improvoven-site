@@ -15,6 +15,97 @@ function escAttrMeta(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
+// ============================================================
+// TOPIC DEDUPE — avoid generating near-duplicate recipes when
+// several holiday keywords differ in wording but target the same dish.
+// If any live recipe matches a cluster, skip new keywords tied to that cluster.
+// ============================================================
+
+const RECIPE_TOPIC_CLUSTERS = [
+  {
+    id: 'shrimp-pasta-lent',
+    recipeMatches: (title, slug) => {
+      const blob = `${title} ${slug}`.toLowerCase();
+      return /\bshrimp\b/.test(blob) && /\bpasta\b/.test(blob);
+    },
+    keywordMatches: (k) => {
+      const low = String(k).toLowerCase();
+      if (!/\bshrimp\b/.test(low)) return false;
+      if (
+        /\b(grits|grit)\b/.test(low) ||
+        /\btacos?\b/.test(low) ||
+        /\bscampi\b/.test(low) ||
+        /\bstir[- ]fry\b/.test(low) ||
+        /\bfried rice\b/.test(low) ||
+        /\bcocktail\b/.test(low) ||
+        /\bceviche\b/.test(low)
+      ) {
+        return false;
+      }
+      if (
+        /\bpasta\b/.test(low) ||
+        /\blinguine\b/.test(low) ||
+        /\bfettuccine\b/.test(low) ||
+        /\bspaghetti\b/.test(low) ||
+        /\bmacaroni\b/.test(low) ||
+        /\bnoodle\b/.test(low)
+      ) {
+        return true;
+      }
+      return /\blent|lenten|good friday|meatless friday|friday lent|ash wednesday/.test(low);
+    },
+  },
+  {
+    id: 'baked-cod-lent',
+    recipeMatches: (title, slug) => {
+      const blob = `${title} ${slug}`.toLowerCase();
+      return /\b(cod|baked cod)\b/.test(blob) && /\b(lent|lenten|good friday|friday)\b/.test(blob);
+    },
+    keywordMatches: (k) => {
+      const low = String(k).toLowerCase();
+      if (!/\bcod\b/.test(low)) return false;
+      return /\blent|lenten|good friday|meatless|friday/.test(low) || /\bbaked cod\b/.test(low);
+    },
+  },
+];
+
+function loadRecipesDataForDedupe() {
+  const p = path.join(process.cwd(), 'recipes-data.json');
+  if (!fs.existsSync(p)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (_) {
+    return [];
+  }
+}
+
+function getBlockedTopicIdsFromRecipes(recipes) {
+  const blocked = new Set();
+  if (!Array.isArray(recipes)) return blocked;
+  for (const r of recipes) {
+    const title = r.title || '';
+    const slug = r.slug || '';
+    for (const c of RECIPE_TOPIC_CLUSTERS) {
+      if (c.recipeMatches(title, slug)) blocked.add(c.id);
+    }
+  }
+  return blocked;
+}
+
+function isKeywordBlockedByTopic(keyword, blockedIds) {
+  if (!blockedIds || blockedIds.size === 0) return false;
+  for (const c of RECIPE_TOPIC_CLUSTERS) {
+    if (blockedIds.has(c.id) && c.keywordMatches(keyword)) return true;
+  }
+  return false;
+}
+
+function filterKeywordsByExistingTopics(keywords, blockedIds) {
+  if (!blockedIds || blockedIds.size === 0) return keywords;
+  const filtered = keywords.filter((k) => !isKeywordBlockedByTopic(k, blockedIds));
+  return filtered.length > 0 ? filtered : keywords;
+}
+
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner | dessert | any
@@ -394,6 +485,11 @@ function getKeywordPoolForMealType() {
 // HOLIDAY KEYWORD SYSTEM
 // Automatically switches to seasonal keywords around major US
 // food holidays. Each holiday has a window of days before/after.
+//
+// These strings are hand-curated for seasonality + Improv Oven’s voice
+// (budget, pantry, Latin / Miami angles). They are NOT guaranteed to be
+// the “most searched” phrases — for that, use Search Console, Keyword Planner,
+// or your SEO tool and promote winners into this list over time.
 // ============================================================
 
 const HOLIDAY_KEYWORDS = {
@@ -472,6 +568,24 @@ const HOLIDAY_KEYWORDS = {
       "homemade carrot cake recipe Easter",
       "simple Easter sugar cookies recipe decorated",
       "easy Easter brunch recipe ideas",
+      // Extra variety — distinct dishes vs. repeating shrimp/pasta/cod angles
+      "easy mushroom stroganoff recipe meatless lent",
+      "simple black bean burgers recipe meatless Friday",
+      "easy spinach feta hand pies recipe Greek lent",
+      "simple cauliflower steaks recipe meatless Easter dinner",
+      "easy coconut curry chickpeas recipe lent dinner",
+      "simple potato leek soup recipe meatless lent",
+      "easy cheese enchiladas recipe meatless Friday",
+      "simple baked tilapia recipe lemon herb lent",
+      "easy arroz con gandules recipe meatless Friday",
+      "simple potaje de garbanzos recipe Cuban lent",
+      "easy spanakopita triangles recipe meatless",
+      "simple beet orange salad recipe Easter side dish",
+      "easy salmon chickpea salad recipe lent lunch",
+      "simple stuffed portobello mushrooms recipe meatless dinner",
+      "easy white bean tomato skillet recipe lent",
+      "simple cheese pupusas recipe meatless Lent Friday",
+      "easy vegetable tamale pie recipe meatless lent",
     ]
   },
   // CINCO DE MAYO (Apr 28 - May 5)
@@ -708,7 +822,7 @@ function getSeasonalKeywords() {
     return [
       "easy baked cod recipe Good Friday",
       "simple fish tacos recipe Good Friday",
-      "easy shrimp pasta recipe meatless",
+      "easy linguine with clam sauce recipe Good Friday",
       "simple tuna casserole recipe Good Friday",
       "easy salmon recipe Good Friday dinner",
       "simple clam chowder recipe Good Friday",
@@ -722,6 +836,10 @@ function getSeasonalKeywords() {
       "easy capirotada recipe Mexican Good Friday bread pudding",
       "simple romeritos recipe Mexican Good Friday",
       "easy fish soup recipe Latin Good Friday",
+      "simple mussels marinara recipe Good Friday meatless",
+      "easy baked pollock recipe lemon Good Friday",
+      "simple escabeche de pescado recipe Good Friday Latin",
+      "easy yuca con mojo recipe Good Friday side dish",
     ];
   }
   
@@ -731,12 +849,18 @@ function getSeasonalKeywords() {
     return [
       "easy meatless Friday dinner recipe",
       "simple fish recipe lenten Friday",
-      "easy shrimp recipe Friday lent",
+      "easy chickpea coconut curry recipe Lent Friday",
       "simple vegetarian pasta recipe Friday",
       "easy baked fish recipe lenten",
       "simple tuna noodle casserole recipe",
       "easy meatless soup recipe Friday",
       "simple cheese pizza recipe homemade Friday",
+      "easy Cuban black bean soup recipe Lent Friday",
+      "simple quinoa stuffed peppers recipe meatless Friday",
+      "easy mahi mahi baked recipe herb lent Friday",
+      "simple spinach ricotta stuffed shells recipe meatless",
+      "easy sweet plantain black bean bowls recipe Lent Friday",
+      "simple zucchini boats recipe lent meatless Friday",
     ];
   }
 
@@ -804,6 +928,8 @@ function getSeasonalKeywords() {
 }
 
 function getNextKeyword() {
+  const blockedIds = getBlockedTopicIdsFromRecipes(loadRecipesDataForDedupe());
+
   // Check for holiday season first
   const holidayKeywords = getSeasonalKeywords();
   if (holidayKeywords) {
@@ -813,7 +939,8 @@ function getNextKeyword() {
       used = JSON.parse(require('fs').readFileSync(usedPath, 'utf8'));
     }
     const unused = holidayKeywords.filter(k => !used.includes(k));
-    const candidates = unused.length > 0 ? unused : holidayKeywords;
+    let candidates = unused.length > 0 ? unused : holidayKeywords;
+    candidates = filterKeywordsByExistingTopics(candidates, blockedIds);
     const keyword = candidates[Math.floor(Math.random() * candidates.length)];
     used.push(keyword);
     if (used.length > 200) used = used.slice(-200);
@@ -829,16 +956,20 @@ function getNextKeyword() {
     used = JSON.parse(fs.readFileSync(usedPath, 'utf8'));
   }
 
-  const unused = KEYWORD_POOL.filter(k => !used.includes(k));
+  const unused = pool.filter(k => !used.includes(k));
 
   if (unused.length === 0) {
     console.log('All keywords used — resetting pool for another round');
     used = [];
     fs.writeFileSync(usedPath, JSON.stringify([], null, 2));
-    return KEYWORD_POOL[Math.floor(Math.random() * KEYWORD_POOL.length)];
+    const afterReset = filterKeywordsByExistingTopics(pool, blockedIds);
+    const pickFrom = afterReset.length > 0 ? afterReset : pool;
+    return pickFrom[Math.floor(Math.random() * pickFrom.length)];
   }
 
-  const keyword = unused[Math.floor(Math.random() * unused.length)];
+  let usable = filterKeywordsByExistingTopics(unused, blockedIds);
+  if (usable.length === 0) usable = unused;
+  const keyword = usable[Math.floor(Math.random() * usable.length)];
   used.push(keyword);
   fs.writeFileSync(usedPath, JSON.stringify(used, null, 2));
   return keyword;
