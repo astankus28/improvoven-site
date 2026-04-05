@@ -673,6 +673,40 @@ const HOLIDAY_KEYWORDS = {
       "simple cheese pupusas recipe meatless Lent Friday",
       "easy vegetable tamale pie recipe meatless lent",
     ],
+    /**
+     * Palm Sunday → Holy Saturday: mixed with lent_window so readers can plan
+     * feast prep without jumping straight to Sunday-only wording.
+     */
+    lead_up: [
+      "easy hot cross buns recipe bake ahead Easter week",
+      "simple Easter ham glaze prep two days before",
+      "easy make ahead scalloped potatoes Easter dinner",
+      "simple overnight Easter brunch casserole recipe",
+      "easy freezer friendly sweet Easter bread dough",
+      "simple carrot cake layers bake ahead freeze",
+      "easy natural dyed Easter eggs recipe prep",
+      "simple deviled eggs cook ahead peel tips Easter",
+      "easy Easter lamb marinade night before roast",
+      "simple spring salad jars meal prep Easter week",
+      "easy honey roasted carrots make ahead reheat Easter",
+      "simple potato gratin assemble ahead bake Easter",
+      "easy no knead Easter bread recipe plan ahead",
+      "simple Easter punch pitcher recipe crowd prep",
+      "easy sugar cookie dough freeze ahead Easter",
+      "simple ham stock from bone freeze before Easter",
+      "easy vegetarian Easter quiche prep night before",
+      "simple torta pasqualina Italian Easter pie prep",
+      "easy capirotada prep day before Mexican Easter",
+      "simple braided Easter sweet bread prep ahead",
+      "easy Easter picnic sides make ahead cold",
+      "simple coconut macaroon nests recipe make ahead",
+      "easy pastelón Easter prep assemble freeze",
+      "simple citrus salad meal prep Holy Week",
+      "easy brown sugar pineapple ham prep rub ahead",
+      "simple spring pea soup make ahead Easter starter",
+      "easy chocolate nests cereal treats Easter prep kids",
+      "simple herb compound butter prep lamb Easter",
+    ],
   },
   // CINCO DE MAYO (Apr 28 - May 5)
   'cinco_de_mayo': {
@@ -967,7 +1001,10 @@ function getSeasonalKeywords() {
     if (isEasterSunday || isEasterMonday) {
       return HOLIDAY_KEYWORDS.easter.celebration;
     }
-    return HOLIDAY_KEYWORDS.easter.lent_window;
+    return [
+      ...HOLIDAY_KEYWORDS.easter.lent_window,
+      ...HOLIDAY_KEYWORDS.easter.lead_up,
+    ];
   }
 
   // Ash Wednesday (46 days before Easter) — meatless
