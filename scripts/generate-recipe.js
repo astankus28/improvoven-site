@@ -623,34 +623,43 @@ const HOLIDAY_KEYWORDS = {
       "easy Guinness beef stew recipe",
     ]
   },
-  // EASTER / LENT (2 weeks before Easter through Easter)
+  // EASTER window: 2 weeks before through Easter Monday (see getSeasonalKeywords).
+  // Split so Easter Sun/Mon don’t randomly pick “Lent Friday” phrasing.
   'easter': {
-    keywords: [
+    /** Easter Sunday + Easter Monday — feast / spring table */
+    celebration: [
       "easy Easter lamb recipe for dinner",
       "simple deviled eggs recipe for Easter",
       "easy hot cross buns recipe homemade",
       "simple Easter ham recipe glazed",
-      "easy lenten fish recipe for Good Friday",
-      "simple tuna casserole recipe lent",
-      "easy meatless Friday dinner recipe",
-      "simple lenten pasta recipe no meat",
-      "easy baked cod recipe lenten",
       "homemade Easter bread recipe easy",
       "simple Greek Easter soup recipe",
-      "easy lenten lentil soup recipe",
-      "simple meatless lasagna recipe lent",
-      "easy shrimp pasta recipe lenten Friday",
       "easy vegetarian Easter side dishes",
       "simple roasted asparagus recipe Easter",
       "easy scalloped potatoes recipe Easter",
       "homemade carrot cake recipe Easter",
       "simple Easter sugar cookies recipe decorated",
       "easy Easter brunch recipe ideas",
-      // Extra variety — distinct dishes vs. repeating shrimp/pasta/cod angles
+      "simple cauliflower steaks recipe meatless Easter dinner",
+      "simple beet orange salad recipe Easter side dish",
+      "easy honey glazed carrots recipe Easter side",
+      "simple spring pea salad recipe Easter",
+      "easy leftover ham breakfast casserole Easter Monday",
+      "simple Easter potato salad recipe",
+    ],
+    /** Palm Sunday → Holy Saturday (still in 2-week window, not Sun/Mon) */
+    lent_window: [
+      "easy lenten fish recipe for Good Friday",
+      "simple tuna casserole recipe lent",
+      "easy meatless Friday dinner recipe",
+      "simple lenten pasta recipe no meat",
+      "easy baked cod recipe lenten",
+      "easy lenten lentil soup recipe",
+      "simple meatless lasagna recipe lent",
+      "easy shrimp pasta recipe lenten Friday",
       "easy mushroom stroganoff recipe meatless lent",
       "simple black bean burgers recipe meatless Friday",
       "easy spinach feta hand pies recipe Greek lent",
-      "simple cauliflower steaks recipe meatless Easter dinner",
       "easy coconut curry chickpeas recipe lent dinner",
       "simple potato leek soup recipe meatless lent",
       "easy cheese enchiladas recipe meatless Friday",
@@ -658,13 +667,12 @@ const HOLIDAY_KEYWORDS = {
       "easy arroz con gandules recipe meatless Friday",
       "simple potaje de garbanzos recipe Cuban lent",
       "easy spanakopita triangles recipe meatless",
-      "simple beet orange salad recipe Easter side dish",
       "easy salmon chickpea salad recipe lent lunch",
       "simple stuffed portobello mushrooms recipe meatless dinner",
       "easy white bean tomato skillet recipe lent",
       "simple cheese pupusas recipe meatless Lent Friday",
       "easy vegetable tamale pie recipe meatless lent",
-    ]
+    ],
   },
   // CINCO DE MAYO (Apr 28 - May 5)
   'cinco_de_mayo': {
@@ -942,7 +950,25 @@ function getSeasonalKeywords() {
     ];
   }
 
-  if (now >= easterStart && now <= easterEnd) return HOLIDAY_KEYWORDS.easter.keywords;
+  if (now >= easterStart && now <= easterEnd) {
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const d = now.getDate();
+    const ey = easter.getFullYear();
+    const em = easter.getMonth();
+    const ed = easter.getDate();
+    const easterMonday = new Date(easter);
+    easterMonday.setDate(easter.getDate() + 1);
+    const isEasterSunday = y === ey && m === em && d === ed;
+    const isEasterMonday =
+      y === easterMonday.getFullYear() &&
+      m === easterMonday.getMonth() &&
+      d === easterMonday.getDate();
+    if (isEasterSunday || isEasterMonday) {
+      return HOLIDAY_KEYWORDS.easter.celebration;
+    }
+    return HOLIDAY_KEYWORDS.easter.lent_window;
+  }
 
   // Ash Wednesday (46 days before Easter) — meatless
   const ashWednesday = new Date(easter); ashWednesday.setDate(easter.getDate() - 46);
