@@ -155,8 +155,8 @@ async function postToInstagram(recipe, slug) {
     console.log(`⚠ Instagram publish failed: ${JSON.stringify(publishRes.data)}`);
   }
 
-  // Step 3: Facebook page posting requires App Review — skipping for now
-  // await postToFacebook(recipe, slug, pageToken);
+// Step 3: Post to Facebook page
+  await postToFacebook(recipe, slug, pageToken);
 }
 
 // If run directly
