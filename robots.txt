@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /*-[0-9]*/
-Allow: /
-Sitemap: https://www.improvoven.com/sitemap.xml
