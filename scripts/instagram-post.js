@@ -95,8 +95,8 @@ Full recipe → ${recipeUrl}
 
   console.log('📘 Posting to Facebook...');
   const res = await apiRequest('POST',
-    `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}/photos?` +
-    `url=${encodeURIComponent(imageUrl)}&` +
+    `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}/feed?` +
+    `link=${encodeURIComponent(recipeUrl)}&` +
     `message=${encodeURIComponent(message)}&` +
     `access_token=${pageToken}`
   );
