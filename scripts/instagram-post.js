@@ -39,7 +39,6 @@ function apiRequest(method, url, body = null) {
 }
 
 async function getInstagramAccountId() {
-  // Using hardcoded Instagram Business Account ID
   const igAccountId = '17841400630237013';
   return {
     igAccountId,
@@ -51,7 +50,6 @@ function buildCaption(recipe, slug) {
   const recipeUrl = `${SITE_URL}/recipes/${slug}/`;
   const desc = (recipe.description || '').substring(0, 150);
   
-  // Build hashtags based on category/cuisine
   const hashtags = [
     '#ImprovOven',
     '#EasyRecipes',
@@ -83,7 +81,6 @@ function buildCaption(recipe, slug) {
 const FACEBOOK_PAGE_ID = '834239926633861';
 
 async function postToFacebook(recipe, slug, pageToken) {
-  const imageUrl = `${SITE_URL}/recipes/${slug}/images/hero.webp`;
   const recipeUrl = `${SITE_URL}/recipes/${slug}/`;
   const message = `${recipe.title}
 
@@ -155,8 +152,17 @@ async function postToInstagram(recipe, slug) {
     console.log(`⚠ Instagram publish failed: ${JSON.stringify(publishRes.data)}`);
   }
 
-// Step 3: Post to Facebook page
-  await postToFacebook(recipe, slug, pageToken);
+  // Step 3: Fetch page access token and post to Facebook
+  console.log('Fetching page access token...');
+  const pageTokenRes = await apiRequest('GET',
+    `https://graph.facebook.com/v19.0/${FACEBOOK_PAGE_ID}?fields=access_token&access_token=${pageToken}`
+  );
+
+  if (pageTokenRes.data.access_token) {
+    await postToFacebook(recipe, slug, pageTokenRes.data.access_token);
+  } else {
+    console.log('⚠ Could not get page access token:', JSON.stringify(pageTokenRes.data));
+  }
 }
 
 // If run directly
