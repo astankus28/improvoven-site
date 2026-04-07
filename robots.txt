@@ -1,4 +1,14 @@
+# [keep all the comment headers as-is]
+
+# BEGIN Cloudflare Managed content
+
 User-agent: *
+Content-Signal: search=yes,ai-train=no
 Disallow: /*-[0-9]*/
 Allow: /
 Sitemap: https://www.improvoven.com/sitemap.xml
+
+User-agent: Amazonbot
+Disallow: /
+
+# [rest of the bot blocks unchanged]
