@@ -83,8 +83,9 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "Improv Oven Bot"
           git add -A
+          git pull --rebase origin main
           git diff --staged --quiet || git commit -m "🍳 ${{ steps.meal.outputs.type }} recipe: $(date +'%Y-%m-%d')"
-          git pull --rebase origin main && git push
+          git push
 
       - name: Wait for Cloudflare to deploy
         if: steps.meal.outputs.skip != 'true'
