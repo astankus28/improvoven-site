@@ -86,6 +86,7 @@ jobs:
           git stash
           git pull --rebase origin main
           git stash pop
+          git add -A
           git diff --staged --quiet || git commit -m "🍳 ${{ steps.meal.outputs.type }} recipe: $(date +'%Y-%m-%d')"
           git push
 
