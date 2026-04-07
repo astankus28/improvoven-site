@@ -1233,6 +1233,8 @@ function getSeasonalKeywords() {
 }
 
 function getNextKeyword() {
+  // TEMP: Force this keyword, delete after one run
+  return "easy dulce de leche rice krispie treats recipe";
   const blockedIds = getBlockedTopicIdsFromRecipes(loadRecipesDataForDedupe());
 
   // Check for holiday season first
