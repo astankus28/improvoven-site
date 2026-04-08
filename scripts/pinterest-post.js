@@ -404,34 +404,12 @@ async function postToPinterest(recipe, slug) {
   console.log(`⏳ Waiting ${DEPLOY_WAIT}s for Cloudflare deployment...`);
   await new Promise(r => setTimeout(r, DEPLOY_WAIT * 1000));
 
-  const variations = generatePinVariations(recipe);
-  const pinIds = [];
+  // Post single pin with optimized hashtags
+  const variation = { title: recipe.title, descriptionStyle: 'standard' };
+  const pinId = await postSinglePin(recipe, slug, variation, 'primary');
 
-  // Post first variation immediately to primary board
-  try {
-    const pinId = await postSinglePin(recipe, slug, variations[0], 'primary');
-    pinIds.push(pinId);
-  } catch (e) {
-    console.error('Failed to post primary pin:', e.message);
-    throw e;
-  }
-
-  // Post second variation after a delay (if exists) to secondary board
-  // This avoids spam detection and increases reach
-  if (variations.length > 1) {
-    console.log('⏳ Waiting 30s before posting second pin variation...');
-    await new Promise(r => setTimeout(r, 30000));
-    
-    try {
-      const pinId = await postSinglePin(recipe, slug, variations[1], 'secondary');
-      pinIds.push(pinId);
-    } catch (e) {
-      console.warn('Failed to post secondary pin (non-fatal):', e.message);
-    }
-  }
-
-  console.log(`\n✅ Pinterest: ${pinIds.length} pin(s) created`);
-  return pinIds;
+  console.log(`\n✅ Pinterest: pin created`);
+  return pinId;
 }
 
 // If run directly (for testing)
