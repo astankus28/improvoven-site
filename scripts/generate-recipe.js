@@ -1233,6 +1233,10 @@ function getSeasonalKeywords() {
 }
 
 function getNextKeyword() {
+  // TEMP: Force dulce de leche rice krispie treats for dessert slot only — delete after one run
+  if (MEAL_TYPE === 'dessert') {
+    return "easy dulce de leche rice krispie treats recipe";
+  }
   const blockedIds = getBlockedTopicIdsFromRecipes(loadRecipesDataForDedupe());
 
   // Check for holiday season first
