@@ -869,9 +869,10 @@ const HOLIDAY_KEYWORDS = {
       "simple herb compound butter prep lamb Easter",
     ],
   },
-  // CINCO DE MAYO (Apr 28 - May 5)
+  // CINCO DE MAYO (Apr 14 - May 5 — 3-week lead for Pinterest SEO)
   'cinco_de_mayo': {
     keywords: [
+      // Core Cinco dishes
       "easy Cinco de Mayo recipes homemade",
       "simple homemade guacamole recipe Cinco de Mayo",
       "easy street tacos recipe authentic",
@@ -884,6 +885,23 @@ const HOLIDAY_KEYWORDS = {
       "simple michelada recipe Cinco de Mayo",
       "easy birria tacos recipe homemade",
       "simple Mexican beans recipe from scratch",
+      // High-search-volume additions
+      "easy chicken enchiladas recipe Cinco de Mayo",
+      "simple carnitas tacos recipe slow cooker",
+      "easy Mexican street corn salad recipe",
+      "simple tres leches cupcakes recipe Cinco de Mayo",
+      "easy chicken tinga recipe Cinco de Mayo",
+      "simple Mexican beer margarita recipe",
+      "easy taco bar setup ideas Cinco de Mayo party",
+      "simple sopapilla cheesecake bars recipe",
+      "easy Mexican wedding cookies recipe",
+      "simple pozole rojo recipe Cinco de Mayo",
+      "easy jalapeno poppers recipe Cinco de Mayo",
+      "simple agua fresca recipe Cinco de Mayo party",
+      "easy Mexican chocolate cake recipe",
+      "simple fish tacos recipe Cinco de Mayo",
+      "easy refried beans recipe from scratch Cinco",
+      "simple Mexican shrimp cocktail recipe",
     ]
   },
   // MOTHER'S DAY (1 week before 2nd Sunday in May)
@@ -1210,8 +1228,8 @@ function getSeasonalKeywords() {
   if (inRange(2, 7, 2, 14)) return HOLIDAY_KEYWORDS.valentines.keywords;
   // St Patrick's
   if (inRange(3, 10, 3, 17)) return HOLIDAY_KEYWORDS.st_patricks.keywords;
-  // Cinco de Mayo
-  if (inRange(4, 28, 5, 5)) return HOLIDAY_KEYWORDS.cinco_de_mayo.keywords;
+  // Cinco de Mayo (Apr 14 - May 5 — 3-week Pinterest lead time)
+  if (inRange(4, 14, 5, 5)) return HOLIDAY_KEYWORDS.cinco_de_mayo.keywords;
   // Mother's Day (approx 2nd Sunday in May — May 4-11 window)
   if (inRange(5, 4, 5, 11)) return HOLIDAY_KEYWORDS.mothers_day.keywords;
   // Memorial Day (last Monday May — May 18-26 window)
@@ -1233,10 +1251,6 @@ function getSeasonalKeywords() {
 }
 
 function getNextKeyword() {
-  // TEMP: Force dulce de leche rice krispie treats for dessert slot only — delete after one run
-  if (MEAL_TYPE === 'dessert') {
-    return "easy dulce de leche rice krispie treats recipe";
-  }
   const blockedIds = getBlockedTopicIdsFromRecipes(loadRecipesDataForDedupe());
 
   // Check for holiday season first
