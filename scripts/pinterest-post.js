@@ -356,13 +356,8 @@ function getBoardName(recipe, variant = 'primary') {
 }
 
 function getImageUrl(slug) {
-  // Prefer vertical Pinterest image if it exists, fallback to hero
-  // The generate-recipe.js creates pinterest.jpg at 1000x1500
-  // But we reference it from the web, so check what's available
-  const pinterestImg = `/recipes/${slug}/images/pinterest.jpg`;
-  
-  // Pinterest image is created in generate-recipe.js, use it
-  return `${SITE_URL}${pinterestImg}`;
+  // Use hero.webp — Pinterest image generation isn't reliable in CI
+  return `${SITE_URL}/recipes/${slug}/images/hero.webp`;
 }
 
 async function postSinglePin(recipe, slug, variation, boardVariant = 'primary') {
@@ -385,6 +380,7 @@ async function postSinglePin(recipe, slug, variation, boardVariant = 'primary') 
   };
 
   console.log(`📌 Posting pin: "${variation.title}" to ${boardName}`);
+  console.log(`   Image URL: ${imageUrl}`);
   const res = await pinterestRequest('POST', '/pins', pinData);
 
   if (res.status === 201) {
@@ -401,6 +397,12 @@ async function postToPinterest(recipe, slug) {
     console.log('⚠ No Pinterest access token — skipping');
     return;
   }
+
+  // Wait for Cloudflare Pages deployment to complete
+  // Pinterest fetches images from the live URL, so they must be deployed first
+  const DEPLOY_WAIT = parseInt(process.env.PINTEREST_DEPLOY_WAIT) || 90;
+  console.log(`⏳ Waiting ${DEPLOY_WAIT}s for Cloudflare deployment...`);
+  await new Promise(r => setTimeout(r, DEPLOY_WAIT * 1000));
 
   const variations = generatePinVariations(recipe);
   const pinIds = [];
