@@ -698,9 +698,13 @@ const LUNCH_KEYWORDS = KEYWORD_POOL.filter(k =>
   /lunch|sandwich|salad|wrap|quesadilla|soup|bowl|hummus|nachos|taco|pasta salad/.test(k.toLowerCase())
 );
 
-const DESSERT_KEYWORDS = KEYWORD_POOL.filter(k =>
-  /dessert|cake|brownie|cookie|pudding|flan|churro|tres leches|arroz con leche|cheesecake|banana bread|mug cake|rice pudding|dulce de leche|alfajor/.test(k.toLowerCase())
-);
+const DESSERT_KEYWORDS = KEYWORD_POOL.filter(k => {
+  const lower = k.toLowerCase();
+  // Exclude savory dishes that contain "cake" but aren't desserts
+  const isSavory = /crab cake|fish cake|salmon cake|tuna cake|potato cake|corn cake|crab patty|fish patty|rice cake savory/.test(lower);
+  if (isSavory) return false;
+  return /dessert|cake|brownie|cookie|pudding|flan|churro|tres leches|arroz con leche|cheesecake|banana bread|mug cake|rice pudding|dulce de leche|alfajor/.test(lower);
+});
 
 const DINNER_KEYWORDS = KEYWORD_POOL.filter(k => {
   const lower = k.toLowerCase();
