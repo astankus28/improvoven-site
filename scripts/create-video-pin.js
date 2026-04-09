@@ -193,14 +193,22 @@ async function uploadVideoFile(videoPath, uploadUrl, uploadParameters) {
     contentType: 'video/mp4',
   });
 
-  const nodeFetch = require('node-fetch');
-  const res = await nodeFetch(uploadUrl, { method: 'POST', body: form });
-
-  if (res.status !== 204 && res.status !== 200) {
-    const err = await res.text();
-    throw new Error(`S3 video upload failed: ${res.status} — ${err}`);
-  }
-  console.log('✅ Video uploaded to Pinterest storage');
+  return new Promise((resolve, reject) => {
+    const req = https.request(uploadUrl, {
+      method: 'POST',
+      headers: form.getHeaders(),
+    }, res => {
+      res.resume();
+      if (res.statusCode === 204 || res.statusCode === 200) {
+        console.log('✅ Video uploaded to Pinterest storage');
+        resolve();
+      } else {
+        reject(new Error(`S3 video upload failed: ${res.statusCode}`));
+      }
+    });
+    req.on('error', reject);
+    form.pipe(req);
+  });
 }
 
 async function waitForVideoProcessing(mediaId, maxWaitMs = 120_000) {
