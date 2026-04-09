@@ -122,7 +122,7 @@ jobs:
 
       - name: Post Video Pin to Pinterest
         if: steps.meal.outputs.skip != 'true'
-        continue-on-error: true   # don't fail the whole run if video pin fails
+        continue-on-error: true
         env:
           PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
         run: |
@@ -135,7 +135,10 @@ jobs:
             exit 0
           fi
 
-          echo "📹 Every 5th recipe — installing deps and posting video pin..."
+          echo "📹 Installing ffmpeg..."
+          sudo apt-get install -y ffmpeg
+
+          echo "📹 Installing Node deps..."
           npm install --no-save form-data
 
           SLUG="${{ steps.generate.outputs.slug }}"
