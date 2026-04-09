@@ -118,7 +118,36 @@ jobs:
               .then(() => console.log('✅ Posted to Pinterest!'))
               .catch(e => console.log('⚠ Pinterest failed:', e.message));
           "
+# ─── ADD THIS STEP after your existing "Post to Pinterest" step ───
 
+      - name: Post Video Pin to Pinterest
+        if: steps.meal.outputs.skip != 'true'
+        continue-on-error: true   # don't fail the whole run if video pin fails
+        env:
+          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+        run: |
+          echo "🎬 Checking if video pin should run..."
+          RECIPE_COUNT=$(node -e "console.log(require('./recipes-data.json').length)")
+          echo "Total recipes: $RECIPE_COUNT"
+
+          if [ $((RECIPE_COUNT % 5)) -ne 0 ]; then
+            echo "⏭️ Skipping video pin this run (recipe $RECIPE_COUNT)"
+            exit 0
+          fi
+
+          echo "📹 Every 5th recipe — installing deps and posting video pin..."
+          npm install --no-save form-data
+
+          SLUG="${{ steps.generate.outputs.slug }}"
+          node -e "
+            const { createAndPostVideoPin } = require('./scripts/create-video-pin.js');
+            const recipes = require('./recipes-data.json');
+            const recipe = recipes.find(r => r.slug === '$SLUG') || recipes[0];
+            createAndPostVideoPin(recipe, recipe.slug)
+              .then(() => console.log('✅ Video pin posted!'))
+              .catch(err => { console.error('❌ Video pin error:', err.message); process.exit(1); });
+          "
+          
       - name: Post to Instagram
         if: steps.meal.outputs.skip != 'true'
         env:
