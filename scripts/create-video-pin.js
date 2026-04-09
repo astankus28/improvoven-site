@@ -191,23 +191,27 @@ async function uploadVideoFile(videoPath, uploadUrl, uploadParameters) {
   form.append('file', fs.createReadStream(videoPath), {
     filename: path.basename(videoPath),
     contentType: 'video/mp4',
+    knownLength: fs.statSync(videoPath).size,
   });
 
   return new Promise((resolve, reject) => {
-    const req = https.request(uploadUrl, {
-      method: 'POST',
-      headers: form.getHeaders(),
-    }, res => {
-      res.resume();
-      if (res.statusCode === 204 || res.statusCode === 200) {
-        console.log('✅ Video uploaded to Pinterest storage');
-        resolve();
-      } else {
-        reject(new Error(`S3 video upload failed: ${res.statusCode}`));
-      }
+    form.getLength((err, length) => {
+      if (err) return reject(err);
+      const req = https.request(uploadUrl, {
+        method: 'POST',
+        headers: { ...form.getHeaders(), 'Content-Length': length },
+      }, res => {
+        res.resume();
+        if (res.statusCode === 204 || res.statusCode === 200) {
+          console.log('✅ Video uploaded to Pinterest storage');
+          resolve();
+        } else {
+          reject(new Error(`S3 video upload failed: ${res.statusCode}`));
+        }
+      });
+      req.on('error', reject);
+      form.pipe(req);
     });
-    req.on('error', reject);
-    form.pipe(req);
   });
 }
 
