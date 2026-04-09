@@ -118,7 +118,36 @@ jobs:
               .then(() => console.log('✅ Posted to Pinterest!'))
               .catch(e => console.log('⚠ Pinterest failed:', e.message));
           "
+# ─── ADD THIS STEP after your existing "Post to Pinterest" step ───
 
+      - name: Post Video Pin to Pinterest
+        if: steps.meal.outputs.skip != 'true'
+        continue-on-error: true   # don't fail the whole run if video pin fails
+        env:
+          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+          # Optional: per-meal-type board IDs (remove if you use one board)
+          PINTEREST_BOARD_BREAKFAST: ${{ secrets.PINTEREST_BOARD_BREAKFAST }}
+          PINTEREST_BOARD_LUNCH: ${{ secrets.PINTEREST_BOARD_LUNCH }}
+          PINTEREST_BOARD_DINNER: ${{ secrets.PINTEREST_BOARD_DINNER }}
+          PINTEREST_BOARD_DESSERT: ${{ secrets.PINTEREST_BOARD_DESSERT }}
+        run: |
+          echo "🎬 Installing ffmpeg + video pin deps..."
+          # ffmpeg is pre-installed on ubuntu-latest runners — no apt needed
+          # Just install the Node packages
+          npm install --no-save @ffmpeg-installer/ffmpeg form-data
+
+          echo "📹 Creating and posting video pin..."
+          SLUG="${{ steps.generate.outputs.slug }}"
+          node -e "
+            const { createAndPostVideoPin } = require('./scripts/create-video-pin.js');
+            const recipes = require('./recipes-data.json');
+            const recipe = recipes.find(r => r.slug === '$SLUG') || recipes[0];
+            createAndPostVideoPin(recipe, recipe.slug)
+              .then(() => console.log('✅ Video pin posted!'))
+              .catch(err => { console.error('❌ Video pin error:', err.message); process.exit(1); });
+          "
+          
       - name: Post to Instagram
         if: steps.meal.outputs.skip != 'true'
         env:
