@@ -261,11 +261,11 @@ async function createVideoPin(recipe, slug, boardId, mediaId) {
     title: recipe.title.substring(0, 100),
     description,
     link: recipeUrl,
+    // Pinterest only allows cover_image_content_type image/jpeg | image/png (not "key_frame").
+    // Omit cover fields — Pinterest picks a thumbnail from the video.
     media_source: {
       source_type: 'video_id',
       media_id: mediaId,
-      cover_image_content_type: 'key_frame',
-      cover_image_key_frame_time: 0.0,
     },
   };
 
