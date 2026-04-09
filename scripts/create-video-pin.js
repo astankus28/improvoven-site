@@ -239,8 +239,12 @@ async function createVideoPin(recipe, slug, boardId, mediaId) {
     title: recipe.title.substring(0, 100),
     description,
     link: recipeUrl,
-    cover_image_url: `${SITE_URL}/recipes/${slug}/images/hero.webp`,
-    media_source: { source_type: 'video_id', media_id: mediaId },
+    media_source: {
+      source_type: 'video_id',
+      media_id: mediaId,
+      cover_image_content_type: 'key_frame',
+      cover_image_key_frame_time: 0.0,
+    },
   };
 
   const res = await pinterestRequest('POST', '/pins', body);
