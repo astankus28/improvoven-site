@@ -4,12 +4,6 @@
  * create-video-pin.js
  * Converts a recipe hero image into a short ken burns video
  * and posts it to Pinterest as a video pin.
- *
- * Reuses board resolution logic from pinterest-post.js so no
- * new secrets or board IDs are needed.
- *
- * Deps installed in the workflow step:
- *   form-data (node-fetch is already in the project)
  */
 
 const { execSync }  = require('child_process');
@@ -18,15 +12,11 @@ const path          = require('path');
 const https         = require('https');
 const FormData      = require('form-data');
 
-// Reuse hashtag helper from the existing pinterest-post.js
 const { generateHashtags } = require(path.join(__dirname, 'pinterest-post.js'));
-
-// ─── Config ───────────────────────────────────────────────────────────────────
 
 const ACCESS_TOKEN = process.env.PINTEREST_ACCESS_TOKEN;
 const SITE_URL     = 'https://www.improvoven.com';
 
-// Must match BOARD_MAP in pinterest-post.js
 const BOARD_MAP = {
   breakfast:      'Easy Breakfast Recipes',
   dessert:        'Easy Dessert Recipes',
@@ -43,13 +33,10 @@ const BOARD_MAP = {
   default:        'Easy Weeknight Dinners',
 };
 
-// Video settings
-const VIDEO_DURATION = 10;    // seconds
+const VIDEO_DURATION = 10;
 const VIDEO_WIDTH    = 1080;
-const VIDEO_HEIGHT   = 1350;  // 4:5 — Pinterest's preferred video ratio
+const VIDEO_HEIGHT   = 1350;
 const FPS            = 25;
-
-// ─── Board resolution (mirrors pinterest-post.js) ─────────────────────────────
 
 function getBoardName(recipe) {
   const category = (recipe.category || '').toLowerCase();
@@ -112,28 +99,40 @@ async function getOrCreateBoard(boardName) {
   return createRes.data.id;
 }
 
-// ─── Video creation ───────────────────────────────────────────────────────────
+function wrapTitle(title) {
+  // Split title in half by character count, keeping word boundaries
+  const words = title.split(' ');
+  const half = Math.ceil(title.length / 2);
+  let line1 = '', line2 = '', assigned = false;
+
+  for (const w of words) {
+    if (!assigned && line1.length + w.length <= half) {
+      line1 += (line1 ? ' ' : '') + w;
+    } else {
+      assigned = true;
+      line2 += (line2 ? ' ' : '') + w;
+    }
+  }
+
+  // If line2 is very long, truncate it
+  if (line2.length > 40) line2 = line2.substring(0, 37) + '...';
+
+  return line2 ? `${line1}\n${line2}` : line1;
+}
 
 function createVideo(heroImagePath, title, outputPath) {
   const totalFrames   = VIDEO_DURATION * FPS;
   const zoomIncrement = (0.08 / totalFrames).toFixed(6);
 
-  // Wrap title at ~28 chars for two-line display
-  const words = title.split(' ');
-  let line1 = '', line2 = '';
-  for (const w of words) {
-    if (line1.length + w.length < 28) line1 += (line1 ? ' ' : '') + w;
-    else line2 += (line2 ? ' ' : '') + w;
-  }
+  const escape = s => s
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\u2019")   // swap apostrophe for right single quote (avoids shell issues)
+    .replace(/:/g, '\\:')
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]');
 
-  // Escape text for ffmpeg drawtext
-  const escape = s => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/:/g, '\\:').replace(/\[/g, '\\[').replace(/\]/g, '\\]');
-  const displayText = line2 ? `${escape(line1)}\n${escape(line2)}` : escape(title);
+  const displayText = escape(wrapTitle(title));
 
-  // ffmpeg is pre-installed on ubuntu-latest GitHub Actions runners
-  const ffmpeg = 'ffmpeg';
-
-  // Try DejaVu bold (ubuntu-latest has it), fall back to no custom font
   const fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
   const fontArg  = fs.existsSync(fontPath) ? `fontfile=${fontPath}:` : '';
 
@@ -160,7 +159,7 @@ function createVideo(heroImagePath, title, outputPath) {
   ].join('');
 
   const cmd = [
-    ffmpeg, '-y',
+    'ffmpeg', '-y',
     `-loop 1 -i "${heroImagePath}"`,
     `-f lavfi -i anullsrc=r=44100:cl=mono`,
     `-filter_complex "${filter}"`,
@@ -178,17 +177,14 @@ function createVideo(heroImagePath, title, outputPath) {
   console.log(`✅ Video created: ${outputPath}`);
 }
 
-// ─── Pinterest video upload (3-step) ─────────────────────────────────────────
-
 async function registerVideoUpload() {
   const res = await pinterestRequest('POST', '/media', { media_type: 'video' });
   if (res.status !== 201) throw new Error(`Pinterest media register failed: ${res.status} — ${JSON.stringify(res.data)}`);
-  return res.data; // { media_id, upload_url, upload_parameters }
+  return res.data;
 }
 
 async function uploadVideoFile(videoPath, uploadUrl, uploadParameters) {
   const form = new FormData();
-  // S3 signature fields must come before the file
   for (const [key, value] of Object.entries(uploadParameters)) {
     form.append(key, value);
   }
@@ -221,9 +217,9 @@ async function waitForVideoProcessing(mediaId, maxWaitMs = 120_000) {
 }
 
 async function createVideoPin(recipe, slug, boardId, mediaId) {
-  const recipeUrl  = `${SITE_URL}/recipes/${slug}/`;
-  const hashtags   = generateHashtags(recipe).join(' ');
-  const desc       = recipe.description || recipe.title;
+  const recipeUrl   = `${SITE_URL}/recipes/${slug}/`;
+  const hashtags    = generateHashtags(recipe).join(' ');
+  const desc        = recipe.description || recipe.title;
   const description = `${desc} 📌 Save this recipe! Full instructions at the link. ${hashtags}`.substring(0, 500);
 
   const body = {
@@ -241,12 +237,9 @@ async function createVideoPin(recipe, slug, boardId, mediaId) {
   return res.data;
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
 async function createAndPostVideoPin(recipe, slug) {
   if (!ACCESS_TOKEN) throw new Error('PINTEREST_ACCESS_TOKEN not set');
 
-  // Locate hero image
   const heroDir   = path.join(__dirname, '..', 'recipes', slug, 'images');
   const heroWebp  = path.join(heroDir, 'hero.webp');
   const heroJpg   = path.join(heroDir, 'hero.jpg');
@@ -255,30 +248,23 @@ async function createAndPostVideoPin(recipe, slug) {
 
   const videoPath = path.join(heroDir, 'video-pin.mp4');
 
-  // 1. Render video
   createVideo(heroImage, recipe.title, videoPath);
 
-  // 2. Resolve board (same logic as static pin)
   const boardName = getBoardName(recipe);
   const boardId   = await getOrCreateBoard(boardName);
 
-  // 3. Register upload
   console.log('📡 Registering video with Pinterest...');
   const { media_id, upload_url, upload_parameters } = await registerVideoUpload();
   console.log(`   media_id: ${media_id}`);
 
-  // 4. Upload to S3
   await uploadVideoFile(videoPath, upload_url, upload_parameters);
 
-  // 5. Wait for processing
   console.log('⏳ Waiting for Pinterest to process video...');
   await waitForVideoProcessing(media_id);
 
-  // 6. Create the pin
   console.log('📌 Creating video pin...');
   const pin = await createVideoPin(recipe, slug, boardId, media_id);
 
-  // 7. Clean up local MP4 (don't commit to repo)
   fs.unlinkSync(videoPath);
   console.log('🗑️  Local MP4 cleaned up');
 
@@ -287,7 +273,6 @@ async function createAndPostVideoPin(recipe, slug) {
 
 module.exports = { createAndPostVideoPin };
 
-// Direct test: node scripts/create-video-pin.js <slug>
 if (require.main === module) {
   const recipes = require('../recipes-data.json');
   const slug    = process.argv[2] || recipes[0].slug;
