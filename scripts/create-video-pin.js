@@ -191,27 +191,23 @@ async function uploadVideoFile(videoPath, uploadUrl, uploadParameters) {
   form.append('file', fs.createReadStream(videoPath), {
     filename: path.basename(videoPath),
     contentType: 'video/mp4',
-    knownLength: fs.statSync(videoPath).size,
   });
 
   return new Promise((resolve, reject) => {
-    form.getLength((err, length) => {
-      if (err) return reject(err);
-      const req = https.request(uploadUrl, {
-        method: 'POST',
-        headers: { ...form.getHeaders(), 'Content-Length': length },
-      }, res => {
-        res.resume();
-        if (res.statusCode === 204 || res.statusCode === 200) {
-          console.log('✅ Video uploaded to Pinterest storage');
-          resolve();
-        } else {
-          reject(new Error(`S3 video upload failed: ${res.statusCode}`));
-        }
-      });
-      req.on('error', reject);
-      form.pipe(req);
+    const req = https.request(uploadUrl, {
+      method: 'POST',
+      headers: form.getHeaders(),
+    }, res => {
+      res.resume();
+      if (res.statusCode === 204 || res.statusCode === 200) {
+        console.log('✅ Video uploaded to Pinterest storage');
+        resolve();
+      } else {
+        reject(new Error(`S3 video upload failed: ${res.statusCode}`));
+      }
     });
+    req.on('error', reject);
+    form.pipe(req);
   });
 }
 
@@ -239,6 +235,7 @@ async function createVideoPin(recipe, slug, boardId, mediaId) {
     title: recipe.title.substring(0, 100),
     description,
     link: recipeUrl,
+    cover_image_url: `${SITE_URL}/recipes/${slug}/images/hero.webp`,
     media_source: { source_type: 'video_id', media_id: mediaId },
   };
 
