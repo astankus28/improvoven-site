@@ -135,11 +135,12 @@ jobs:
             exit 0
           fi
 
-          echo "📹 Installing ffmpeg..."
-          sudo apt-get install -y ffmpeg
+          echo "📹 Installing ffmpeg + fonts (drawtext needs a TTF)..."
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
 
           echo "📹 Installing Node deps..."
-          npm install --no-save form-data node-fetch
+          npm install --no-save form-data
 
           SLUG="${{ steps.generate.outputs.slug }}"
           node -e "

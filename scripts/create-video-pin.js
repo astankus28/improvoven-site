@@ -6,11 +6,11 @@
  * and posts it to Pinterest as a video pin.
  */
 
-const { execSync }  = require('child_process');
-const fs            = require('fs');
-const path          = require('path');
-const https         = require('https');
-const FormData      = require('form-data');
+const { execFileSync } = require('child_process');
+const fs               = require('fs');
+const path             = require('path');
+const https            = require('https');
+const FormData         = require('form-data');
 
 const { generateHashtags } = require(path.join(__dirname, 'pinterest-post.js'));
 
@@ -37,6 +37,18 @@ const VIDEO_DURATION = 10;
 const VIDEO_WIDTH    = 1080;
 const VIDEO_HEIGHT   = 1350;
 const FPS            = 25;
+
+/** Prefer Linux CI font, then common fallbacks for local macOS runs. */
+const FONT_CANDIDATES = [
+  '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+  '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+  '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
+];
+
+function resolveFontfile() {
+  const hit = FONT_CANDIDATES.find((p) => fs.existsSync(p));
+  return hit || null;
+}
 
 function getBoardName(recipe) {
   const category = (recipe.category || '').toLowerCase();
@@ -124,56 +136,66 @@ function createVideo(heroImagePath, title, outputPath) {
   const totalFrames   = VIDEO_DURATION * FPS;
   const zoomIncrement = (0.08 / totalFrames).toFixed(6);
 
-  const escape = s => s
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\u2019")   // swap apostrophe for right single quote (avoids shell issues)
-    .replace(/:/g, '\\:')
-    .replace(/\[/g, '\\[')
-    .replace(/\]/g, '\\]');
+  // drawtext=text='…' breaks on multiline titles and many special chars; textfile is reliable.
+  // Keep the file next to the MP4 (simple ASCII path under recipes/<slug>/images/).
+  const titleFile = outputPath.replace(/\.mp4$/i, '') + '-overlay-title.txt';
+  fs.writeFileSync(titleFile, wrapTitle(title), 'utf8');
 
-  const displayText = escape(wrapTitle(title));
+  const fontPath = resolveFontfile();
+  /** Windows drive letter only — Unix paths have no `:` and must not be over-escaped. */
+  const escPath = (p) => {
+    const s = path.resolve(p).replace(/\\/g, '/');
+    return /^[A-Za-z]:\//.test(s) ? `${s[0]}\\:${s.slice(3)}` : s;
+  };
 
-  const fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
-  const fontArg  = fs.existsSync(fontPath) ? `fontfile=${fontPath}:` : '';
+  const fontPrefix = fontPath ? `fontfile=${escPath(fontPath)}:` : '';
 
   const filter = [
-    `[0:v]`,
-    `scale=iw*2:ih*2,`,
+    `[0:v]scale=iw*2:ih*2,`,
     `zoompan=`,
-      `z='min(zoom+${zoomIncrement},1.08)':`,
-      `x='iw/2-(iw/zoom/2)':`,
-      `y='ih/2-(ih/zoom/2)':`,
-      `d=${totalFrames}:`,
-      `s=${VIDEO_WIDTH}x${VIDEO_HEIGHT}:`,
-      `fps=${FPS},`,
+    `z='min(zoom+${zoomIncrement},1.08)':`,
+    `x='iw/2-(iw/zoom/2)':`,
+    `y='ih/2-(ih/zoom/2)':`,
+    `d=${totalFrames}:s=${VIDEO_WIDTH}x${VIDEO_HEIGHT}:fps=${FPS},`,
     `drawbox=y=(ih*0.72):w=iw:h=(ih*0.22):color=black@0.55:t=fill,`,
-    `drawtext=`,
-      `text='${displayText}':`,
-      `${fontArg}`,
-      `fontsize=52:`,
-      `fontcolor=white:`,
-      `x=(w-text_w)/2:`,
-      `y=(h*0.75):`,
-      `line_spacing=12`,
+    `drawtext=${fontPrefix}textfile=${escPath(titleFile)}:`,
+    `fontsize=52:fontcolor=white:x=(w-text_w)/2:y=(h*0.75):line_spacing=12:reload=0`,
     `[v]`,
   ].join('');
 
-  const cmd = [
-    'ffmpeg', '-y',
-    `-loop 1 -i "${heroImagePath}"`,
-    `-f lavfi -i anullsrc=r=44100:cl=mono`,
-    `-filter_complex "${filter}"`,
-    `-map "[v]" -map 1:a`,
-    `-c:v libx264 -preset fast -crf 23`,
-    `-c:a aac -b:a 64k`,
-    `-t ${VIDEO_DURATION}`,
-    `-pix_fmt yuv420p`,
-    `-movflags +faststart`,
-    `"${outputPath}"`,
-  ].join(' ');
+  const args = [
+    '-y',
+    '-loop', '1',
+    '-i', heroImagePath,
+    '-f', 'lavfi',
+    '-i', 'anullsrc=r=44100:cl=mono',
+    '-filter_complex', filter,
+    '-map', '[v]',
+    '-map', '1:a',
+    '-c:v', 'libx264',
+    '-preset', 'fast',
+    '-crf', '23',
+    '-c:a', 'aac',
+    '-b:a', '64k',
+    '-t', String(VIDEO_DURATION),
+    '-pix_fmt', 'yuv420p',
+    '-movflags', '+faststart',
+    outputPath,
+  ];
 
   console.log('🎬 Running ffmpeg...');
-  execSync(cmd, { stdio: 'inherit' });
+  if (!fontPath) {
+    console.warn('⚠ No TTF font found — drawtext may fail. Install fonts-dejavu-core (Linux) or use a Mac with Arial.');
+  }
+  try {
+    execFileSync('ffmpeg', args, { stdio: 'inherit' });
+  } finally {
+    try {
+      fs.unlinkSync(titleFile);
+    } catch {
+      /* ignore */
+    }
+  }
   console.log(`✅ Video created: ${outputPath}`);
 }
 
