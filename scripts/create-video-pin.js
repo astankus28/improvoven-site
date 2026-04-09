@@ -280,9 +280,9 @@ async function createAndPostVideoPin(recipe, slug) {
   if (!ACCESS_TOKEN) throw new Error('PINTEREST_ACCESS_TOKEN not set');
 
   const heroDir   = path.join(__dirname, '..', 'recipes', slug, 'images');
-  const heroWebp  = path.join(heroDir, 'hero.webp');
   const heroJpg   = path.join(heroDir, 'hero.jpg');
-  const heroImage = fs.existsSync(heroWebp) ? heroWebp : heroJpg;
+  const heroWebp  = path.join(heroDir, 'hero.webp');
+  const heroImage = fs.existsSync(heroJpg) ? heroJpg : heroWebp;
   if (!fs.existsSync(heroImage)) throw new Error(`Hero image not found for ${slug}`);
 
   const videoPath = path.join(heroDir, 'video-pin.mp4');

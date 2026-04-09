@@ -75,7 +75,7 @@ async function generateAndSaveImage(prompt, slug) {
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
     { 'Content-Type': 'application/json', 'Authorization': `Token ${REPLICATE_API_TOKEN}` },
-    { input: { prompt, num_outputs: 1, aspect_ratio: '16:9', output_format: 'webp', output_quality: 85 } }
+    { input: { prompt, num_outputs: 1, aspect_ratio: '16:9', output_format: 'jpg', output_quality: 90 } }
   );
 
   if (!prediction.urls?.get) throw new Error('No polling URL: ' + JSON.stringify(prediction));
@@ -93,10 +93,10 @@ async function generateAndSaveImage(prompt, slug) {
 
   const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
   fs.mkdirSync(imgDir, { recursive: true });
-  const imgPath = path.join(imgDir, 'hero.webp');
+  const imgPath = path.join(imgDir, 'hero.jpg');
   await downloadBinary(result.output[0], imgPath);
-  console.log(`\n  ✓ Saved: recipes/${slug}/images/hero.webp`);
-  return `/recipes/${slug}/images/hero.webp`;
+  console.log(`\n  ✓ Saved: recipes/${slug}/images/hero.jpg`);
+  return `/recipes/${slug}/images/hero.jpg`;
 }
 
 function updateHtml(htmlPath, localImagePath) {

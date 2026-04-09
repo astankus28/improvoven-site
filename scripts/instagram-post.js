@@ -116,7 +116,8 @@ async function postToInstagram(recipe, slug) {
   const { igAccountId, pageToken } = await getInstagramAccountId();
   console.log(`✓ Instagram account ID: ${igAccountId}`);
 
-  const imageUrl = `${SITE_URL}/recipes/${slug}/images/hero.webp`;
+  const rel = recipe.image || `/recipes/${slug}/images/hero.jpg`;
+  const imageUrl = rel.startsWith('http') ? rel : `${SITE_URL}${rel.startsWith('/') ? rel : `/${rel}`}`;
   const caption = buildCaption(recipe, slug);
 
   // Step 1: Create media container

@@ -95,7 +95,7 @@ function makeCard(r) {
     <article class="recipe-card">
       <a href="/recipes/${r.slug}/">
         <div class="card-img">
-          <img src="/recipes/${r.slug}/images/hero.webp" alt="${r.title}" loading="lazy" onerror="this.src='/recipes/${r.slug}/images/hero.jpg'">
+          <img src="/recipes/${r.slug}/images/hero.jpg" alt="${r.title}" loading="lazy" onerror="this.onerror=null;this.src='/recipes/${r.slug}/images/hero.webp'">
         </div>
         <div class="card-body">
           <div class="card-meta">${r.cuisine || ''}${r.totalTime ? ' · ' + r.totalTime : ''}</div>

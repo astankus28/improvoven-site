@@ -102,7 +102,7 @@ async function generateImage(recipe) {
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
     { 'Content-Type': 'application/json', 'Authorization': `Token ${REPLICATE_API_TOKEN}` },
-    { input: { prompt: recipe.prompt, num_outputs: 1, aspect_ratio: '16:9', output_format: 'webp', output_quality: 85 } }
+    { input: { prompt: recipe.prompt, num_outputs: 1, aspect_ratio: '16:9', output_format: 'jpg', output_quality: 90 } }
   );
   if (!prediction.urls?.get) throw new Error('No polling URL');
   let result;
@@ -116,14 +116,14 @@ async function generateImage(recipe) {
   if (!result?.output?.[0]) throw new Error('No output');
   const imgDir = path.join(process.cwd(), 'recipes', recipe.slug, 'images');
   fs.mkdirSync(imgDir, { recursive: true });
-  await downloadBinary(result.output[0], path.join(imgDir, 'hero.webp'));
+  await downloadBinary(result.output[0], path.join(imgDir, 'hero.jpg'));
 }
 
 async function main() {
   console.log(`Generating images for ${RECIPES.length} recipes...\n`);
   let done = 0, failed = 0;
   for (const recipe of RECIPES) {
-    const imgPath = path.join(process.cwd(), 'recipes', recipe.slug, 'images', 'hero.webp');
+    const imgPath = path.join(process.cwd(), 'recipes', recipe.slug, 'images', 'hero.jpg');
     if (fs.existsSync(imgPath)) {
       console.log(`Skipping ${recipe.slug} (already has image)`);
       continue;

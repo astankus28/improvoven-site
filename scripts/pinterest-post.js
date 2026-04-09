@@ -355,16 +355,17 @@ function getBoardName(recipe, variant = 'primary') {
   return boardMap.default || BOARD_MAP.default;
 }
 
-function getImageUrl(slug) {
-  // Use hero.webp — Pinterest image generation isn't reliable in CI
-  return `${SITE_URL}/recipes/${slug}/images/hero.webp`;
+function getImageUrl(recipe, slug) {
+  const rel = recipe.image || `/recipes/${slug}/images/hero.jpg`;
+  if (rel.startsWith('http')) return rel;
+  return `${SITE_URL}${rel.startsWith('/') ? rel : `/${rel}`}`;
 }
 
 async function postSinglePin(recipe, slug, variation, boardVariant = 'primary') {
   const boardName = getBoardName(recipe, boardVariant);
   const boardId = await getOrCreateBoard(boardName);
   
-  const imageUrl = getImageUrl(slug);
+  const imageUrl = getImageUrl(recipe, slug);
   const recipeUrl = `${SITE_URL}/recipes/${slug}/`;
   const description = generateDescription(recipe, variation.descriptionStyle);
 

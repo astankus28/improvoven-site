@@ -44,7 +44,7 @@ function mailerliteRequest(method, endpoint, body = null) {
 
 function buildEmailHTML(recipes) {
   const recipeCards = recipes.map(r => {
-    const imgUrl = `${SITE_URL}${r.image || `/recipes/${r.slug}/images/hero.webp`}`;
+    const imgUrl = `${SITE_URL}${r.image || `/recipes/${r.slug}/images/hero.jpg`}`;
     const recipeUrl = r.isRoundup && r.roundupUrl
       ? `${SITE_URL}${r.roundupUrl}`
       : `${SITE_URL}/recipes/${r.slug}/`;

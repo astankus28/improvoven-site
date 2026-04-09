@@ -114,19 +114,24 @@ function recipeSearchBlob(r) {
   ).toLowerCase();
 }
 
+function heroSrc(r) {
+  return r.image || `/recipes/${r.slug}/images/hero.jpg`;
+}
+
 function buildRoundupPage(theme, recipes, intro, slug, date) {
   const year = new Date().getFullYear();
   const title = `${recipes.length} ${theme} — Improv Oven`;
   const introLine = intro.replace(/\s+/g, ' ').trim();
   const descPlain = finalizeMetaDescription(introLine, slug);
   const description = escAttrRoundup(descPlain);
+  const ogHero = `${SITE_URL}${heroSrc(recipes[0])}`;
 
   const recipeCards = recipes.map((r, i) => `
     <div class="roundup-item">
       <div class="roundup-num">${i + 1}</div>
       <div class="roundup-img">
         <a href="/recipes/${r.slug}/">
-          <img src="/recipes/${r.slug}/images/hero.webp" alt="${r.title}" loading="lazy" onerror="this.src='/recipes/${r.slug}/images/hero.jpg'">
+          <img src="${heroSrc(r)}" alt="${r.title}" loading="lazy" onerror="this.onerror=null;this.src='/recipes/${r.slug}/images/hero.webp'">
         </a>
       </div>
       <div class="roundup-info">
@@ -146,14 +151,14 @@ function buildRoundupPage(theme, recipes, intro, slug, date) {
 <meta name="description" content="${description}">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${description}">
-<meta property="og:image" content="${SITE_URL}/recipes/${recipes[0].slug}/images/hero.webp">
+<meta property="og:image" content="${ogHero}">
 <meta property="og:type" content="article">
 <meta property="og:url" content="${SITE_URL}/roundups/${slug}/">
 <link rel="canonical" href="${SITE_URL}/roundups/${slug}/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${title.replace(/"/g, '&quot;')}">
 <meta name="twitter:description" content="${description.replace(/"/g, '&quot;')}">
-<meta name="twitter:image" content="${SITE_URL}/recipes/${recipes[0].slug}/images/hero.webp">
+<meta name="twitter:image" content="${ogHero}">
 ${GTAG_SNIPPET}
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -167,7 +172,7 @@ ${GTAG_SNIPPET}
   "datePublished": "${date}",
   "url": "${SITE_URL}/roundups/${slug}/",
   "publisher": {"@type": "Organization", "name": "Improv Oven", "url": "${SITE_URL}"},
-  "image": "${SITE_URL}/recipes/${recipes[0].slug}/images/hero.webp"
+  "image": "${ogHero}"
 }
 </script>
 <style>
@@ -349,7 +354,7 @@ async function main() {
     slug: `roundup-${slug}`,
     title: `${matching.length} ${theme.theme}`,
     description: intro.trim().substring(0, 200),
-    image: `/recipes/${matching[0].slug}/images/hero.webp`,
+    image: matching[0].image || `/recipes/${matching[0].slug}/images/hero.jpg`,
     category: 'Round-Up',
     cuisine: 'Various',
     totalTime: '',

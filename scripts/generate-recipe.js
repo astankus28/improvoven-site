@@ -1431,7 +1431,7 @@ async function getImage(recipe, slug) {
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
     { 'Content-Type': 'application/json', 'Authorization': `Token ${REPLICATE_API_TOKEN}` },
-    { input: { prompt, num_outputs: 1, aspect_ratio: '16:9', output_format: 'webp', output_quality: 85 } }
+    { input: { prompt, num_outputs: 1, aspect_ratio: '16:9', output_format: 'jpg', output_quality: 90 } }
   );
 
   if (!prediction.urls?.get) throw new Error('Replicate error: ' + JSON.stringify(prediction));
@@ -1449,10 +1449,10 @@ async function getImage(recipe, slug) {
 
   const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
   fs.mkdirSync(imgDir, { recursive: true });
-  const imgPath = path.join(imgDir, 'hero.webp');
+  const imgPath = path.join(imgDir, 'hero.jpg');
   await downloadBinary(result.output[0], imgPath);
   console.log('✓ Image saved');
-  return `/recipes/${slug}/images/hero.webp`;
+  return `/recipes/${slug}/images/hero.jpg`;
 }
 
 function slugify(title) {
