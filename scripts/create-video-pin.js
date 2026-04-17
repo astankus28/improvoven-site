@@ -250,7 +250,12 @@ async function waitForVideoProcessing(mediaId, maxWaitMs = 120_000) {
   throw new Error('Timed out waiting for Pinterest video processing');
 }
 
-async function createVideoPin(recipe, slug, boardId, mediaId) {
+function heroPublicUrl(slug, heroImagePath) {
+  const file = path.basename(heroImagePath);
+  return `${SITE_URL}/recipes/${slug}/images/${file}`;
+}
+
+async function createVideoPin(recipe, slug, boardId, mediaId, coverImageUrl) {
   const recipeUrl   = `${SITE_URL}/recipes/${slug}/`;
   const hashtags    = generateHashtags(recipe).join(' ');
   const desc        = recipe.description || recipe.title;
@@ -264,8 +269,9 @@ async function createVideoPin(recipe, slug, boardId, mediaId) {
     media_source: {
       source_type: 'video_id',
       media_id: mediaId,
+      cover_image_url: coverImageUrl,
+      cover_image_key_frame_time: 3,
     },
-    cover_image_key_frame_time: 3, // Pinterest extracts frame at 3 seconds as cover thumbnail
   };
 
   const res = await pinterestRequest('POST', '/pins', body);
@@ -300,8 +306,10 @@ async function createAndPostVideoPin(recipe, slug) {
   console.log('⏳ Waiting for Pinterest to process video...');
   await waitForVideoProcessing(media_id);
 
+  const coverImageUrl = heroPublicUrl(slug, heroImage);
   console.log('📌 Creating video pin...');
-  const pin = await createVideoPin(recipe, slug, boardId, media_id);
+  console.log(`   cover_image_url: ${coverImageUrl}`);
+  const pin = await createVideoPin(recipe, slug, boardId, media_id, coverImageUrl);
 
   fs.unlinkSync(videoPath);
   console.log('🗑️  Local MP4 cleaned up');
