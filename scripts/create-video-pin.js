@@ -36,7 +36,7 @@ const BOARD_MAP = {
 const VIDEO_DURATION = 10;
 const VIDEO_WIDTH    = 1080;
 const VIDEO_HEIGHT   = 1350;
-const FPS            = 25;
+const FPS            = 30;
 
 /** Prefer Linux CI font, then common fallbacks for local macOS runs. */
 const FONT_CANDIDATES = [
@@ -151,7 +151,10 @@ function createVideo(heroImagePath, title, outputPath) {
   const fontPrefix = fontPath ? `fontfile=${escPath(fontPath)}:` : '';
 
   const filter = [
-    `[0:v]scale=iw*2:ih*2,`,
+    // Scale up while preserving aspect ratio, then crop to a 4:5-ish vertical canvas.
+    // This avoids "stretching" when the input image isn't already the target aspect.
+    `[0:v]scale=${VIDEO_WIDTH * 2}:${VIDEO_HEIGHT * 2}:force_original_aspect_ratio=increase,`,
+    `crop=${VIDEO_WIDTH * 2}:${VIDEO_HEIGHT * 2},`,
     `zoompan=`,
     `z='min(zoom+${zoomIncrement},1.08)':`,
     `x='iw/2-(iw/zoom/2)':`,
@@ -175,6 +178,9 @@ function createVideo(heroImagePath, title, outputPath) {
     '-c:v', 'libx264',
     '-preset', 'fast',
     '-crf', '23',
+    '-profile:v', 'high',
+    '-level:v', '4.1',
+    '-g', String(FPS * 2),
     '-c:a', 'aac',
     '-b:a', '64k',
     '-t', String(VIDEO_DURATION),
@@ -285,9 +291,12 @@ async function createAndPostVideoPin(recipe, slug) {
   if (!ACCESS_TOKEN) throw new Error('PINTEREST_ACCESS_TOKEN not set');
 
   const heroDir   = path.join(__dirname, '..', 'recipes', slug, 'images');
+  const pinterestJpg = path.join(heroDir, 'pinterest.jpg');
   const heroJpg   = path.join(heroDir, 'hero.jpg');
   const heroWebp  = path.join(heroDir, 'hero.webp');
-  const heroImage = fs.existsSync(heroJpg) ? heroJpg : heroWebp;
+  const heroImage = fs.existsSync(pinterestJpg)
+    ? pinterestJpg
+    : (fs.existsSync(heroJpg) ? heroJpg : heroWebp);
   if (!fs.existsSync(heroImage)) throw new Error(`Hero image not found for ${slug}`);
 
   const videoPath = path.join(heroDir, 'video-pin.mp4');

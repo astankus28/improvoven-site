@@ -356,7 +356,12 @@ function getBoardName(recipe, variant = 'primary') {
 }
 
 function getImageUrl(recipe, slug) {
-  const rel = recipe.image || `/recipes/${slug}/images/hero.jpg`;
+  // Prefer the dedicated vertical Pinterest image if it's in the repo.
+  // Pinterest performs best with 2:3-ish / vertical assets; `hero.jpg` is often wide.
+  const pinterestPath = path.join(__dirname, '..', 'recipes', slug, 'images', 'pinterest.jpg');
+  const rel = recipe.image || (fs.existsSync(pinterestPath)
+    ? `/recipes/${slug}/images/pinterest.jpg`
+    : `/recipes/${slug}/images/hero.jpg`);
   if (rel.startsWith('http')) return rel;
   return `${SITE_URL}${rel.startsWith('/') ? rel : `/${rel}`}`;
 }

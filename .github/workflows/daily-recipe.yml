@@ -125,13 +125,20 @@ jobs:
         continue-on-error: true
         env:
           PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_ENABLE_VIDEO_PINS: ${{ vars.PINTEREST_ENABLE_VIDEO_PINS }}
         run: |
           echo "🎬 Checking if video pin should run..."
+          if [ "${PINTEREST_ENABLE_VIDEO_PINS}" != "true" ]; then
+            echo "⏭️ Video pins disabled (set repo variable PINTEREST_ENABLE_VIDEO_PINS=true to enable)"
+            exit 0
+          fi
+
           RECIPE_COUNT=$(node -e "console.log(require('./recipes-data.json').length)")
           echo "Total recipes: $RECIPE_COUNT"
 
-          if [ $((RECIPE_COUNT % 1)) -ne 0 ]; then
-            echo "⏭️ Skipping video pin this run (recipe $RECIPE_COUNT)"
+          # Post a video pin every 5 recipes (to avoid spam + duplication with static pins)
+          if [ $((RECIPE_COUNT % 5)) -ne 0 ]; then
+            echo "⏭️ Skipping video pin this run (recipe #$RECIPE_COUNT)"
             exit 0
           fi
 
