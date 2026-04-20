@@ -33,20 +33,58 @@ const BOARD_MAP = {
   default:        'Easy Weeknight Dinners',
 };
 
-const VIDEO_DURATION = 10;
+// ─── Video geometry ──────────────────────────────────────────────────────────
 const VIDEO_WIDTH    = 1080;
-const VIDEO_HEIGHT   = 1350;
+const VIDEO_HEIGHT   = 1350;          // 4:5 — Pinterest's preferred vertical aspect
 const FPS            = 30;
 
-/** Prefer Linux CI font, then common fallbacks for local macOS runs. */
-const FONT_CANDIDATES = [
+// ─── Shot timing ─────────────────────────────────────────────────────────────
+// Three Ken-Burns "shots" derived from the same hero image (different framings),
+// crossfaded together, then a brand outro card.  Total ≈ 12s.
+const SHOT_DURATION  = 4.0;           // seconds per shot
+const XFADE_DURATION = 0.6;           // crossfade overlap between shots
+const OUTRO_DURATION = 2.0;           // brand card at the end
+const OUTRO_XFADE    = 0.5;           // crossfade into the outro
+const NUM_SHOTS      = 3;
+
+// Effective total = SHOT*N − XFADE*(N−1) + OUTRO − OUTRO_XFADE
+const TOTAL_DURATION =
+  SHOT_DURATION * NUM_SHOTS
+  - XFADE_DURATION * (NUM_SHOTS - 1)
+  + OUTRO_DURATION
+  - OUTRO_XFADE;
+
+// ─── Brand ───────────────────────────────────────────────────────────────────
+// Colors mirror the site's CSS custom properties (see /index.html :root).
+const BRAND_GREEN       = '0x2D6A4F';
+const BRAND_GREEN_LIGHT = '0x52B788';
+const BRAND_CREAM       = '0xFAF7F2';
+const BRAND_DOMAIN      = 'improvoven.com';
+
+// ─── Audio ───────────────────────────────────────────────────────────────────
+// Bundled CC BY 4.0 music bed: "Carefree" by Kevin MacLeod (incompetech.com).
+// CREDITS in /assets/audio/CREDITS.md.  Required attribution string below is
+// appended to every video pin description so we stay license-compliant.
+const MUSIC_BED_PATH = path.join(__dirname, '..', 'assets', 'audio', 'pin-bed.mp3');
+const MUSIC_CREDIT   = 'Music: "Carefree" by Kevin MacLeod (incompetech.com), CC BY 4.0';
+
+// ─── Fonts ───────────────────────────────────────────────────────────────────
+// CI (Linux/Ubuntu) installs `fonts-dejavu-core`; macOS dev boxes have Arial.
+// We need a regular + bold pair so the outro can mix weights.
+const BOLD_FONT_CANDIDATES = [
   '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+  '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf',
   '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
   '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
 ];
+const REGULAR_FONT_CANDIDATES = [
+  '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+  '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+  '/System/Library/Fonts/Supplemental/Arial.ttf',
+];
 
-function resolveFontfile() {
-  const hit = FONT_CANDIDATES.find((p) => fs.existsSync(p));
+function resolveFont(candidates) {
+  const hit = candidates.find((p) => fs.existsSync(p));
   return hit || null;
 }
 
@@ -111,96 +149,239 @@ async function getOrCreateBoard(boardName) {
   return createRes.data.id;
 }
 
-function wrapTitle(title) {
-  // Split title in half by character count, keeping word boundaries
-  const words = title.split(' ');
-  const half = Math.ceil(title.length / 2);
-  let line1 = '', line2 = '', assigned = false;
+function wrapTitle(title, maxLine = 22) {
+  // 1. Drop any parenthetical "(Spicy, Fudgy & Totally Addictive)"-style tail —
+  //    it reads as marketing copy and bloats the overlay. Keep only the dish name.
+  const dish = title.replace(/\s*\(.*?\)\s*$/g, '').trim() || title;
 
+  // 2. Greedy wrap into <=2 lines, soft target ~maxLine chars per line so the
+  //    type stays inside a 1080-wide frame with margins.
+  const words = dish.split(/\s+/);
+  const lines = [''];
   for (const w of words) {
-    if (!assigned && line1.length + w.length <= half) {
-      line1 += (line1 ? ' ' : '') + w;
+    const cur = lines[lines.length - 1];
+    const candidate = cur ? `${cur} ${w}` : w;
+    if (candidate.length <= maxLine || !cur) {
+      lines[lines.length - 1] = candidate;
+    } else if (lines.length < 2) {
+      lines.push(w);
     } else {
-      assigned = true;
-      line2 += (line2 ? ' ' : '') + w;
+      // 3rd+ word that won't fit — append with ellipsis and stop.
+      lines[1] = (lines[1] + ' ' + w).slice(0, maxLine - 1).trimEnd() + '…';
+      break;
     }
   }
+  return lines.filter(Boolean).join('\n');
+}
 
-  // If line2 is very long, truncate it
-  if (line2.length > 40) line2 = line2.substring(0, 37) + '...';
+// Three "shots" derived from one hero image. zStart/zEnd are zoom factors
+// (1.0 = no zoom). xCenter/yCenter are 0..1 within the full frame and steer
+// where the zoompan crop is centered, giving each shot a different framing.
+const SHOT_RECIPES = [
+  // Wide establishing — slow push-in, centered.
+  { zStart: 1.00, zEnd: 1.10, xCenter: 0.50, yCenter: 0.50 },
+  // Top detail — punch in on the surface (toppings / texture).
+  { zStart: 1.30, zEnd: 1.40, xCenter: 0.50, yCenter: 0.32 },
+  // Pull-out reveal from a side angle.
+  { zStart: 1.35, zEnd: 1.18, xCenter: 0.42, yCenter: 0.62 },
+];
 
-  return line2 ? `${line1}\n${line2}` : line1;
+/**
+ * Build the zoompan filter expression for one shot.  We pre-scale the input to
+ * 2× the output resolution so zoompan's nearest-neighbor scaling doesn't soften
+ * the image, then crop to a 4:5 canvas and animate.
+ */
+function shotFilter(label, recipe, durationSec) {
+  const totalFrames = Math.round(durationSec * FPS);
+  const W2 = VIDEO_WIDTH * 2;
+  const H2 = VIDEO_HEIGHT * 2;
+  const zStep = ((recipe.zEnd - recipe.zStart) / totalFrames).toFixed(6);
+  const zStart = recipe.zStart.toFixed(4);
+  // Clamp zoom between min(start,end) and max(start,end) so easing in either
+  // direction (push-in or pull-out) never overshoots the target framing.
+  const zMin = Math.min(recipe.zStart, recipe.zEnd).toFixed(4);
+  const zMax = Math.max(recipe.zStart, recipe.zEnd).toFixed(4);
+  // anchor x/y so the crop is centered on (xCenter, yCenter) of the source.
+  // iw/ih here refer to the *post-scale* canvas (W2 × H2).
+  const cx = recipe.xCenter.toFixed(3);
+  const cy = recipe.yCenter.toFixed(3);
+  return [
+    // Take only the first input frame; zoompan with looped input otherwise
+    // restarts its animation every input frame and breaks xfade offsets.
+    `trim=end_frame=1,loop=loop=-1:size=1:start=0,setpts=N/${FPS}/TB,`,
+    `scale=${W2}:${H2}:force_original_aspect_ratio=increase,`,
+    `crop=${W2}:${H2},`,
+    `zoompan=`,
+    `z='clip(${zStart}+(${zStep})*on,${zMin},${zMax})':`,
+    `x='iw*${cx}-(iw/zoom/2)':`,
+    `y='ih*${cy}-(ih/zoom/2)':`,
+    `d=${totalFrames}:s=${VIDEO_WIDTH}x${VIDEO_HEIGHT}:fps=${FPS},`,
+    // Hard-bound the shot duration so xfade offsets line up exactly.
+    `trim=duration=${durationSec.toFixed(3)},`,
+    `setsar=1,setpts=PTS-STARTPTS[${label}]`,
+  ].join('');
+}
+
+/**
+ * Build the outro brand card as a colored canvas with logo-style typography.
+ * Generated entirely in ffmpeg so we don't need to bundle a PNG outro.
+ */
+function outroFilter(label, fontPath, fontPathRegular) {
+  const totalFrames = Math.round(OUTRO_DURATION * FPS);
+  const fontPrefix  = fontPath ? `fontfile=${escFfPath(fontPath)}:` : '';
+  const fontPrefixR = fontPathRegular ? `fontfile=${escFfPath(fontPathRegular)}:` : fontPrefix;
+  // color source → drawtext for "Full Recipe" + drawtext for "improvoven.com"
+  return [
+    `color=c=#${BRAND_GREEN.slice(2)}:s=${VIDEO_WIDTH}x${VIDEO_HEIGHT}:r=${FPS}:d=${OUTRO_DURATION},`,
+    // Soft inner highlight bar for visual interest
+    `drawbox=x=0:y=(ih*0.46):w=iw:h=4:color=#${BRAND_GREEN_LIGHT.slice(2)}@0.9:t=fill,`,
+    // "Full Recipe →" — bold, mid-upper
+    `drawtext=${fontPrefix}text='Full Recipe →':`,
+    `fontsize=92:fontcolor=#${BRAND_CREAM.slice(2)}:`,
+    `x=(w-text_w)/2:y=(h*0.34),`,
+    // "improvoven.com" — regular weight, mid-lower, with subtle fade-in
+    `drawtext=${fontPrefixR}text='${BRAND_DOMAIN}':`,
+    `fontsize=64:fontcolor=#${BRAND_GREEN_LIGHT.slice(2)}:`,
+    `x=(w-text_w)/2:y=(h*0.52):`,
+    `alpha='if(lt(t,0.4),t/0.4,1)',`,
+    // Save Pin nudge near the bottom
+    `drawtext=${fontPrefix}text='📌 Save & Cook Tonight':`,
+    `fontsize=44:fontcolor=#${BRAND_CREAM.slice(2)}@0.85:`,
+    `x=(w-text_w)/2:y=(h*0.78),`,
+    `setsar=1,trim=duration=${OUTRO_DURATION},setpts=PTS-STARTPTS,fps=${FPS}[${label}]`,
+  ].join('');
+}
+
+/** Escape a filesystem path for use inside an ffmpeg filter argument. */
+function escFfPath(p) {
+  const s = path.resolve(p).replace(/\\/g, '/');
+  // Windows drive letter: C:/foo → C\:/foo  (Unix has no `:` in paths).
+  return /^[A-Za-z]:\//.test(s) ? `${s[0]}\\:${s.slice(3)}` : s;
+}
+
+/**
+ * Compose the full filter_complex for the multi-shot pin.
+ *
+ *   [0:v]split=N → 3 zoompan shots → xfade(s) → drawtext title with fade-in
+ *                                            └→ xfade into outro card → [v]
+ *   [music?]    → atrim/afade/volume                                  → [a]
+ *
+ * @returns {{ filter: string, hasMusic: boolean }}
+ */
+function buildFilterGraph(title) {
+  const titleFontPath   = resolveFont(BOLD_FONT_CANDIDATES);
+  const regularFontPath = resolveFont(REGULAR_FONT_CANDIDATES);
+  if (!titleFontPath) {
+    console.warn('⚠ No bold TTF font found — drawtext will fail in CI. Install fonts-dejavu-core.');
+  }
+
+  // --- Three zoompan shots fed from one image input ---
+  const splitLabels = SHOT_RECIPES.map((_, i) => `s${i}`);
+  const shotLabels  = SHOT_RECIPES.map((_, i) => `v${i}`);
+  const parts = [];
+  parts.push(`[0:v]split=${NUM_SHOTS}${splitLabels.map(l => `[${l}]`).join('')}`);
+  SHOT_RECIPES.forEach((rec, i) => {
+    parts.push(`[${splitLabels[i]}]${shotFilter(shotLabels[i], rec, SHOT_DURATION)}`);
+  });
+
+  // --- Crossfade the shots together: v0 + v1 → m1, m1 + v2 → m2 ---
+  let prev = shotLabels[0];
+  for (let i = 1; i < shotLabels.length; i++) {
+    const next = shotLabels[i];
+    const out  = i === shotLabels.length - 1 ? 'shots' : `m${i}`;
+    // xfade offset = total elapsed visible time for `prev` chain
+    const offset = (SHOT_DURATION * i) - (XFADE_DURATION * i);
+    parts.push(
+      `[${prev}][${next}]xfade=transition=fade:duration=${XFADE_DURATION}:offset=${offset.toFixed(3)}[${out}]`
+    );
+    prev = out;
+  }
+
+  // --- Title overlay across the shots, with fade-in / fade-out ---
+  const motionDuration =
+    SHOT_DURATION * NUM_SHOTS - XFADE_DURATION * (NUM_SHOTS - 1);
+  const wrapped     = wrapTitle(title);
+  const titleFile   = path.join(
+    require('os').tmpdir(),
+    `pinvid-title-${Date.now()}-${process.pid}.txt`
+  );
+  fs.writeFileSync(titleFile, wrapped, 'utf8');
+  const titleFontPrefix = titleFontPath ? `fontfile=${escFfPath(titleFontPath)}:` : '';
+  // Fade title in over 0.6s (after a 0.3s lead), fade out 0.6s before the
+  // shots end so the crossfade into the outro is clean.
+  const fadeIn  = 0.3;
+  const fadeDur = 0.6;
+  const fadeOutStart = motionDuration - fadeDur - 0.05;
+  const titleAlpha =
+    `'if(lt(t,${fadeIn}),0,if(lt(t,${fadeIn + fadeDur}),(t-${fadeIn})/${fadeDur},` +
+    `if(lt(t,${fadeOutStart}),1,if(lt(t,${fadeOutStart + fadeDur}),` +
+    `1-(t-${fadeOutStart})/${fadeDur},0))))'`;
+  parts.push(
+    `[shots]drawbox=y=(ih*0.74):w=iw:h=(ih*0.26):color=black@0.62:t=fill,` +
+    `drawtext=${titleFontPrefix}textfile=${escFfPath(titleFile)}:` +
+    `fontsize=64:fontcolor=white:borderw=2:bordercolor=black@0.55:` +
+    `x=(w-text_w)/2:y=(h*0.78):line_spacing=14:reload=0:alpha=${titleAlpha}` +
+    `[shotsTxt]`
+  );
+
+  // --- Outro brand card + crossfade in ---
+  parts.push(outroFilter('outro', titleFontPath, regularFontPath));
+  const outroOffset = motionDuration - OUTRO_XFADE;
+  parts.push(
+    `[shotsTxt][outro]xfade=transition=fade:duration=${OUTRO_XFADE}:offset=${outroOffset.toFixed(3)}[v]`
+  );
+
+  // --- Audio bed (optional, with graceful fallback) ---
+  const hasMusic = fs.existsSync(MUSIC_BED_PATH);
+  if (hasMusic) {
+    // Trim/loop music to fit, fade in/out, mix down to mono so file stays small.
+    parts.push(
+      `[1:a]aloop=loop=-1:size=2e9,atrim=duration=${TOTAL_DURATION},` +
+      `asetpts=PTS-STARTPTS,` +
+      `afade=t=in:st=0:d=0.4,` +
+      `afade=t=out:st=${(TOTAL_DURATION - 0.6).toFixed(3)}:d=0.6,` +
+      `volume=0.55[a]`
+    );
+  } else {
+    parts.push(`anullsrc=r=44100:cl=stereo,atrim=duration=${TOTAL_DURATION}[a]`);
+  }
+
+  return { filter: parts.join(';'), hasMusic, titleFile };
 }
 
 function createVideo(heroImagePath, title, outputPath) {
-  const totalFrames   = VIDEO_DURATION * FPS;
-  const zoomIncrement = (0.08 / totalFrames).toFixed(6);
+  const { filter, hasMusic, titleFile } = buildFilterGraph(title);
 
-  // drawtext=text='…' breaks on multiline titles and many special chars; textfile is reliable.
-  // Keep the file next to the MP4 (simple ASCII path under recipes/<slug>/images/).
-  const titleFile = outputPath.replace(/\.mp4$/i, '') + '-overlay-title.txt';
-  fs.writeFileSync(titleFile, wrapTitle(title), 'utf8');
-
-  const fontPath = resolveFontfile();
-  /** Windows drive letter only — Unix paths have no `:` and must not be over-escaped. */
-  const escPath = (p) => {
-    const s = path.resolve(p).replace(/\\/g, '/');
-    return /^[A-Za-z]:\//.test(s) ? `${s[0]}\\:${s.slice(3)}` : s;
-  };
-
-  const fontPrefix = fontPath ? `fontfile=${escPath(fontPath)}:` : '';
-
-  const filter = [
-    // Scale up while preserving aspect ratio, then crop to a 4:5-ish vertical canvas.
-    // This avoids "stretching" when the input image isn't already the target aspect.
-    `[0:v]scale=${VIDEO_WIDTH * 2}:${VIDEO_HEIGHT * 2}:force_original_aspect_ratio=increase,`,
-    `crop=${VIDEO_WIDTH * 2}:${VIDEO_HEIGHT * 2},`,
-    `zoompan=`,
-    `z='min(zoom+${zoomIncrement},1.08)':`,
-    `x='iw/2-(iw/zoom/2)':`,
-    `y='ih/2-(ih/zoom/2)':`,
-    `d=${totalFrames}:s=${VIDEO_WIDTH}x${VIDEO_HEIGHT}:fps=${FPS},`,
-    `drawbox=y=(ih*0.72):w=iw:h=(ih*0.22):color=black@0.55:t=fill,`,
-    `drawtext=${fontPrefix}textfile=${escPath(titleFile)}:`,
-    `fontsize=52:fontcolor=white:x=(w-text_w)/2:y=(h*0.75):line_spacing=12:reload=0`,
-    `[v]`,
-  ].join('');
+  const inputs = ['-loop', '1', '-t', String(TOTAL_DURATION + 1), '-i', heroImagePath];
+  if (hasMusic) inputs.push('-stream_loop', '-1', '-i', MUSIC_BED_PATH);
 
   const args = [
     '-y',
-    '-loop', '1',
-    '-i', heroImagePath,
-    '-f', 'lavfi',
-    '-i', 'anullsrc=r=44100:cl=mono',
+    ...inputs,
     '-filter_complex', filter,
     '-map', '[v]',
-    '-map', '1:a',
+    '-map', '[a]',
     '-c:v', 'libx264',
-    '-preset', 'fast',
-    '-crf', '23',
+    '-preset', 'medium',
+    '-crf', '21',
     '-profile:v', 'high',
     '-level:v', '4.1',
     '-g', String(FPS * 2),
     '-c:a', 'aac',
-    '-b:a', '64k',
-    '-t', String(VIDEO_DURATION),
+    '-b:a', '128k',
+    '-ar', '44100',
+    '-t', TOTAL_DURATION.toFixed(3),
     '-pix_fmt', 'yuv420p',
     '-movflags', '+faststart',
     outputPath,
   ];
 
-  console.log('🎬 Running ffmpeg...');
-  if (!fontPath) {
-    console.warn('⚠ No TTF font found — drawtext may fail. Install fonts-dejavu-core (Linux) or use a Mac with Arial.');
-  }
+  console.log(`🎬 Rendering ${TOTAL_DURATION.toFixed(1)}s pin (${NUM_SHOTS} shots, ` +
+    `music=${hasMusic ? 'on' : 'off'})...`);
   try {
     execFileSync('ffmpeg', args, { stdio: 'inherit' });
   } finally {
-    try {
-      fs.unlinkSync(titleFile);
-    } catch {
-      /* ignore */
-    }
+    try { fs.unlinkSync(titleFile); } catch { /* ignore */ }
   }
   console.log(`✅ Video created: ${outputPath}`);
 }
@@ -265,7 +446,18 @@ async function createVideoPin(recipe, slug, boardId, mediaId, coverImageUrl) {
   const recipeUrl   = `${SITE_URL}/recipes/${slug}/`;
   const hashtags    = generateHashtags(recipe).join(' ');
   const desc        = recipe.description || recipe.title;
-  const description = `${desc} 📌 Save this recipe! Full instructions at the link. ${hashtags}`.substring(0, 500);
+
+  // CC BY 4.0 attribution for the bundled music bed.  Only included when the
+  // music file actually exists (so silent renders don't lie about audio).
+  const creditTail  = fs.existsSync(MUSIC_BED_PATH) ? ` · ${MUSIC_CREDIT}` : '';
+
+  // Pinterest description limit is 500; reserve room for hashtags + credit.
+  const reserved    = hashtags.length + creditTail.length + 4;
+  const body1       = `${desc} 📌 Save & cook tonight — full recipe at the link.`;
+  const trimmedBody = body1.length > 500 - reserved
+    ? body1.slice(0, 500 - reserved - 1).trimEnd() + '…'
+    : body1;
+  const description = `${trimmedBody} ${hashtags}${creditTail}`.slice(0, 500);
 
   const body = {
     board_id: boardId,
@@ -291,13 +483,12 @@ async function createAndPostVideoPin(recipe, slug) {
   if (!ACCESS_TOKEN) throw new Error('PINTEREST_ACCESS_TOKEN not set');
 
   const heroDir   = path.join(__dirname, '..', 'recipes', slug, 'images');
-  const pinterestJpg = path.join(heroDir, 'pinterest.jpg');
   const heroJpg   = path.join(heroDir, 'hero.jpg');
   const heroWebp  = path.join(heroDir, 'hero.webp');
-  const heroImage = fs.existsSync(pinterestJpg)
-    ? pinterestJpg
-    : (fs.existsSync(heroJpg) ? heroJpg : heroWebp);
-  if (!fs.existsSync(heroImage)) throw new Error(`Hero image not found for ${slug}`);
+  // IMPORTANT: never use pinterest.jpg here — it has the title baked in by
+  // makePinterestImage(), which would double up with the drawtext overlay below.
+  const heroImage = fs.existsSync(heroJpg) ? heroJpg : heroWebp;
+  if (!fs.existsSync(heroImage)) throw new Error(`Clean hero image not found for ${slug}`);
 
   const videoPath = path.join(heroDir, 'video-pin.mp4');
 
