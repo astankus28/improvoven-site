@@ -12,10 +12,24 @@ export async function onRequest(context) {
   const webappPattern = /^\/webapp\//;
 
   if (junkPattern.test(path) || tagPattern.test(path) || webappPattern.test(path)) {
-    return new Response("Not Found", {
-      status: 404,
-      headers: { "Content-Type": "text/plain" }
-    });
+    return new Response(
+      `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found</title>
+</head>
+<body>
+  <h1>404 - Page Not Found</h1>
+  <p>This page no longer exists.</p>
+</body>
+</html>`,
+      {
+        status: 404,
+        headers: { "Content-Type": "text/html; charset=utf-8" }
+      }
+    );
   }
 
   return context.next();
