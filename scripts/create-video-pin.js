@@ -234,20 +234,22 @@ function outroFilter(label, fontPath, fontPathRegular) {
   return [
     `color=c=#${BRAND_GREEN.slice(2)}:s=${VIDEO_WIDTH}x${VIDEO_HEIGHT}:r=${FPS}:d=${OUTRO_DURATION},`,
     // Soft inner highlight bar for visual interest
-    `drawbox=x=0:y=(ih*0.46):w=iw:h=4:color=#${BRAND_GREEN_LIGHT.slice(2)}@0.9:t=fill,`,
+    `drawbox=x=0:y=(ih*0.49):w=iw:h=3:color=#${BRAND_GREEN_LIGHT.slice(2)}@0.9:t=fill,`,
     // "Full Recipe →" — bold, mid-upper
     `drawtext=${fontPrefix}text='Full Recipe →':`,
-    `fontsize=92:fontcolor=#${BRAND_CREAM.slice(2)}:`,
-    `x=(w-text_w)/2:y=(h*0.34),`,
-    // "improvoven.com" — regular weight, mid-lower, with subtle fade-in
+    `fontsize=96:fontcolor=#${BRAND_CREAM.slice(2)}:`,
+    `x=(w-text_w)/2:y=(h*0.36),`,
+    // "improvoven.com" — regular weight, mid-lower, in cream so it actually
+    // reads against the brand green. Subtle fade-in keeps focus on the CTA.
     `drawtext=${fontPrefixR}text='${BRAND_DOMAIN}':`,
-    `fontsize=64:fontcolor=#${BRAND_GREEN_LIGHT.slice(2)}:`,
-    `x=(w-text_w)/2:y=(h*0.52):`,
+    `fontsize=68:fontcolor=#${BRAND_CREAM.slice(2)}:`,
+    `x=(w-text_w)/2:y=(h*0.55):`,
     `alpha='if(lt(t,0.4),t/0.4,1)',`,
-    // Save Pin nudge near the bottom
-    `drawtext=${fontPrefix}text='📌 Save & Cook Tonight':`,
-    `fontsize=44:fontcolor=#${BRAND_CREAM.slice(2)}@0.85:`,
-    `x=(w-text_w)/2:y=(h*0.78),`,
+    // CTA pill — light-green pill with bold dark-green text near the bottom.
+    `drawbox=x=(iw-580)/2:y=(ih*0.78):w=580:h=88:color=#${BRAND_GREEN_LIGHT.slice(2)}:t=fill,`,
+    `drawtext=${fontPrefix}text='Save & Cook Tonight':`,
+    `fontsize=46:fontcolor=#${BRAND_GREEN.slice(2)}:`,
+    `x=(w-text_w)/2:y=(h*0.78)+22,`,
     `setsar=1,trim=duration=${OUTRO_DURATION},setpts=PTS-STARTPTS,fps=${FPS}[${label}]`,
   ].join('');
 }
