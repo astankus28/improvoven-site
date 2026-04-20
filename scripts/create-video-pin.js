@@ -187,32 +187,46 @@ const SHOT_RECIPES = [
 ];
 
 /**
- * Build the zoompan filter expression for one shot.  We pre-scale the input to
- * 2× the output resolution so zoompan's nearest-neighbor scaling doesn't soften
- * the image, then crop to a 4:5 canvas and animate.
+ * Build the zoompan filter expression for one shot.
+ *
+ * Anti-jitter strategy:
+ * - `zoompan` operates on integer pixel coordinates; on small per-frame zoom
+ *   increments those coords snap by ±1px each frame and read as visible
+ *   "shake" at output resolution.  Mitigated by pre-scaling the input to
+ *   ZOOMPAN_SUPERSAMPLE × output size before zoompan, so the same 1-px snap
+ *   in the buffer becomes ~1/N px at output, well below visible threshold.
+ * - The per-frame zoom delta uses a smoothed `sin`-based ease-in/ease-out
+ *   curve (instead of linear) so motion accelerates and decelerates softly
+ *   rather than starting/stopping abruptly.
  */
+const ZOOMPAN_SUPERSAMPLE = 4;     // 4× pre-scale before zoompan
 function shotFilter(label, recipe, durationSec) {
   const totalFrames = Math.round(durationSec * FPS);
-  const W2 = VIDEO_WIDTH * 2;
-  const H2 = VIDEO_HEIGHT * 2;
-  const zStep = ((recipe.zEnd - recipe.zStart) / totalFrames).toFixed(6);
-  const zStart = recipe.zStart.toFixed(4);
+  const W2 = VIDEO_WIDTH  * ZOOMPAN_SUPERSAMPLE;
+  const H2 = VIDEO_HEIGHT * ZOOMPAN_SUPERSAMPLE;
   // Clamp zoom between min(start,end) and max(start,end) so easing in either
   // direction (push-in or pull-out) never overshoots the target framing.
   const zMin = Math.min(recipe.zStart, recipe.zEnd).toFixed(4);
   const zMax = Math.max(recipe.zStart, recipe.zEnd).toFixed(4);
-  // anchor x/y so the crop is centered on (xCenter, yCenter) of the source.
+  const zStart = recipe.zStart.toFixed(4);
+  const zEnd   = recipe.zEnd.toFixed(4);
+  // Smooth ease-in/ease-out: progress p = (1 - cos(π·on/N)) / 2  ∈ [0,1]
+  // z(on) = zStart + (zEnd-zStart) · p
+  const zExpr =
+    `${zStart}+(${zEnd}-${zStart})*((1-cos(PI*on/${totalFrames - 1}))/2)`;
+  // Anchor x/y so the crop is centered on (xCenter, yCenter) of the source.
   // iw/ih here refer to the *post-scale* canvas (W2 × H2).
-  const cx = recipe.xCenter.toFixed(3);
-  const cy = recipe.yCenter.toFixed(3);
+  const cx = recipe.xCenter.toFixed(4);
+  const cy = recipe.yCenter.toFixed(4);
   return [
     // Take only the first input frame; zoompan with looped input otherwise
     // restarts its animation every input frame and breaks xfade offsets.
     `trim=end_frame=1,loop=loop=-1:size=1:start=0,setpts=N/${FPS}/TB,`,
-    `scale=${W2}:${H2}:force_original_aspect_ratio=increase,`,
+    // Lanczos sampling on the supersample step keeps detail intact at 4×.
+    `scale=${W2}:${H2}:force_original_aspect_ratio=increase:flags=lanczos,`,
     `crop=${W2}:${H2},`,
     `zoompan=`,
-    `z='clip(${zStart}+(${zStep})*on,${zMin},${zMax})':`,
+    `z='clip(${zExpr},${zMin},${zMax})':`,
     `x='iw*${cx}-(iw/zoom/2)':`,
     `y='ih*${cy}-(ih/zoom/2)':`,
     `d=${totalFrames}:s=${VIDEO_WIDTH}x${VIDEO_HEIGHT}:fps=${FPS},`,
