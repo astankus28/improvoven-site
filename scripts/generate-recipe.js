@@ -111,6 +111,84 @@ function filterKeywordsByExistingTopics(keywords, blockedIds) {
   return filtered.length > 0 ? filtered : keywords;
 }
 
+function normalizeKeywordForDedupe(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function filterOutExactKeywordRepeats(keywords, recipes) {
+  if (!Array.isArray(keywords) || keywords.length === 0) return keywords;
+  if (!Array.isArray(recipes) || recipes.length === 0) return keywords;
+  const used = new Set(
+    recipes
+      .map((r) => normalizeKeywordForDedupe(r.keyword))
+      .filter(Boolean),
+  );
+  const filtered = keywords.filter((k) => !used.has(normalizeKeywordForDedupe(k)));
+  return filtered.length > 0 ? filtered : keywords;
+}
+
+function applyCincoStrategicFilters(keywordList, recipes) {
+  if (!Array.isArray(keywordList) || keywordList.length === 0) return keywordList;
+  if (!Array.isArray(recipes) || recipes.length === 0) return keywordList;
+  const recent = recipes.slice(0, 6);
+  const recentHasTaco = recent.some((r) => /\btacos?\b/i.test(`${r.title || ''} ${r.keyword || ''} ${r.slug || ''}`));
+  if (!recentHasTaco) return keywordList;
+  const nonTaco = keywordList.filter((k) => !/\btacos?\b/i.test(String(k)));
+  return nonTaco.length > 0 ? nonTaco : keywordList;
+}
+
+function applyCincoPhraseCooldown(keywordList, recipes, lookback = 6, cap = 3) {
+  if (!Array.isArray(keywordList) || keywordList.length === 0) return keywordList;
+  if (!Array.isArray(recipes) || recipes.length === 0) return keywordList;
+  const recent = recipes.slice(0, lookback);
+  const cincoTaggedCount = recent.filter((r) =>
+    /\bcinco de mayo\b/i.test(`${r.title || ''} ${r.keyword || ''} ${r.slug || ''}`),
+  ).length;
+  if (cincoTaggedCount < cap) return keywordList;
+  const nonCinco = keywordList.filter((k) => !/\bcinco de mayo\b/i.test(String(k)));
+  return nonCinco.length > 0 ? nonCinco : keywordList;
+}
+
+function getCincoOverflowKeywords(pool) {
+  if (!Array.isArray(pool)) return [];
+  return pool.filter((k) => {
+    const low = String(k).toLowerCase();
+    const mexicanish =
+      /\bmexican\b|\bpozole\b|\benchilada\b|\belote\b|street corn|\bhorchata\b|\bguacamole\b|\bqueso\b|\brefried\b|\btinga\b|\bcarnitas\b|\bmargarita\b|agua fresca|\bchurros?\b|tres leches|\bsopapilla\b|\bchilaquiles\b|\bbarbacoa\b|\bcochinita\b|\bfideo\b|\bmigas\b|\bnopalitos\b|\btamale\b|\bbirria\b|carne asada/.test(
+        low,
+      );
+    if (!mexicanish) return false;
+    return !/\bcinco de mayo\b/.test(low);
+  });
+}
+
+function getNonHolidayCuisineBreakupKeywords(pool) {
+  if (!Array.isArray(pool)) return [];
+  return pool.filter((k) => {
+    const low = String(k).toLowerCase();
+    if (
+      /\b(cinco de mayo|easter|lent|good friday|ash wednesday|mothers day|father'?s day|memorial day|thanksgiving|christmas|new year|valentine|st patrick|halloween|4th of july|labor day)\b/.test(
+        low,
+      )
+    ) {
+      return false;
+    }
+    // Prefer non-Mexican cuisine in the breakup pool to avoid board monotony.
+    if (
+      /\btacos?\b|\bmexican\b|\bpozole\b|\benchilada\b|\belote\b|street corn|\bhorchata\b|\bguacamole\b|\bqueso\b|\brefried\b|\btinga\b|\bcarnitas\b|\bmargarita\b|agua fresca|\bchurros?\b|tres leches|\bsopapilla\b|\bchilaquiles\b|\bbarbacoa\b|\bcochinita\b|\bfideo\b|\bmigas\b|\bnopalitos\b|\btamale\b|\bbirria\b|carne asada|calabacitas|molletes|rajas|enfrijoladas|pambazo|tlayuda|charro beans|arroz rojo/.test(
+        low,
+      )
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
 // ============================================================
 // EASTER STRATEGY — time-aware lead-up + avoid feast-topic pile-ups
 // ============================================================
@@ -270,6 +348,12 @@ function applyEasterStrategicFilters(keywordList) {
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner | dessert | any
+const AUTO_POST_PINTEREST = process.env.AUTO_POST_PINTEREST === 'true';
+const CINCO_LEAD_DAYS = (() => {
+  const raw = parseInt(process.env.CINCO_LEAD_DAYS || '14', 10);
+  if (!Number.isFinite(raw)) return 14;
+  return Math.min(28, Math.max(3, raw));
+})();
 
 // ============================================================
 // KEYWORD POOL — large rotating list of recipe intents (budget, pantry, speed,
@@ -686,6 +770,32 @@ const KEYWORD_POOL = [
   "simple hibiscus tea lime cooler",
   "easy coconut lime popsicles no churn",
   "quick mango chili paletas recipe",
+  // Mexican variety expansion (not tied only to Cinco wording)
+  "easy pollo asado recipe Mexican style",
+  "simple al pastor chicken tacos skillet",
+  "easy tlayuda style tostada recipe",
+  "simple pambazo sandwich recipe weeknight",
+  "easy enfrijoladas recipe with queso fresco",
+  "simple choriqueso dip recipe homemade",
+  "easy calabacitas recipe Mexican zucchini corn",
+  "simple nopales con huevo breakfast recipe",
+  "easy picadillo tacos recipe Mexican beef",
+  "simple rajas con crema recipe easy",
+  "easy molletes recipe Mexican open face beans",
+  "simple red enchilada sauce recipe homemade",
+  "easy green enchilada sauce recipe roasted",
+  "simple salsa roja taqueria style recipe",
+  "easy charro beans recipe Mexican side",
+  "simple bistec a la mexicana recipe",
+  "easy caldo tlalpeno chicken soup recipe",
+  "simple arroz rojo Mexican red rice recipe",
+  "easy chicken fajita rice bowl recipe",
+  "simple taco rice skillet recipe weeknight",
+  "easy pork adobo tacos recipe Mexican",
+  "simple esquites cups for potluck recipe",
+  "simple breakfast migas with tortillas recipe",
+  "easy guisado de papa recipe Mexican potatoes",
+  "simple tostadas de tinga recipe quick",
 ];
 
 
@@ -873,7 +983,7 @@ const HOLIDAY_KEYWORDS = {
       "simple herb compound butter prep lamb Easter",
     ],
   },
-  // CINCO DE MAYO (Apr 14 - May 5 — 3-week lead for Pinterest SEO)
+  // CINCO DE MAYO (defaults to 14 days before May 5)
   'cinco_de_mayo': {
     keywords: [
       // Core Cinco dishes
@@ -1103,6 +1213,13 @@ function getSeasonalKeywords() {
     return now >= start && now <= end;
   }
 
+  function isInCincoWindow() {
+    const cincoDay = new Date(year, 4, 5); // May 5
+    const start = new Date(cincoDay);
+    start.setDate(cincoDay.getDate() - CINCO_LEAD_DAYS);
+    return now >= start && now <= cincoDay;
+  }
+
   // Easter calculation (approximate — works for 2026: April 5)
   function getEasterDate(y) {
     const a = y % 19, b = Math.floor(y/100), c = y % 100;
@@ -1232,8 +1349,8 @@ function getSeasonalKeywords() {
   if (inRange(2, 7, 2, 14)) return HOLIDAY_KEYWORDS.valentines.keywords;
   // St Patrick's
   if (inRange(3, 10, 3, 17)) return HOLIDAY_KEYWORDS.st_patricks.keywords;
-  // Cinco de Mayo (Apr 14 - May 5 — 3-week Pinterest lead time)
-  if (inRange(4, 14, 5, 5)) return HOLIDAY_KEYWORDS.cinco_de_mayo.keywords;
+  // Cinco de Mayo (dynamic lead, defaults to 14 days before May 5)
+  if (isInCincoWindow()) return HOLIDAY_KEYWORDS.cinco_de_mayo.keywords;
   // Mother's Day (approx 2nd Sunday in May — May 4-11 window)
   if (inRange(5, 4, 5, 11)) return HOLIDAY_KEYWORDS.mothers_day.keywords;
   // Memorial Day (last Monday May — May 18-26 window)
@@ -1255,7 +1372,8 @@ function getSeasonalKeywords() {
 }
 
 function getNextKeyword() {
-  const blockedIds = getBlockedTopicIdsFromRecipes(loadRecipesDataForDedupe());
+  const existingRecipes = loadRecipesDataForDedupe();
+  const blockedIds = getBlockedTopicIdsFromRecipes(existingRecipes);
 
   // Check for holiday season first
   const holidayKeywords = getSeasonalKeywords();
@@ -1267,6 +1385,34 @@ function getNextKeyword() {
     }
     const unused = holidayKeywords.filter(k => !used.includes(k));
     let candidates = unused.length > 0 ? unused : holidayKeywords;
+
+    // Never intentionally pick a keyword already published before.
+    candidates = filterOutExactKeywordRepeats(candidates, existingRecipes);
+
+    // During Cinco, avoid taco clustering in the recent feed.
+    if (holidayKeywords === HOLIDAY_KEYWORDS.cinco_de_mayo.keywords) {
+      // Blend in non-Cinco-tagged Mexican intents so we don't over-repeat holiday phrasing.
+      const overflow = getCincoOverflowKeywords(KEYWORD_POOL)
+        .filter((k) => !used.includes(k));
+      const overflowNoExact = filterOutExactKeywordRepeats(overflow, existingRecipes);
+      if (overflowNoExact.length > 0) {
+        const addOn = shuffleArray(overflowNoExact).slice(0, Math.min(20, overflowNoExact.length));
+        candidates = Array.from(new Set([...candidates, ...addOn]));
+      }
+
+      // Also blend in non-holiday, non-Mexican cuisine to break up the board feed.
+      const breakupPool = getNonHolidayCuisineBreakupKeywords(KEYWORD_POOL)
+        .filter((k) => !used.includes(k));
+      const breakupNoExact = filterOutExactKeywordRepeats(breakupPool, existingRecipes);
+      if (breakupNoExact.length > 0) {
+        const breakupAddOn = shuffleArray(breakupNoExact).slice(0, Math.min(20, breakupNoExact.length));
+        candidates = Array.from(new Set([...candidates, ...breakupAddOn]));
+      }
+
+      candidates = applyCincoPhraseCooldown(candidates, existingRecipes);
+      candidates = applyCincoStrategicFilters(candidates, existingRecipes);
+    }
+
     candidates = filterKeywordsByExistingTopics(candidates, blockedIds);
     const keyword = candidates[Math.floor(Math.random() * candidates.length)];
     used.push(keyword);
@@ -1460,6 +1606,21 @@ function slugify(title) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 80);
+}
+
+function normalizeTitleForDedupe(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function hasDuplicateRecipeTitle(title, recipes) {
+  if (!Array.isArray(recipes) || recipes.length === 0) return false;
+  const target = normalizeTitleForDedupe(title);
+  if (!target) return false;
+  return recipes.some((r) => normalizeTitleForDedupe(r.title) === target);
 }
 
 function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
@@ -1903,10 +2064,25 @@ async function updateSitemap(recipes) {
 
 async function main() {
   try {
-    const keyword = getNextKeyword();
+    const recipesDataPath = path.join(process.cwd(), 'recipes-data.json');
+    let recipes = [];
+    if (fs.existsSync(recipesDataPath)) {
+      recipes = JSON.parse(fs.readFileSync(recipesDataPath, 'utf8'));
+    }
+
+    let keyword = getNextKeyword();
     console.log(`\n🎯 Target keyword: "${keyword}"\n`);
 
-    const recipe = await generateRecipe(keyword);
+    let recipe = await generateRecipe(keyword);
+    for (let attempt = 0; attempt < 3 && hasDuplicateRecipeTitle(recipe.title, recipes); attempt++) {
+      console.log(`⚠ Duplicate recipe title detected: "${recipe.title}"`);
+      keyword = getNextKeyword();
+      console.log(`🔁 Retrying with keyword: "${keyword}"`);
+      recipe = await generateRecipe(keyword);
+    }
+    if (hasDuplicateRecipeTitle(recipe.title, recipes)) {
+      throw new Error(`Generated duplicate title after retries: "${recipe.title}"`);
+    }
 
     const date = new Date().toISOString().split('T')[0];
     const slug = slugify(recipe.title) + '-' + date;
@@ -1914,12 +2090,6 @@ async function main() {
     fs.mkdirSync(recipeDir, { recursive: true });
 
     const imageUrl = await getImage(recipe, slug);
-
-    const recipesDataPath = path.join(process.cwd(), 'recipes-data.json');
-    let recipes = [];
-    if (fs.existsSync(recipesDataPath)) {
-      recipes = JSON.parse(fs.readFileSync(recipesDataPath, 'utf8'));
-    }
 
     // Generate Pinterest vertical image
     const heroPath = path.join(process.cwd(), imageUrl.replace(/^\//, ''));
@@ -1943,14 +2113,18 @@ async function main() {
     console.log(`   Keyword: "${keyword}"`);
     console.log(`   URL: /recipes/${slug}/`);
 
-    // Post to Pinterest
-    try {
-      console.log('📌 Attempting Pinterest post...');
-      const { postToPinterest } = require('./pinterest-post.js');
-      await postToPinterest(recipe, slug);
-    } catch(e) {
-      console.log('⚠ Pinterest posting failed:', e.message);
-      console.log('Stack:', e.stack);
+    // Optional local auto-post. CI workflow handles Pinterest posting separately.
+    if (AUTO_POST_PINTEREST) {
+      try {
+        console.log('📌 Attempting Pinterest post...');
+        const { postToPinterest } = require('./pinterest-post.js');
+        await postToPinterest(recipe, slug);
+      } catch(e) {
+        console.log('⚠ Pinterest posting failed:', e.message);
+        console.log('Stack:', e.stack);
+      }
+    } else {
+      console.log('⏭️ Skipping in-script Pinterest auto-post (set AUTO_POST_PINTEREST=true to enable).');
     }
 
   } catch (err) {
