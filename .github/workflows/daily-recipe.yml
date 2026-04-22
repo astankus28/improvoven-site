@@ -76,6 +76,11 @@ jobs:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           MEAL_TYPE: ${{ steps.meal.outputs.type }}
+          MEAL_PLANNER_BOOST_MULTIPLIER: "4"
+          PINTEREST_INTEREST_BOOST_ENABLED: "true"
+          WEEKLY_QUOTA_WINDOW: "7"
+          WEEKLY_MEAL_PLANNER_MIN: "2"
+          WEEKLY_SOUP_SALAD_MIN: "2"
         run: |
           echo "🍽️ Generating $MEAL_TYPE recipe..."
           node scripts/generate-recipe.js 2>&1

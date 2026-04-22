@@ -72,6 +72,33 @@ const RECIPE_TOPIC_CLUSTERS = [
       return /\blent|lenten|good friday|meatless|friday/.test(low) || /\bbaked cod\b/.test(low);
     },
   },
+  {
+    id: 'mexican-rice',
+    recipeMatches: (title, slug, keyword = '') => {
+      const blob = `${title} ${slug} ${keyword}`.toLowerCase();
+      return /\bmexican rice\b|\barroz rojo\b|\bspanish rice\b/.test(blob);
+    },
+    keywordMatches: (k) => {
+      const low = String(k).toLowerCase();
+      return /\bmexican rice\b|\barroz rojo\b|\bspanish rice\b/.test(low);
+    },
+  },
+  {
+    id: 'street-tacos',
+    recipeMatches: (title, slug, keyword = '') => {
+      const blob = `${title} ${slug} ${keyword}`.toLowerCase();
+      return /\bstreet tacos?\b/.test(blob);
+    },
+    keywordMatches: (k) => /\bstreet tacos?\b/.test(String(k).toLowerCase()),
+  },
+  {
+    id: 'guacamole',
+    recipeMatches: (title, slug, keyword = '') => {
+      const blob = `${title} ${slug} ${keyword}`.toLowerCase();
+      return /\bguacamole\b/.test(blob);
+    },
+    keywordMatches: (k) => /\bguacamole\b/.test(String(k).toLowerCase()),
+  },
 ];
 
 function loadRecipesDataForDedupe() {
@@ -90,8 +117,9 @@ function getBlockedTopicIdsFromRecipes(recipes) {
   for (const r of recipes) {
     const title = r.title || '';
     const slug = r.slug || '';
+    const keyword = r.keyword || '';
     for (const c of RECIPE_TOPIC_CLUSTERS) {
-      if (c.recipeMatches(title, slug)) blocked.add(c.id);
+      if (c.recipeMatches(title, slug, keyword)) blocked.add(c.id);
     }
   }
   return blocked;
@@ -349,6 +377,27 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner | dessert | any
 const AUTO_POST_PINTEREST = process.env.AUTO_POST_PINTEREST === 'true';
+const MEAL_PLANNER_BOOST_MULTIPLIER = (() => {
+  const raw = parseInt(process.env.MEAL_PLANNER_BOOST_MULTIPLIER || '3', 10);
+  if (!Number.isFinite(raw)) return 3;
+  return Math.min(6, Math.max(1, raw));
+})();
+const WEEKLY_QUOTA_WINDOW = (() => {
+  const raw = parseInt(process.env.WEEKLY_QUOTA_WINDOW || '7', 10);
+  if (!Number.isFinite(raw)) return 7;
+  return Math.min(30, Math.max(3, raw));
+})();
+const WEEKLY_MEAL_PLANNER_MIN = (() => {
+  const raw = parseInt(process.env.WEEKLY_MEAL_PLANNER_MIN || '2', 10);
+  if (!Number.isFinite(raw)) return 2;
+  return Math.min(7, Math.max(0, raw));
+})();
+const WEEKLY_SOUP_SALAD_MIN = (() => {
+  const raw = parseInt(process.env.WEEKLY_SOUP_SALAD_MIN || '2', 10);
+  if (!Number.isFinite(raw)) return 2;
+  return Math.min(7, Math.max(0, raw));
+})();
+const PINTEREST_INTEREST_BOOST_ENABLED = process.env.PINTEREST_INTEREST_BOOST_ENABLED !== 'false';
 const CINCO_LEAD_DAYS = (() => {
   const raw = parseInt(process.env.CINCO_LEAD_DAYS || '14', 10);
   if (!Number.isFinite(raw)) return 14;
@@ -796,8 +845,134 @@ const KEYWORD_POOL = [
   "simple breakfast migas with tortillas recipe",
   "easy guisado de papa recipe Mexican potatoes",
   "simple tostadas de tinga recipe quick",
+  // Meal planner expansion
+  "easy meal prep bowls for the week budget",
+  "simple Sunday meal prep recipes for beginners",
+  "easy make ahead lunches for busy weekdays",
+  "simple high protein meal prep recipe ideas",
+  "easy freezer meal prep dinners for family",
+  "simple sheet pan meal prep chicken vegetables",
+  "easy batch cooking recipes for two people",
+  "simple no reheat lunch meal prep ideas",
+  "easy healthy meal prep breakfast burritos",
+  "simple overnight meal prep oats variations",
+  "easy meal prep soup recipes freezable",
+  "simple one pan meal prep dinners",
+  "easy rotisserie chicken meal prep ideas",
+  "simple meal prep pasta salads for work",
+  "easy meal prep with beans and rice",
+  "simple low budget meal prep plan",
+  "easy make ahead slow cooker meal prep",
+  "simple 5 ingredient meal prep recipes",
+  "easy family meal prep for picky eaters",
+  "simple weekly prep chicken rice bowls",
+  // Soup, salad, seafood, sandwich, pizza expansion
+  "easy lemon orzo chicken soup recipe",
+  "simple tomato basil soup and grilled cheese combo",
+  "easy creamy potato leek soup weeknight",
+  "simple white bean kale soup meal prep",
+  "easy chopped Italian salad recipe lunch",
+  "simple cucumber dill salad recipe quick",
+  "easy tuna salad sandwich recipe high protein",
+  "simple chicken salad sandwich meal prep",
+  "easy shrimp salad bowls with citrus dressing",
+  "simple salmon rice bowls meal prep",
+  "easy baked cod sheet pan dinner recipe",
+  "simple garlic butter shrimp rice bowls",
+  "easy caprese flatbread pizza recipe weeknight",
+  "simple sheet pan naan pizza recipe",
+  "easy veggie pita sandwich recipe lunch",
+  "simple turkey avocado sandwich recipe",
+  "easy broccoli cheddar soup recipe meal prep",
+  "simple lentil vegetable soup freezer friendly",
+  "easy Greek salad bowls with chickpeas",
+  "simple Caesar pasta salad meal prep",
 ];
 
+
+function isMealPlannerKeyword(keyword) {
+  const low = String(keyword || '').toLowerCase();
+  return /\bmeal prep\b|make ahead|batch cooking|freezer|weekly prep|for the week|work lunch|no reheat lunch/.test(low);
+}
+
+function isSoupOrSaladKeyword(keyword) {
+  const low = String(keyword || '').toLowerCase();
+  return /\bsoup\b|\bsalad\b|slaw|chowder|bisque|broth|stew|gazpacho/.test(low);
+}
+
+function applyWeeklyContentQuotas(candidates, recipes) {
+  if (!Array.isArray(candidates) || candidates.length === 0) return candidates;
+  if (MEAL_TYPE === 'dessert') return candidates;
+  if (!Array.isArray(recipes) || recipes.length === 0) return candidates;
+
+  const recent = recipes.slice(0, WEEKLY_QUOTA_WINDOW);
+  const mealPlannerCount = recent.filter((r) =>
+    isMealPlannerKeyword(`${r.title || ''} ${r.keyword || ''} ${r.slug || ''}`),
+  ).length;
+  const soupSaladCount = recent.filter((r) =>
+    isSoupOrSaladKeyword(`${r.title || ''} ${r.keyword || ''} ${r.slug || ''}`),
+  ).length;
+
+  const needMealPlanner = mealPlannerCount < WEEKLY_MEAL_PLANNER_MIN;
+  const needSoupSalad = soupSaladCount < WEEKLY_SOUP_SALAD_MIN;
+  if (!needMealPlanner && !needSoupSalad) return candidates;
+
+  const quotaFiltered = candidates.filter((k) => {
+    if (needMealPlanner && isMealPlannerKeyword(k)) return true;
+    if (needSoupSalad && isSoupOrSaladKeyword(k)) return true;
+    return false;
+  });
+  return quotaFiltered.length > 0 ? quotaFiltered : candidates;
+}
+
+function applyMealPlannerBoost(keywords) {
+  if (!Array.isArray(keywords) || keywords.length === 0) return keywords;
+  if (MEAL_TYPE === 'dessert') return keywords;
+  const planner = keywords.filter((k) => isMealPlannerKeyword(k));
+  if (planner.length === 0 || MEAL_PLANNER_BOOST_MULTIPLIER <= 1) return keywords;
+  const weighted = keywords.slice();
+  for (const k of planner) {
+    for (let i = 1; i < MEAL_PLANNER_BOOST_MULTIPLIER; i++) weighted.push(k);
+  }
+  return weighted;
+}
+
+// Pinterest interest-driven weighting from audience affinity signals.
+const PINTEREST_INTEREST_PATTERNS = [
+  { regex: /\bmeal prep\b|make ahead|batch cooking|freezer|weekly prep|for the week|work lunch|no reheat lunch/, weight: 2 },
+  { regex: /\bsalad\b|slaw|grain bowl|cucumber tomato avocado/, weight: 3 },
+  { regex: /\bsoup\b|chowder|broth|bisque|caldo|stew/, weight: 3 },
+  { regex: /\bseafood\b|\bshrimp\b|\bsalmon\b|\bcod\b|\btilapia\b|\btuna\b|\bclam\b|\bcrab\b|\bfish\b/, weight: 3 },
+  { regex: /\bsandwich\b|panini|burger|wrap|grilled cheese|pambazo/, weight: 3 },
+  { regex: /\bpizza\b|flatbread/, weight: 3 },
+  { regex: /\bdip\b|salsa|sauce|dressing|aioli|chutney|chimichurri|condiment|pickled/, weight: 2 },
+  { regex: /\bappetizer\b|snack|finger food|nachos|bruschetta|wings|stuffed mushrooms|deviled eggs/, weight: 2 },
+  { regex: /\bargentine\b|\bcuban\b|\bvenezuelan\b|\bcolombian\b|\bpuerto rican\b|\bmexican\b|\bcaribbean\b|\bperuvian\b|\bbrazilian\b|\bdominican\b|\bhaitian\b|\bjamaican\b|\btrinidadian\b|\bchilean\b|\bitalian\b|\bgreek\b/, weight: 2 },
+  { regex: /\blow carb\b|high protein|vegetarian|vegan|gluten free|keto|healthy/, weight: 2 },
+  { regex: /\bbread\b|buns|bagel|focaccia|cornbread|toast|rolls|muffin/, weight: 2 },
+  { regex: /\bcocktail\b|agua fresca|horchata|lemonade|punch|smoothie|coffee|latte/, weight: 2 },
+  { regex: /\bdessert\b|cake|cookie|brownie|pudding|flan|cheesecake|churro|tres leches|mousse|cobbler|fudge/, weight: 2 },
+];
+
+function getPinterestInterestWeight(keyword) {
+  const low = String(keyword || '').toLowerCase();
+  let weight = 1;
+  for (const rule of PINTEREST_INTEREST_PATTERNS) {
+    if (rule.regex.test(low)) weight += rule.weight;
+  }
+  return Math.min(6, weight);
+}
+
+function applyPinterestInterestBoost(keywords) {
+  if (!PINTEREST_INTEREST_BOOST_ENABLED) return keywords;
+  if (!Array.isArray(keywords) || keywords.length === 0) return keywords;
+  const weighted = [];
+  for (const k of keywords) {
+    const w = getPinterestInterestWeight(k);
+    for (let i = 0; i < w; i++) weighted.push(k);
+  }
+  return weighted.length > 0 ? weighted : keywords;
+}
 
 // ── Keyword categories by meal type ──────────────────────────────────────────
 const BREAKFAST_KEYWORDS = KEYWORD_POOL.filter(k =>
@@ -823,6 +998,8 @@ const DINNER_KEYWORDS = KEYWORD_POOL.filter(k => {
   const isLunch = LUNCH_KEYWORDS.includes(k);
   return !isBreakfast && !isDessert && !isLunch;
 });
+
+const MEAL_PLANNER_KEYWORDS = KEYWORD_POOL.filter(isMealPlannerKeyword);
 
 function getKeywordPoolForMealType() {
   switch(MEAL_TYPE) {
@@ -1414,7 +1591,17 @@ function getNextKeyword() {
     }
 
     candidates = filterKeywordsByExistingTopics(candidates, blockedIds);
-    const keyword = candidates[Math.floor(Math.random() * candidates.length)];
+    const plannerAddOn = filterOutExactKeywordRepeats(
+      MEAL_PLANNER_KEYWORDS.filter((k) => !used.includes(k)),
+      existingRecipes,
+    );
+    if (plannerAddOn.length > 0) {
+      const sampledPlanner = shuffleArray(plannerAddOn).slice(0, Math.min(16, plannerAddOn.length));
+      candidates = Array.from(new Set([...candidates, ...sampledPlanner]));
+    }
+    candidates = applyWeeklyContentQuotas(candidates, existingRecipes);
+    const weightedCandidates = applyPinterestInterestBoost(applyMealPlannerBoost(candidates));
+    const keyword = weightedCandidates[Math.floor(Math.random() * weightedCandidates.length)];
     used.push(keyword);
     if (used.length > 200) used = used.slice(-200);
     require('fs').writeFileSync(usedPath, JSON.stringify(used, null, 2));
@@ -1436,13 +1623,20 @@ function getNextKeyword() {
     used = [];
     fs.writeFileSync(usedPath, JSON.stringify([], null, 2));
     const afterReset = filterKeywordsByExistingTopics(pool, blockedIds);
-    const pickFrom = afterReset.length > 0 ? afterReset : pool;
+    const pickFromRaw = afterReset.length > 0 ? afterReset : pool;
+    const pickFrom = applyWeeklyContentQuotas(pickFromRaw, existingRecipes);
+    const weighted = applyPinterestInterestBoost(applyMealPlannerBoost(pickFrom));
+    if (weighted.length > 0) {
+      return weighted[Math.floor(Math.random() * weighted.length)];
+    }
     return pickFrom[Math.floor(Math.random() * pickFrom.length)];
   }
 
   let usable = filterKeywordsByExistingTopics(unused, blockedIds);
   if (usable.length === 0) usable = unused;
-  const keyword = usable[Math.floor(Math.random() * usable.length)];
+  usable = applyWeeklyContentQuotas(usable, existingRecipes);
+  const weightedUsable = applyPinterestInterestBoost(applyMealPlannerBoost(usable));
+  const keyword = weightedUsable[Math.floor(Math.random() * weightedUsable.length)];
   used.push(keyword);
   fs.writeFileSync(usedPath, JSON.stringify(used, null, 2));
   return keyword;
@@ -1943,15 +2137,41 @@ search.addEventListener('input', () => {
 
 
 
-async function makePinterestImage(heroPath, title, outputPath) {
-  const { execSync } = require('child_process');
+function buildPinterestOverlayCopy(recipe) {
+  const rawTitle = String((recipe && recipe.title) || (recipe && recipe.targetKeyword) || 'Easy Weeknight Recipe');
+  const totalMins = parseInt(String((recipe && recipe.totalTime) || '').replace(/\D/g, ''), 10);
+  const servings = String((recipe && recipe.servings) || '').trim();
+  const cleaned = rawTitle
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\b(easy|simple|homemade|authentic|budget|recipe)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const words = cleaned.split(' ').filter(Boolean);
+  const headline = (words.length > 8 ? words.slice(0, 8) : words).join(' ') || 'Easy Weeknight Recipe';
+
+  let subtitle = 'Practical, Flavor-Packed Weeknight Recipe';
+  if (Number.isFinite(totalMins) && totalMins > 0 && totalMins <= 35) {
+    subtitle = `Weeknight-Friendly • Ready In ${totalMins} Minutes`;
+  } else if (Number.isFinite(totalMins) && totalMins > 35) {
+    subtitle = `Practical Step-By-Step Recipe • About ${totalMins} Minutes`;
+  } else if (servings) {
+    subtitle = `Practical ${servings}-Serving Recipe For Real Life`;
+  }
+
+  return { headline, subtitle };
+}
+
+async function makePinterestImage(heroPath, recipe, outputPath) {
+  const { spawnSync } = require('child_process');
+  const { headline, subtitle } = buildPinterestOverlayCopy(recipe);
   const script = `
 from PIL import Image, ImageDraw, ImageFont
 import sys
 
 hero_path = sys.argv[1]
-title = sys.argv[2]
-output_path = sys.argv[3]
+headline = sys.argv[2].strip().upper()
+subtitle = sys.argv[3].strip()
+output_path = sys.argv[4]
 
 img = Image.open(hero_path).convert('RGB')
 w, h = img.size
@@ -1962,50 +2182,78 @@ if w > target_w:
     img = img.crop((left, 0, left + target_w, min(h, target_h)))
 img = img.resize((1000, 1500), Image.LANCZOS)
 
-overlay = Image.new('RGBA', (1000, 1500), (0, 0, 0, 0))
-ov_draw = ImageDraw.Draw(overlay)
-for i in range(600):
-    alpha = int((i / 600) * 210)
-    ov_draw.rectangle([(0, 1500 - i), (1000, 1500 - i + 1)], fill=(15, 30, 20, alpha))
+top_overlay = Image.new('RGBA', (1000, 1500), (0, 0, 0, 0))
+ov_top = ImageDraw.Draw(top_overlay)
+for i in range(620):
+    alpha = int(200 - (i / 620) * 180)
+    alpha = max(18, min(210, alpha))
+    ov_top.rectangle([(0, i), (1000, i + 1)], fill=(20, 24, 28, alpha))
+
+bottom_overlay = Image.new('RGBA', (1000, 1500), (0, 0, 0, 0))
+ov_bottom = ImageDraw.Draw(bottom_overlay)
+for i in range(420):
+    alpha = int((i / 420) * 185)
+    ov_bottom.rectangle([(0, 1500 - i), (1000, 1500 - i + 1)], fill=(15, 22, 28, alpha))
 
 img = img.convert('RGBA')
-img = Image.alpha_composite(img, overlay)
+img = Image.alpha_composite(img, top_overlay)
+img = Image.alpha_composite(img, bottom_overlay)
 img = img.convert('RGB')
 draw = ImageDraw.Draw(img)
 
 try:
-    font_title = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf', 72)
+    font_title = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf', 116)
+    font_sub = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 62)
     font_brand = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 32)
 except:
-    font_title = font_brand = ImageFont.load_default()
+    font_title = font_sub = font_brand = ImageFont.load_default()
 
-words = title.split()
-lines = []
-current = []
-for word in words:
-    test_line = ' '.join(current + [word])
-    bbox = draw.textbbox((0, 0), test_line, font=font_title)
-    if bbox[2] - bbox[0] > 880 and current:
+def wrap_text(text, font, max_width):
+    words = text.split()
+    lines = []
+    current = []
+    for word in words:
+        trial = ' '.join(current + [word])
+        bbox = draw.textbbox((0, 0), trial, font=font)
+        if bbox[2] - bbox[0] > max_width and current:
+            lines.append(' '.join(current))
+            current = [word]
+        else:
+            current.append(word)
+    if current:
         lines.append(' '.join(current))
-        current = [word]
-    else:
-        current.append(word)
-if current:
-    lines.append(' '.join(current))
+    return lines
 
-line_height = 85
-total_height = len(lines) * line_height
-y_start = 1500 - total_height - 120
-for line in lines:
+title_lines = wrap_text(headline, font_title, 920)
+if len(title_lines) > 4:
+    title_lines = title_lines[:4]
+sub_lines = wrap_text(subtitle, font_sub, 900)
+if len(sub_lines) > 2:
+    sub_lines = sub_lines[:2]
+
+line_height = 112
+sub_height = 72
+y_start = 58
+
+for line in title_lines:
     bbox = draw.textbbox((0, 0), line, font=font_title)
     text_w = bbox[2] - bbox[0]
     x = (1000 - text_w) // 2
-    draw.text((x+2, y_start+2), line, fill=(0, 0, 0, 180), font=font_title)
-    draw.text((x, y_start), line, fill=(250, 247, 242), font=font_title)
+    draw.text((x + 4, y_start + 4), line, fill=(0, 0, 0, 190), font=font_title)
+    draw.text((x, y_start), line, fill=(248, 244, 234), font=font_title)
     y_start += line_height
 
+y_start += 10
+for line in sub_lines:
+    bbox = draw.textbbox((0, 0), line, font=font_sub)
+    text_w = bbox[2] - bbox[0]
+    x = (1000 - text_w) // 2
+    draw.text((x + 3, y_start + 3), line, fill=(0, 0, 0, 190), font=font_sub)
+    draw.text((x, y_start), line, fill=(248, 244, 234), font=font_sub)
+    y_start += sub_height
+
 draw.rectangle([(60, 1500-55), (940, 1500-50)], fill=(82, 183, 136))
-brand = 'ImprovOven.com'
+brand = 'IMPROVOVEN'
 bbox = draw.textbbox((0, 0), brand, font=font_brand)
 bw = bbox[2] - bbox[0]
 draw.text(((1000 - bw)//2, 1500-42), brand, fill=(82, 183, 136), font=font_brand)
@@ -2014,7 +2262,14 @@ img.save(output_path, 'JPEG', quality=92)
 `;
   
   try {
-    execSync(`python3 -c "${script.replace(/"/g, '\"')}" "${heroPath}" "${title.replace(/"/g, '\"')}" "${outputPath}"`, { stdio: 'pipe' });
+    const run = spawnSync(
+      'python3',
+      ['-c', script, heroPath, headline, subtitle, outputPath],
+      { stdio: 'pipe' },
+    );
+    if (run.status !== 0) {
+      throw new Error((run.stderr || Buffer.from('')).toString('utf8').slice(0, 200));
+    }
     console.log('✓ Pinterest image created');
   } catch(e) {
     console.log('⚠ Pinterest image generation skipped:', e.message.slice(0, 100));
@@ -2095,7 +2350,7 @@ async function main() {
     const heroPath = path.join(process.cwd(), imageUrl.replace(/^\//, ''));
     const pinterestPath = path.join(recipeDir, 'images', 'pinterest.jpg');
     if (fs.existsSync(heroPath)) {
-      await makePinterestImage(heroPath, recipe.title, pinterestPath);
+      await makePinterestImage(heroPath, recipe, pinterestPath);
     }
 
     const html = buildRecipePage(recipe, imageUrl, slug, date, recipes);

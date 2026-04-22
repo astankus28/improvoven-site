@@ -236,6 +236,21 @@ function generatePinVariations(recipe) {
   return variations.slice(0, 2);
 }
 
+function buildScannablePinTitle(recipe) {
+  const raw = String((recipe && recipe.title) || '').trim();
+  if (!raw) return 'Easy Weeknight Recipe';
+  const compact = raw
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\b(easy|simple|homemade|authentic|budget|recipe)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const words = compact.split(' ').filter(Boolean);
+  const core = (words.length > 8 ? words.slice(0, 8) : words).join(' ');
+  const mins = parseInt(String((recipe && recipe.totalTime) || '').replace(/\D/g, ''), 10);
+  const suffix = Number.isFinite(mins) && mins > 0 && mins <= 35 ? ` (${mins}-Minute)` : '';
+  return `${core || raw}${suffix}`.trim();
+}
+
 function generateDescription(recipe, style = 'standard') {
   const desc = recipe.description || '';
   const time = recipe.totalTime ? `Ready in ${recipe.totalTime}.` : '';
@@ -342,17 +357,66 @@ async function getOrCreateBoard(boardName) {
 function getBoardName(recipe, variant = 'primary') {
   const category = (recipe.category || '').toLowerCase();
   const cuisine = (recipe.cuisine || '').toLowerCase();
-  const keyword = (recipe.targetKeyword || '').toLowerCase();
+  const keyword = `${recipe.targetKeyword || ''} ${recipe.keyword || ''}`.toLowerCase();
+  const totalMins = parseInt(String(recipe.totalTime || '').replace(/\D/g, ''), 10) || 0;
 
   const boardMap = variant === 'primary' ? BOARD_MAP : SECONDARY_BOARD_MAP;
 
-  if (category === 'breakfast' || keyword.includes('breakfast')) return boardMap.breakfast || BOARD_MAP.breakfast;
-  if (category === 'dessert' || keyword.includes('dessert') || keyword.includes('cookie') || keyword.includes('cake')) return boardMap.dessert || BOARD_MAP.dessert;
-  if (cuisine.includes('italian')) return boardMap.italian || BOARD_MAP.italian;
-  if (['latin american', 'mexican', 'cuban', 'venezuelan', 'argentine', 'puerto rican', 'latin caribbean', 'cuban-american'].some(c => cuisine.includes(c))) return boardMap.latin || BOARD_MAP.latin;
-  if (keyword.includes('budget') || keyword.includes('cheap') || keyword.includes('affordable')) return boardMap.budget || BOARD_MAP.budget;
-  if (keyword.includes('30 minute') || keyword.includes('20 minute') || keyword.includes('15 minute') || keyword.includes('quick')) return boardMap.quick || BOARD_MAP.quick;
-  return boardMap.default || BOARD_MAP.default;
+  function stableBucket(input) {
+    const text = String(input || '');
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      hash = (hash << 5) - hash + text.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash) % 100;
+  }
+
+  function hasQuickSignal() {
+    if (keyword.includes('quick') || keyword.includes('30 minute') || keyword.includes('20 minute') || keyword.includes('15 minute')) return true;
+    return totalMins > 0 && totalMins <= 30;
+  }
+
+  function hasBudgetSignal() {
+    return keyword.includes('budget') || keyword.includes('cheap') || keyword.includes('affordable') || keyword.includes('under $');
+  }
+
+  function selectBoard(board, route) {
+    console.log(`🧭 Selected board route: ${route} -> ${board}`);
+    return board;
+  }
+
+  if (category === 'breakfast' || keyword.includes('breakfast')) return selectBoard(boardMap.breakfast || BOARD_MAP.breakfast, `${variant}-breakfast`);
+  if (category === 'dessert' || keyword.includes('dessert') || keyword.includes('cookie') || keyword.includes('cake')) return selectBoard(boardMap.dessert || BOARD_MAP.dessert, `${variant}-dessert`);
+  if (cuisine.includes('italian')) return selectBoard(boardMap.italian || BOARD_MAP.italian, `${variant}-italian`);
+
+  // Spread Mexican pins across high-intent boards to avoid over-concentrating on one board.
+  if (variant === 'primary' && cuisine.includes('mexican')) {
+    const seed = recipe.slug || recipe.title || keyword;
+    const bucket = stableBucket(seed);
+    const isQuick = hasQuickSignal();
+    const isBudget = hasBudgetSignal();
+
+    if (isQuick && isBudget) {
+      if (bucket < 40) return selectBoard(boardMap.quick || BOARD_MAP.quick, `${variant}-mexican-quick-budget-quick`);
+      if (bucket < 80) return selectBoard(boardMap.budget || BOARD_MAP.budget, `${variant}-mexican-quick-budget-budget`);
+      return selectBoard(boardMap.latin || BOARD_MAP.latin, `${variant}-mexican-quick-budget-latin`);
+    }
+    if (isQuick) return bucket < 70
+      ? selectBoard(boardMap.quick || BOARD_MAP.quick, `${variant}-mexican-quick`)
+      : selectBoard(boardMap.latin || BOARD_MAP.latin, `${variant}-mexican-quick-latin`);
+    if (isBudget) return bucket < 70
+      ? selectBoard(boardMap.budget || BOARD_MAP.budget, `${variant}-mexican-budget`)
+      : selectBoard(boardMap.latin || BOARD_MAP.latin, `${variant}-mexican-budget-latin`);
+    if (bucket < 20) return selectBoard(boardMap.quick || BOARD_MAP.quick, `${variant}-mexican-rotate-quick`);
+    if (bucket < 40) return selectBoard(boardMap.budget || BOARD_MAP.budget, `${variant}-mexican-rotate-budget`);
+    return selectBoard(boardMap.latin || BOARD_MAP.latin, `${variant}-mexican-rotate-latin`);
+  }
+
+  if (['latin american', 'mexican', 'cuban', 'venezuelan', 'argentine', 'puerto rican', 'latin caribbean', 'cuban-american'].some(c => cuisine.includes(c))) return selectBoard(boardMap.latin || BOARD_MAP.latin, `${variant}-latin`);
+  if (hasBudgetSignal()) return selectBoard(boardMap.budget || BOARD_MAP.budget, `${variant}-budget`);
+  if (hasQuickSignal()) return selectBoard(boardMap.quick || BOARD_MAP.quick, `${variant}-quick`);
+  return selectBoard(boardMap.default || BOARD_MAP.default, `${variant}-default`);
 }
 
 function getImageUrl(recipe, slug) {
@@ -411,7 +475,7 @@ async function postToPinterest(recipe, slug) {
   await new Promise(r => setTimeout(r, DEPLOY_WAIT * 1000));
 
   // Post single pin with optimized hashtags
-  const variation = { title: recipe.title, descriptionStyle: 'standard' };
+  const variation = { title: buildScannablePinTitle(recipe), descriptionStyle: 'standard' };
   const pinId = await postSinglePin(recipe, slug, variation, 'primary');
 
   console.log(`\n✅ Pinterest: pin created`);
