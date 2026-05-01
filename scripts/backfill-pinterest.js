@@ -82,6 +82,14 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function isPinterestAuthFailure(error) {
+  const status = error && error.status;
+  if (status === 401 || status === 403) return true;
+  const message = String((error && error.message) || '').toLowerCase();
+  if (message.includes('authentication failed')) return true;
+  return false;
+}
+
 function selectRecipes(allRecipes, args) {
   if (args.slugs.length > 0) {
     const bySlug = new Map(allRecipes.map(r => [r.slug, r]));
@@ -146,6 +154,13 @@ async function main() {
       const message = (error && error.message) ? error.message : String(error);
       console.error(`❌ Failed ${recipe.slug}: ${message}`);
       failures.push({ slug: recipe.slug, message });
+
+      // Continuing makes no sense if auth is invalid; fail fast and stop waiting.
+      if (isPinterestAuthFailure(error)) {
+        console.error('\n🛑 Pinterest authentication failed. Stopping backfill early.');
+        console.error('   Update PINTEREST_ACCESS_TOKEN, then rerun.');
+        break;
+      }
     }
 
     if (i < toPost.length - 1 && args.delayMs > 0) {
