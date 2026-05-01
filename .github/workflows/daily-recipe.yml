@@ -85,7 +85,7 @@ jobs:
           echo "🍽️ Generating $MEAL_TYPE recipe..."
           node scripts/generate-recipe.js 2>&1
           # Save the slug of the new recipe for Pinterest
-          echo "slug=$(node -e "const r=require('./recipes-data.json');console.log(r[0].slug)")" >> $GITHUB_OUTPUT
+          echo "slug=$(node -e 'const r=require("./recipes-data.json");console.log(r[0].slug)')" >> $GITHUB_OUTPUT
 
       - name: Commit and push new recipe
         if: steps.meal.outputs.skip != 'true'
@@ -94,8 +94,8 @@ jobs:
           git config --local user.name "Improv Oven Bot"
           git add -A
           git stash
-          git pull --rebase origin main
-          git stash pop
+          git pull --rebase origin main || (git rebase --abort && git reset --hard origin/main && git stash pop && git add -A)
+          git stash pop || true
           git add -A
           git diff --staged --quiet || git commit -m "🍳 ${{ steps.meal.outputs.type }} recipe: $(date +'%Y-%m-%d')"
           git push
@@ -130,7 +130,6 @@ jobs:
               .then(() => console.log('✅ Posted to Pinterest!'))
               .catch(e => { console.error('❌ Pinterest failed:', e.message); process.exit(1); });
           "
-# ─── ADD THIS STEP after your existing "Post to Pinterest" step ───
 
       - name: Post Video Pin to Pinterest
         if: steps.meal.outputs.skip != 'true'
@@ -170,7 +169,7 @@ jobs:
               .then(() => console.log('✅ Video pin posted!'))
               .catch(err => { console.error('❌ Video pin error:', err.message); process.exit(1); });
           "
-          
+
       - name: Post to Instagram
         if: steps.meal.outputs.skip != 'true'
         env:
