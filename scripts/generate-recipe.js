@@ -723,7 +723,6 @@ const KEYWORD_POOL = [
   "homemade high protein muffins recipe",
   "quick spring asparagus pasta recipe",
   "budget matcha latte homemade recipe",
-  // ── More variety: proteins, formats, and regions (avoid echoing holiday-only lists)
   "easy Peruvian lomo saltado recipe weeknight",
   "simple Colombian ajiaco soup recipe",
   "budget Honduran baleadas beans recipe",
@@ -819,7 +818,6 @@ const KEYWORD_POOL = [
   "simple hibiscus tea lime cooler",
   "easy coconut lime popsicles no churn",
   "quick mango chili paletas recipe",
-  // Mexican variety expansion (not tied only to Cinco wording)
   "easy pollo asado recipe Mexican style",
   "simple al pastor chicken tacos skillet",
   "easy tlayuda style tostada recipe",
@@ -845,7 +843,6 @@ const KEYWORD_POOL = [
   "simple breakfast migas with tortillas recipe",
   "easy guisado de papa recipe Mexican potatoes",
   "simple tostadas de tinga recipe quick",
-  // Meal planner expansion
   "easy meal prep bowls for the week budget",
   "simple Sunday meal prep recipes for beginners",
   "easy make ahead lunches for busy weekdays",
@@ -866,7 +863,6 @@ const KEYWORD_POOL = [
   "simple 5 ingredient meal prep recipes",
   "easy family meal prep for picky eaters",
   "simple weekly prep chicken rice bowls",
-  // Soup, salad, seafood, sandwich, pizza expansion
   "easy lemon orzo chicken soup recipe",
   "simple tomato basil soup and grilled cheese combo",
   "easy creamy potato leek soup weeknight",
