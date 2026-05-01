@@ -326,6 +326,14 @@ function pinterestRequest(method, endpoint, body = null) {
   });
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function isRetryablePinterestStatus(status) {
+  return status === 429 || (status >= 500 && status <= 599);
+}
+
 async function getOrCreateBoard(boardName) {
   const res = await pinterestRequest('GET', '/boards?page_size=100');
   if (res.status !== 200) {
@@ -458,25 +466,51 @@ async function postSinglePin(recipe, slug, variation, boardVariant = 'primary') 
     return res.data.id;
   } else {
     console.error(`❌ Failed to create pin: ${JSON.stringify(res.data)}`);
-    throw new Error(`Pin creation failed with status ${res.status}`);
+    const err = new Error(`Pin creation failed with status ${res.status}`);
+    err.status = res.status;
+    err.response = res.data;
+    throw err;
   }
 }
 
 async function postToPinterest(recipe, slug) {
   if (!ACCESS_TOKEN) {
-    console.log('⚠ No Pinterest access token — skipping');
-    return;
+    throw new Error('PINTEREST_ACCESS_TOKEN is missing');
   }
 
   // Wait for Cloudflare Pages deployment to complete
   // Pinterest fetches images from the live URL, so they must be deployed first
-  const DEPLOY_WAIT = parseInt(process.env.PINTEREST_DEPLOY_WAIT) || 90;
+  const parsedDeployWait = parseInt(process.env.PINTEREST_DEPLOY_WAIT || '90', 10);
+  const DEPLOY_WAIT = Number.isFinite(parsedDeployWait) && parsedDeployWait >= 0 ? parsedDeployWait : 90;
   console.log(`⏳ Waiting ${DEPLOY_WAIT}s for Cloudflare deployment...`);
   await new Promise(r => setTimeout(r, DEPLOY_WAIT * 1000));
 
   // Post single pin with optimized hashtags
   const variation = { title: buildScannablePinTitle(recipe), descriptionStyle: 'standard' };
-  const pinId = await postSinglePin(recipe, slug, variation, 'primary');
+  const maxAttempts = Math.max(1, parseInt(process.env.PINTEREST_MAX_RETRIES || '3', 10));
+  const baseDelayMs = Math.max(1000, parseInt(process.env.PINTEREST_RETRY_BASE_DELAY_MS || '5000', 10));
+  let pinId = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      pinId = await postSinglePin(recipe, slug, variation, 'primary');
+      break;
+    } catch (error) {
+      const status = error && error.status;
+      const retryable = isRetryablePinterestStatus(status);
+      const lastAttempt = attempt === maxAttempts;
+
+      if (!retryable || lastAttempt) {
+        throw error;
+      }
+
+      const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
+      console.log(
+        `⚠ Pinterest post failed (attempt ${attempt}/${maxAttempts}, status ${status || 'unknown'}). Retrying in ${Math.round(delayMs / 1000)}s...`
+      );
+      await sleep(delayMs);
+    }
+  }
 
   console.log(`\n✅ Pinterest: pin created`);
   return pinId;

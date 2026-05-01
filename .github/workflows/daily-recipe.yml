@@ -117,6 +117,8 @@ jobs:
         if: steps.meal.outputs.skip != 'true'
         env:
           PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_MAX_RETRIES: "3"
+          PINTEREST_RETRY_BASE_DELAY_MS: "5000"
         run: |
           echo "📌 Posting to Pinterest..."
           SLUG="${{ steps.generate.outputs.slug }}"
@@ -126,7 +128,7 @@ jobs:
             const recipe = recipes.find(r => r.slug === '$SLUG') || recipes[0];
             postToPinterest(recipe, recipe.slug)
               .then(() => console.log('✅ Posted to Pinterest!'))
-              .catch(e => console.log('⚠ Pinterest failed:', e.message));
+              .catch(e => { console.error('❌ Pinterest failed:', e.message); process.exit(1); });
           "
 # ─── ADD THIS STEP after your existing "Post to Pinterest" step ───
 
