@@ -39,11 +39,21 @@ function parseArgs(argv) {
   if (!Number.isInteger(args.delayMs) || args.delayMs < 0) {
     throw new Error('--delay-ms must be a non-negative integer');
   }
+  if (args.since) {
+    args.since = normalizeSince(args.since);
+  }
   if (args.since && !/^\d{4}-\d{2}-\d{2}$/.test(args.since)) {
     throw new Error('--since must be in YYYY-MM-DD format');
   }
 
   return args;
+}
+
+function normalizeSince(raw) {
+  let value = String(raw || '').trim();
+  value = value.replace(/^since\s*=\s*/i, '');
+  value = value.replace(/[,\s]+$/g, '');
+  return value;
 }
 
 function printHelpAndExit(code) {
