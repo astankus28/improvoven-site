@@ -39,9 +39,8 @@ function parseArgs(argv) {
   if (!Number.isInteger(args.delayMs) || args.delayMs < 0) {
     throw new Error('--delay-ms must be a non-negative integer');
   }
-  if (args.since) {
-    args.since = normalizeSince(args.since);
-  }
+  if (args.since) args.since = normalizeSince(args.since);
+  coerceMisplacedFilters(args);
   if (args.since && !/^\d{4}-\d{2}-\d{2}$/.test(args.since)) {
     throw new Error('--since must be in YYYY-MM-DD format');
   }
@@ -54,6 +53,31 @@ function normalizeSince(raw) {
   value = value.replace(/^since\s*=\s*/i, '');
   value = value.replace(/[,\s]+$/g, '');
   return value;
+}
+
+function coerceMisplacedFilters(args) {
+  // Handle common workflow input mistakes like:
+  // --since last=1
+  // --last since=2026-04-20
+  const sinceRaw = String(args.since || '').trim();
+
+  const sinceAsLast = sinceRaw.match(/^last\s*=\s*(\d+)\s*$/i);
+  if (sinceAsLast) {
+    const n = parseInt(sinceAsLast[1], 10);
+    if (Number.isInteger(n) && n > 0) {
+      args.last = n;
+      args.since = null;
+      console.warn(`⚠ Interpreting malformed --since value "${sinceRaw}" as --last ${n}.`);
+    }
+  }
+
+  const lastRaw = args.last === null ? '' : String(args.last).trim();
+  const lastAsSince = lastRaw.match(/^since\s*=\s*(\d{4}-\d{2}-\d{2})\s*$/i);
+  if (lastAsSince) {
+    args.since = lastAsSince[1];
+    args.last = null;
+    console.warn(`⚠ Interpreting malformed --last value "${lastRaw}" as --since ${args.since}.`);
+  }
 }
 
 function printHelpAndExit(code) {
