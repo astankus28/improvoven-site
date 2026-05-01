@@ -202,7 +202,7 @@ const APP_ID = '1554854';
 const REDIRECT_URI = window.location.href.split('?')[0];
 
 function connectPinterest() {
-  const scope = 'pins:read,pins:write,boards:read,user_accounts:read';
+  const scope = 'pins:read,pins:write,boards:read,boards:write,user_accounts:read';
   const state = Math.random().toString(36).substring(7);
   localStorage.setItem('pinterest_state', state);
   const authUrl = `https://www.pinterest.com/oauth/?client_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${scope}&state=${state}`;
