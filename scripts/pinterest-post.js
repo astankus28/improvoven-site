@@ -337,7 +337,10 @@ function isRetryablePinterestStatus(status) {
 async function getOrCreateBoard(boardName) {
   const res = await pinterestRequest('GET', '/boards?page_size=100');
   if (res.status !== 200) {
-    throw new Error(`Failed to get boards: ${JSON.stringify(res.data)}`);
+    const err = new Error(`Failed to get boards: ${JSON.stringify(res.data)}`);
+    err.status = res.status;
+    err.response = res.data;
+    throw err;
   }
 
   const boards = res.data.items || [];
@@ -355,7 +358,10 @@ async function getOrCreateBoard(boardName) {
   });
 
   if (createRes.status !== 201) {
-    throw new Error(`Failed to create board: ${JSON.stringify(createRes.data)}`);
+    const err = new Error(`Failed to create board: ${JSON.stringify(createRes.data)}`);
+    err.status = createRes.status;
+    err.response = createRes.data;
+    throw err;
   }
 
   console.log(`✓ Created board: ${boardName} (${createRes.data.id})`);
