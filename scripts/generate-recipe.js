@@ -1197,12 +1197,15 @@ const HOLIDAY_KEYWORDS = {
       "easy Mother's Day brunch recipe ideas",
       "simple quiche recipe Mother's Day brunch",
       "easy crepes recipe sweet Mother's Day",
+      "simple tres leches French toast recipe Mother's Day"
       "simple mimosa recipe Mother's Day brunch",
       "easy French toast casserole recipe brunch",
+      "easy Cuban Mother's Day brunch recipe"
       "simple strawberry shortcake recipe Mother's Day",
       "easy eggs benedict recipe Mother's Day",
       "simple Mother's Day cake recipe homemade",
       "easy brunch casserole recipe Mother's Day",
+      "easy café con leche brunch spread Mother's Day"
       "simple afternoon tea sandwiches recipe",
     ]
   },
