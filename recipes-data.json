@@ -1,5 +1,17 @@
 [
   {
+    "slug": "simple-sheet-pan-meal-prep-chicken-vegetable-cobbler-2026-05-02",
+    "title": "Simple Sheet Pan Meal Prep Chicken & Vegetable Cobbler",
+    "description": "Okay yes, I took your simple sheet pan meal prep chicken vegetables situation and turned it into a dessert — stay with me here. This sweet skillet cobbler uses the same lazy, beautiful logic: everything goes on one pan, into one oven, with barely any effort, and what comes out is a bubbling, golden, brown-sugar-and-butter dream with caramelized fruit on top. Think of it as your meal prep mindset applied to dessert — batch it on Sunday, eat it warm all week.",
+    "image": "/recipes/simple-sheet-pan-meal-prep-chicken-vegetable-cobbler-2026-05-02/images/hero.jpg",
+    "category": "Dessert",
+    "cuisine": "American-Caribbean",
+    "totalTime": "45 mins",
+    "servings": "6",
+    "keyword": "simple sheet pan meal prep chicken vegetables",
+    "date": "2026-05-02"
+  },
+  {
     "slug": "easy-mexican-street-corn-salad-esquites-style-2026-05-01",
     "title": "Easy Mexican Street Corn Salad (Esquites Style)",
     "description": "This easy Mexican street corn salad recipe is basically elote in a bowl — all that smoky, creamy, tangy goodness without needing to hover over a grill. It comes together in about 30 minutes with ingredients you probably already have, and honestly? It slaps at cookouts, weeknight dinners, or straight out of the bowl standing at the counter.",
@@ -3029,4 +3041,4 @@
     "keyword": "linguine with white clam sauce",
     "date": "2015-07-08"
   }
-  ]
+]
