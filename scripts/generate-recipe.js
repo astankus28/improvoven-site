@@ -2010,7 +2010,7 @@ async function updateRecipeIndex(recipes) {
   const indexPath = path.join(process.cwd(), 'recipes', 'index.html');
   fs.mkdirSync(path.dirname(indexPath), { recursive: true });
 
-  const cards = recipes.slice(0, 100).map(r => `
+  const cards = recipes.map(r => `
     <a href="${recipePageHref(r)}" class="recipe-card">
       <div class="card-img"><img src="${r.image}" alt="${r.title}" loading="lazy"></div>
       <div class="card-body">
