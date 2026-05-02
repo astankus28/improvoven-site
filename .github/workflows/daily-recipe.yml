@@ -39,9 +39,7 @@ jobs:
           node-version: '20'
 
       - name: Install Pillow (for pinterest.jpg)
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y python3-pil
+        run: pip install Pillow --break-system-packages
 
       - name: Determine meal type
         id: meal
