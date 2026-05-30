@@ -218,6 +218,85 @@ function getNonHolidayCuisineBreakupKeywords(pool) {
 }
 
 // ============================================================
+// HOLIDAY DISH COOLDOWN — holiday keyword pools are tiny (~10-14 phrases)
+// but a holiday window can span 9+ days at ~3-4 posts/day. Once the pool is
+// exhausted the exact-keyword/used-keyword guards silently fall back to the
+// full list, so the same dish (e.g. "grilled burgers") gets regenerated over
+// and over. We collapse each keyword/recipe to a canonical "dish" and refuse
+// to pick a dish that already appears in the recent feed.
+// ============================================================
+
+const HOLIDAY_DISH_SIGNATURES = [
+  { id: 'smash-burger', re: /\bsmash ?burgers?\b/ },
+  { id: 'burger', re: /\bburgers?\b|\bcheeseburgers?\b|\bhamburgers?\b/ },
+  { id: 'hot-dog', re: /\bhot ?dogs?\b/ },
+  { id: 'ribs', re: /\bribs?\b/ },
+  { id: 'pulled-pork', re: /\bpulled pork\b/ },
+  { id: 'potato-salad', re: /\bpotato salad\b/ },
+  { id: 'pasta-salad', re: /\bpasta salad\b|\bmacaroni salad\b/ },
+  { id: 'coleslaw', re: /\bcole ?slaw\b|\bslaw\b/ },
+  { id: 'deviled-eggs', re: /\bdeviled eggs?\b/ },
+  { id: 'baked-beans', re: /\bbaked beans\b/ },
+  { id: 'corn', re: /\bcorn on the cob\b|\bgrilled corn\b|\bstreet corn\b|\belote\b/ },
+  { id: 'watermelon', re: /\bwatermelon\b/ },
+  { id: 'grilled-chicken', re: /\bgrilled chicken\b|\bbbq chicken\b|\bchicken thighs?\b|\bbeer can chicken\b/ },
+  { id: 'grilled-steak', re: /\bgrilled steak\b|\bsteak\b/ },
+  { id: 'salmon', re: /\bgrilled salmon\b|\bsalmon\b/ },
+  { id: 'loaded-potato', re: /\bbaked potato\b|\bloaded potato\b/ },
+];
+
+// Words that describe the occasion/preparation rather than the dish itself.
+const DISH_SIGNATURE_FILLER = /\b(easy|simple|quick|fast|best|the|a|an|for|your|with|and|of|to|recipe|recipes|homemade|authentic|classic|grilled|baked|smoky|smoked|cookout|bbq|barbecue|summer|season|seasonal|memorial day|fathers? day|mothers? day|4th of july|fourth of july|labor day|cinco de mayo|christmas|thanksgiving|easter|lent|lenten|good friday|new year|valentines?|halloween|st patricks?)\b/g;
+
+function dishSignature(text) {
+  const low = String(text || '').toLowerCase();
+  for (const d of HOLIDAY_DISH_SIGNATURES) {
+    if (d.re.test(low)) return d.id;
+  }
+  // Fallback: drop occasion/prep filler and use the remaining core phrase so
+  // near-identical phrasings ("X for the cookout" vs "X for summer") collapse.
+  const core = low
+    .replace(DISH_SIGNATURE_FILLER, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+  return core || low;
+}
+
+function getRecentDishSignatures(recipes, lookback) {
+  const sigs = new Set();
+  if (!Array.isArray(recipes)) return sigs;
+  for (const r of recipes.slice(0, lookback)) {
+    if (r && r.isRoundup) continue;
+    const sig = dishSignature(`${r.title || ''} ${r.keyword || ''} ${r.slug || ''}`);
+    if (sig) sigs.add(sig);
+  }
+  return sigs;
+}
+
+// Remove candidate keywords whose dish already appears in the recent feed.
+// Falls back to the original list only if every candidate is on cooldown.
+function applyHolidayDishCooldown(candidates, recipes, lookback = HOLIDAY_DISH_COOLDOWN_LOOKBACK) {
+  if (!Array.isArray(candidates) || candidates.length === 0) return candidates;
+  if (!Array.isArray(recipes) || recipes.length === 0) return candidates;
+  const recentSigs = getRecentDishSignatures(recipes, lookback);
+  if (recentSigs.size === 0) return candidates;
+  const filtered = candidates.filter((k) => !recentSigs.has(dishSignature(k)));
+  return filtered.length > 0 ? filtered : candidates;
+}
+
+// Blend fresh non-holiday dishes into a holiday candidate set so a small,
+// exhausted holiday pool can't force same-dish repeats across a long window.
+function blendHolidayBreakupKeywords(candidates, used, recipes, sampleSize = 24) {
+  const breakupPool = getNonHolidayCuisineBreakupKeywords(KEYWORD_POOL)
+    .filter((k) => !used.includes(k));
+  const breakupNoExact = filterOutExactKeywordRepeats(breakupPool, recipes);
+  if (breakupNoExact.length === 0) return candidates;
+  const addOn = shuffleArray(breakupNoExact).slice(0, Math.min(sampleSize, breakupNoExact.length));
+  return Array.from(new Set([...candidates, ...addOn]));
+}
+
+// ============================================================
 // EASTER STRATEGY — time-aware lead-up + avoid feast-topic pile-ups
 // ============================================================
 
@@ -398,6 +477,14 @@ const WEEKLY_SOUP_SALAD_MIN = (() => {
   return Math.min(7, Math.max(0, raw));
 })();
 const PINTEREST_INTEREST_BOOST_ENABLED = process.env.PINTEREST_INTEREST_BOOST_ENABLED !== 'false';
+// How many of the most-recent recipes a holiday pick must avoid repeating a dish from.
+// Holiday keyword pools are small (~10-14), so without this the same dish gets
+// regenerated repeatedly once the pool is exhausted within the holiday window.
+const HOLIDAY_DISH_COOLDOWN_LOOKBACK = (() => {
+  const raw = parseInt(process.env.HOLIDAY_DISH_COOLDOWN_LOOKBACK || '10', 10);
+  if (!Number.isFinite(raw)) return 10;
+  return Math.min(40, Math.max(3, raw));
+})();
 const CINCO_LEAD_DAYS = (() => {
   const raw = parseInt(process.env.CINCO_LEAD_DAYS || '14', 10);
   if (!Number.isFinite(raw)) return 14;
@@ -1224,6 +1311,19 @@ const HOLIDAY_KEYWORDS = {
       "simple watermelon salad recipe summer",
       "easy grilled hot dogs recipe Memorial Day",
       "simple baked beans recipe BBQ",
+      // Expanded so a 9-day window (~30 slots) has enough distinct dishes.
+      "easy grilled shrimp skewers recipe Memorial Day",
+      "simple macaroni salad recipe cookout",
+      "easy broccoli salad recipe BBQ",
+      "simple grilled veggie skewers recipe summer",
+      "easy fruit salad recipe summer cookout",
+      "simple smash burgers recipe Memorial Day",
+      "easy BBQ pulled pork sliders recipe",
+      "simple grilled corn salad recipe Mexican street corn",
+      "easy homemade lemonade recipe summer cookout",
+      "simple berry trifle recipe Memorial Day dessert",
+      "easy grilled sausage and peppers recipe cookout",
+      "simple cucumber tomato salad recipe summer",
     ]
   },
   // FATHER'S DAY (1 week before 3rd Sunday in June)
@@ -1577,16 +1677,14 @@ function getNextKeyword() {
       }
 
       // Also blend in non-holiday, non-Mexican cuisine to break up the board feed.
-      const breakupPool = getNonHolidayCuisineBreakupKeywords(KEYWORD_POOL)
-        .filter((k) => !used.includes(k));
-      const breakupNoExact = filterOutExactKeywordRepeats(breakupPool, existingRecipes);
-      if (breakupNoExact.length > 0) {
-        const breakupAddOn = shuffleArray(breakupNoExact).slice(0, Math.min(20, breakupNoExact.length));
-        candidates = Array.from(new Set([...candidates, ...breakupAddOn]));
-      }
+      candidates = blendHolidayBreakupKeywords(candidates, used, existingRecipes, 20);
 
       candidates = applyCincoPhraseCooldown(candidates, existingRecipes);
       candidates = applyCincoStrategicFilters(candidates, existingRecipes);
+    } else {
+      // Every other holiday pool is small (~10-14 phrases). Blend in fresh
+      // non-holiday dishes so a long window doesn't force same-dish repeats.
+      candidates = blendHolidayBreakupKeywords(candidates, used, existingRecipes, 24);
     }
 
     candidates = filterKeywordsByExistingTopics(candidates, blockedIds);
@@ -1598,6 +1696,9 @@ function getNextKeyword() {
       const sampledPlanner = shuffleArray(plannerAddOn).slice(0, Math.min(16, plannerAddOn.length));
       candidates = Array.from(new Set([...candidates, ...sampledPlanner]));
     }
+    // Don't regenerate a dish that's already in the recent feed (kills the
+    // back-to-back "grilled burgers" / "potato salad" pile-ups seen in long windows).
+    candidates = applyHolidayDishCooldown(candidates, existingRecipes);
     candidates = applyWeeklyContentQuotas(candidates, existingRecipes);
     const weightedCandidates = applyPinterestInterestBoost(applyMealPlannerBoost(candidates));
     const keyword = weightedCandidates[Math.floor(Math.random() * weightedCandidates.length)];
