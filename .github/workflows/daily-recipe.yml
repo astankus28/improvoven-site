@@ -111,10 +111,126 @@ jobs:
           SLUG="${{ steps.generate.outputs.slug }}"
           node scripts/submit-indexnow.js "https://www.improvoven.com/recipes/${SLUG}/"
 
+      - name: Refresh Pinterest Access Token
+        if: steps.meal.outputs.skip != 'true'
+        id: pinterest_token
+        env:
+          PINTEREST_APP_ID: "1554854"
+          PINTEREST_APP_SECRET: ${{ secrets.PINTEREST_APP_SECRET }}
+          PINTEREST_REFRESH_TOKEN: ${{ secrets.PINTEREST_REFRESH_TOKEN }}
+          GH_TOKEN: ${{ secrets.PINTEREST_GH_PAT }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          echo "🔄 Refreshing Pinterest access token..."
+          node -e "
+            const https = require('https');
+
+            const appId = process.env.PINTEREST_APP_ID;
+            const appSecret = process.env.PINTEREST_APP_SECRET;
+            const refreshToken = process.env.PINTEREST_REFRESH_TOKEN;
+
+            if (!refreshToken) {
+              console.error('❌ No PINTEREST_REFRESH_TOKEN found in secrets');
+              process.exit(1);
+            }
+
+            const body = new URLSearchParams({
+              grant_type: 'refresh_token',
+              refresh_token: refreshToken,
+            }).toString();
+
+            const credentials = Buffer.from(appId + ':' + appSecret).toString('base64');
+
+            const options = {
+              hostname: 'api.pinterest.com',
+              path: '/v5/oauth/token',
+              method: 'POST',
+              headers: {
+                'Authorization': 'Basic ' + credentials,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': Buffer.byteLength(body),
+              },
+            };
+
+            const req = https.request(options, (res) => {
+              let data = '';
+              res.on('data', chunk => data += chunk);
+              res.on('end', () => {
+                try {
+                  const token = JSON.parse(data);
+                  if (token.access_token) {
+                    console.log('✅ Token refreshed successfully');
+                    // Write new access token to GITHUB_OUTPUT so next steps can use it
+                    const fs = require('fs');
+                    fs.appendFileSync(process.env.GITHUB_OUTPUT, 'access_token=' + token.access_token + '\n');
+
+                    // Update the secret in GitHub via API so it stays fresh for next run
+                    const newRefresh = token.refresh_token || refreshToken;
+                    updateGitHubSecret('PINTEREST_ACCESS_TOKEN', token.access_token)
+                      .then(() => updateGitHubSecret('PINTEREST_REFRESH_TOKEN', newRefresh))
+                      .then(() => console.log('✅ GitHub Secrets updated automatically'))
+                      .catch(e => console.warn('⚠️ Could not auto-update secrets:', e.message));
+                  } else {
+                    console.error('❌ Token refresh failed:', JSON.stringify(token));
+                    process.exit(1);
+                  }
+                } catch(e) {
+                  console.error('❌ Parse error:', data);
+                  process.exit(1);
+                }
+              });
+            });
+
+            req.on('error', e => { console.error('❌', e.message); process.exit(1); });
+            req.write(body);
+            req.end();
+
+            async function updateGitHubSecret(secretName, secretValue) {
+              // Get repo public key for encrypting the secret
+              const keyData = await ghRequest('GET', '/repos/' + process.env.GH_REPO + '/actions/secrets/public-key');
+              const { sodium } = await import('https://esm.sh/libsodium-wrappers@0.7.11');
+              await sodium.ready;
+              const key = sodium.from_base64(keyData.key, sodium.base64_variants.ORIGINAL);
+              const msg = sodium.from_string(secretValue);
+              const encrypted = sodium.crypto_box_seal(msg, key);
+              const encryptedB64 = sodium.to_base64(encrypted, sodium.base64_variants.ORIGINAL);
+              await ghRequest('PUT', '/repos/' + process.env.GH_REPO + '/actions/secrets/' + secretName, {
+                encrypted_value: encryptedB64,
+                key_id: keyData.key_id,
+              });
+            }
+
+            function ghRequest(method, path, body) {
+              return new Promise((resolve, reject) => {
+                const data = body ? JSON.stringify(body) : null;
+                const opts = {
+                  hostname: 'api.github.com',
+                  path,
+                  method,
+                  headers: {
+                    'Authorization': 'Bearer ' + process.env.GH_TOKEN,
+                    'Accept': 'application/vnd.github+json',
+                    'User-Agent': 'improvoven-bot',
+                    'X-GitHub-Api-Version': '2022-11-28',
+                    ...(data ? { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) } : {}),
+                  },
+                };
+                const r = https.request(opts, res => {
+                  let d = '';
+                  res.on('data', c => d += c);
+                  res.on('end', () => resolve(d ? JSON.parse(d) : {}));
+                });
+                r.on('error', reject);
+                if (data) r.write(data);
+                r.end();
+              });
+            }
+          "
+
       - name: Post to Pinterest
         if: steps.meal.outputs.skip != 'true'
         env:
-          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_ACCESS_TOKEN: ${{ steps.pinterest_token.outputs.access_token }}
           PINTEREST_MAX_RETRIES: "3"
           PINTEREST_RETRY_BASE_DELAY_MS: "5000"
         run: |
@@ -133,7 +249,7 @@ jobs:
         if: steps.meal.outputs.skip != 'true'
         continue-on-error: true
         env:
-          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_ACCESS_TOKEN: ${{ steps.pinterest_token.outputs.access_token }}
           PINTEREST_ENABLE_VIDEO_PINS: ${{ vars.PINTEREST_ENABLE_VIDEO_PINS }}
         run: |
           echo "🎬 Checking if video pin should run..."
