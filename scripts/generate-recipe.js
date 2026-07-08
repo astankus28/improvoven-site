@@ -533,6 +533,14 @@ const WEEKLY_SOUP_SALAD_MIN = (() => {
   return Math.min(7, Math.max(0, raw));
 })();
 const PINTEREST_INTEREST_BOOST_ENABLED = process.env.PINTEREST_INTEREST_BOOST_ENABLED !== 'false';
+// Fraction of recipes that get the "Miami / Latin American & Caribbean" cuisine
+// steer. Explicitly-Latin keywords always keep it; everything else only leans
+// Latin this often, so the catalog spans American comfort, Italian, Asian, etc.
+const LATIN_LEAN_PROBABILITY = (() => {
+  const raw = parseFloat(process.env.LATIN_LEAN_PROBABILITY || '0.25');
+  if (!Number.isFinite(raw)) return 0.25;
+  return Math.min(1, Math.max(0, raw));
+})();
 // How many of the most-recent recipes a holiday pick must avoid repeating a dish from.
 // Holiday keyword pools are small (~10-14), so without this the same dish gets
 // regenerated repeatedly once the pool is exhausted within the holiday window.
@@ -1898,10 +1906,23 @@ VARIETY RULES (critical — the blog has been too repetitive):
 `;
 }
 
+// Keywords that are inherently Latin American / Caribbean / Miami — these keep
+// the Latin cuisine steer regardless of the probabilistic lean.
+function isLatinCuisineKeyword(keyword) {
+  const low = String(keyword || '').toLowerCase();
+  return /\b(cuban|venezuelan|colombian|puerto rican|mexican|caribbean|peruvian|brazilian|dominican|haitian|argentine|argentinian|salvadoran|honduran|nicaraguan|costa rican|latin|miami|sofrito|arepa|empanada|tostones?|maduros|plantain|chimichurri|arroz|frijoles|ropa vieja|picadillo|pernil|mojo|lechon|congri|gallo pinto|pupusa|baleada|tequeños|cachapa|pabellon|churro|flan|tres leches|dulce de leche|alfajor|ceviche|salsa verde|guacamole|elote|esquites|carnitas|barbacoa|al pastor|pozole|tinga|enchilada|chilaquiles|horchata|cafecito)\b/.test(low);
+}
+
 async function generateRecipe(keyword, recentRecipes = []) {
   console.log(`Generating recipe for: "${keyword}"`);
 
   const recentDishesBlock = buildRecentDishesBlock(recentRecipes);
+
+  const leanLatin = isLatinCuisineKeyword(keyword) || Math.random() < LATIN_LEAN_PROBABILITY;
+  const cuisineDirection = leanLatin
+    ? 'Give this a Miami influence with Latin American and Caribbean flair.'
+    : 'Draw from the full range of world cuisines (American comfort, Italian, Mediterranean, Asian, French, etc.) — do NOT force a Latin/Miami angle or a sofrito/rice-and-beans base unless the dish genuinely calls for it.';
+  console.log(`   Cuisine steer: ${leanLatin ? 'Latin/Miami' : 'varied (non-Latin)'}`);
 
   const response = await httpsPost(
     'api.anthropic.com',
@@ -1918,8 +1939,8 @@ async function generateRecipe(keyword, recentRecipes = []) {
         role: 'user',
         content: `You are the voice of Improv Oven — a food blog with the tagline "cure refrigerator blindness."
 The blog is about improvising with pantry ingredients to make delicious, affordable meals.
-Tone: casual, warm, encouraging — like a knowledgeable Miami friend teaching you to cook.
-Strong Miami influence with Latin American and Caribbean flair.
+Tone: casual, warm, encouraging — like a knowledgeable friend teaching you to cook.
+${cuisineDirection}
 All recipes should be genuinely budget-friendly and achievable for home cooks.
 
 Write a recipe that will rank on Google for: "${keyword}"
@@ -1934,7 +1955,7 @@ SEO RULES (critical):
 Return ONLY valid JSON, no markdown, no backticks:
 {
   "title": "Title naturally containing the keyword",
-  "description": "2-3 sentences. First naturally uses the keyword. Casual Miami voice.",
+  "description": "2-3 sentences. First naturally uses the keyword. Casual, friendly voice.",
   "prepTime": "10 mins",
   "cookTime": "20 mins", 
   "totalTime": "30 mins",
@@ -1946,9 +1967,12 @@ Return ONLY valid JSON, no markdown, no backticks:
   "ingredients": ["quantity ingredient", "quantity ingredient"],
   "instructions": ["Full step.", "Full step."],
   "tips": "One genuinely useful tip in Improv Oven's voice",
+  "nutrition": { "calories": "320", "protein": "18g", "carbs": "34g", "fat": "12g", "fiber": "5g", "sugar": "6g", "sodium": "480mg" },
   "targetKeyword": "${keyword}",
   "imagePrompt": "Professional food photography of [dish], warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing"
-}`
+}
+
+The "nutrition" values must be realistic per-serving estimates for THIS recipe (not the example numbers). Calories is a plain number; the rest include their unit as shown.`
       }]
     }
   );
@@ -2076,6 +2100,19 @@ function slugify(title) {
     .slice(0, 80);
 }
 
+// Evergreen (undated) slug for new recipes. Existing recipes keep their dated
+// slugs untouched. Guards against collisions with existing recipes/folders.
+function makeUniqueSlug(title, recipes = []) {
+  const base = slugify(title) || 'recipe';
+  const taken = new Set((Array.isArray(recipes) ? recipes : []).map((r) => r && r.slug).filter(Boolean));
+  let slug = base;
+  let n = 2;
+  while (taken.has(slug) || fs.existsSync(path.join(process.cwd(), 'recipes', slug))) {
+    slug = `${base}-${n++}`;
+  }
+  return slug;
+}
+
 function normalizeTitleForDedupe(value) {
   return String(value || '')
     .toLowerCase()
@@ -2091,6 +2128,28 @@ function hasDuplicateRecipeTitle(title, recipes) {
   return recipes.some((r) => normalizeTitleForDedupe(r.title) === target);
 }
 
+// Build a schema.org NutritionInformation block from the recipe's estimated
+// nutrition. Returns a JSON-LD fragment (trailing comma) or '' if unavailable.
+function buildNutritionJsonLd(recipe) {
+  const n = recipe && recipe.nutrition;
+  if (!n || typeof n !== 'object') return '';
+  const cal = String(n.calories || '').replace(/[^\d]/g, '');
+  if (!cal) return '';
+  const fields = {
+    calories: `${cal} calories`,
+    proteinContent: n.protein,
+    carbohydrateContent: n.carbs,
+    fatContent: n.fat,
+    fiberContent: n.fiber,
+    sugarContent: n.sugar,
+    sodiumContent: n.sodium,
+  };
+  const lines = Object.entries(fields)
+    .filter(([, v]) => v)
+    .map(([k, v]) => `    "${k}": ${JSON.stringify(String(v))}`);
+  return `  "nutrition": {\n    "@type": "NutritionInformation",\n${lines.join(',\n')}\n  },\n`;
+}
+
 function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   const pageUrl = `${SITE_URL}/recipes/${slug}/`;
   const absImage = imageUrl.startsWith('http') ? imageUrl : `${SITE_URL}${imageUrl}`;
@@ -2098,6 +2157,7 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   const metaDesc = buildRecipeMetaDescription({ ...recipe, slug });
   const schemaDesc = buildRecipeJsonLdDescription({ ...recipe, slug });
   const ogDesc = metaDesc.replace(/"/g, '&quot;');
+  const nutritionJsonLd = buildNutritionJsonLd(recipe);
 
   const ingredientsList = recipe.ingredients
     .map(i => `<li itemprop="recipeIngredient">${i}</li>`).join('\n');
@@ -2165,7 +2225,7 @@ function buildRecipePage(recipe, imageUrl, slug, date, allRecipes = []) {
   "recipeCategory": "${recipe.category}",
   "recipeCuisine": "${recipe.cuisine}",
   "keywords": "${recipe.targetKeyword}",
-  "recipeIngredient": ${JSON.stringify(recipe.ingredients)},
+${nutritionJsonLd}  "recipeIngredient": ${JSON.stringify(recipe.ingredients)},
   "recipeInstructions": ${JSON.stringify(recipe.instructions.map((s, i) => ({
     '@type': 'HowToStep',
     position: i + 1,
@@ -2614,7 +2674,7 @@ async function main() {
     }
 
     const date = new Date().toISOString().split('T')[0];
-    const slug = slugify(recipe.title) + '-' + date;
+    const slug = makeUniqueSlug(recipe.title, recipes);
     const recipeDir = path.join(process.cwd(), 'recipes', slug);
     fs.mkdirSync(recipeDir, { recursive: true });
 
@@ -2662,4 +2722,8 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) {
+  main();
+} else {
+  module.exports = { makeUniqueSlug, slugify, buildNutritionJsonLd, isLatinCuisineKeyword, isMealPlannerKeyword, applyDishFamilyCooldown };
+}

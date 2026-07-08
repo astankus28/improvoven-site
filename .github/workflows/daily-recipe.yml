@@ -3,9 +3,10 @@ name: Daily Recipe Generator
 on:
   schedule:
     - cron: '0 13 * * *'  # 8:00 AM EST  — Breakfast
-    - cron: '0 17 * * *'  # 12:00 PM EST — Lunch
     - cron: '0 23 * * *'  # 6:00 PM EST  — Dinner
-    - cron: '0 1 * * *'   # 8:00 PM EST  — Dessert
+    # Lunch (17:00 UTC) and Dessert (01:00 UTC) intentionally disabled — moved to
+    # 2 recipes/day to favor quality and reduce near-duplicate cannibalization.
+    # Re-add those cron lines to go back to 4/day.
   workflow_dispatch:
     inputs:
       meal_type:
@@ -80,6 +81,7 @@ jobs:
           WEEKLY_MEAL_PLANNER_MIN: "1"
           WEEKLY_MEAL_PLANNER_MAX: "1"
           WEEKLY_SOUP_SALAD_MIN: "1"
+          LATIN_LEAN_PROBABILITY: "0.25"
         run: |
           echo "🍽️ Generating $MEAL_TYPE recipe..."
           node scripts/generate-recipe.js 2>&1
