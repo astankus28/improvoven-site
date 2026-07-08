@@ -454,6 +454,7 @@ function applyEasterStrategicFilters(keywordList) {
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner | dessert | any
 const AUTO_POST_PINTEREST = process.env.AUTO_POST_PINTEREST === 'true';
 const MEAL_PLANNER_BOOST_MULTIPLIER = (() => {
@@ -1862,11 +1863,9 @@ function downloadBinary(url, destPath) {
   });
 }
 
-async function getImage(recipe, slug) {
-  console.log('Generating food photo...');
-
-  const prompt = recipe.imagePrompt || `Professional food photography of ${recipe.title}, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing`;
-
+// One Replicate attempt: create a prediction and poll it to completion.
+// Returns the output image URL, or null if it didn't finish/produce output.
+async function replicatePredictImage(prompt) {
   const prediction = await httpsPost(
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
@@ -1877,22 +1876,83 @@ async function getImage(recipe, slug) {
   if (!prediction.urls?.get) throw new Error('Replicate error: ' + JSON.stringify(prediction));
 
   let result;
-  for (let i = 0; i < 30; i++) {
+  // Poll up to ~2.5 min. flux-schnell is fast, but cold starts can sit in "starting" a while.
+  for (let i = 0; i < 50; i++) {
     await new Promise(r => setTimeout(r, 3000));
     result = await httpsGet(prediction.urls.get);
     console.log(`Image: ${result.status}`);
     if (result.status === 'succeeded') break;
-    if (result.status === 'failed') throw new Error('Replicate image failed');
+    if (result.status === 'failed' || result.status === 'canceled') {
+      throw new Error(`Replicate image ${result.status}` + (result.error ? `: ${result.error}` : ''));
+    }
   }
 
-  if (!result?.output?.[0]) throw new Error('No image output from Replicate');
+  return result?.output?.[0] || null;
+}
+
+// Fallback image generator using Gemini native image generation (free tier).
+// Writes the image directly and returns the public path, or null on failure.
+async function geminiGenerateImage(prompt, slug) {
+  if (!GEMINI_API_KEY) return null;
+  console.log('Falling back to Gemini image generation...');
+
+  const response = await httpsPost(
+    'generativelanguage.googleapis.com',
+    `/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`,
+    { 'Content-Type': 'application/json' },
+    {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
+    }
+  );
+
+  const parts = response?.candidates?.[0]?.content?.parts || [];
+  const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
+  if (!imagePart) {
+    console.log('Gemini returned no image: ' + JSON.stringify(response).slice(0, 300));
+    return null;
+  }
 
   const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
   fs.mkdirSync(imgDir, { recursive: true });
   const imgPath = path.join(imgDir, 'hero.jpg');
-  await downloadBinary(result.output[0], imgPath);
-  console.log('✓ Image saved');
+  fs.writeFileSync(imgPath, Buffer.from(imagePart.inlineData.data, 'base64'));
+  console.log('✓ Image saved (Gemini)');
   return `/recipes/${slug}/images/hero.jpg`;
+}
+
+async function getImage(recipe, slug) {
+  console.log('Generating food photo...');
+
+  const prompt = recipe.imagePrompt || `Professional food photography of ${recipe.title}, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing`;
+
+  // Try Replicate first, with a re-submit retry for transient stuck/empty predictions.
+  if (REPLICATE_API_TOKEN) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const outputUrl = await replicatePredictImage(prompt);
+        if (outputUrl) {
+          const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
+          fs.mkdirSync(imgDir, { recursive: true });
+          const imgPath = path.join(imgDir, 'hero.jpg');
+          await downloadBinary(outputUrl, imgPath);
+          console.log('✓ Image saved');
+          return `/recipes/${slug}/images/hero.jpg`;
+        }
+        console.log(`⚠ Replicate produced no image (attempt ${attempt}/2)`);
+      } catch (e) {
+        console.log(`⚠ Replicate attempt ${attempt}/2 failed: ${e.message}`);
+      }
+    }
+  } else {
+    console.log('⚠ No REPLICATE_API_TOKEN set, skipping Replicate');
+  }
+
+  // Fall back to Gemini.
+  const geminiPath = await geminiGenerateImage(prompt, slug);
+  if (geminiPath) return geminiPath;
+
+  throw new Error('No image output from Replicate or Gemini');
 }
 
 function slugify(title) {
