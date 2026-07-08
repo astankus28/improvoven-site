@@ -5,3 +5,6 @@
 .env*
 !.env.example
 .DS_Store
+
+# dependencies (installed via npm; not vendored)
+node_modules/
