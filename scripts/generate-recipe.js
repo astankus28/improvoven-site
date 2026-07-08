@@ -458,8 +458,8 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MEAL_TYPE = process.env.MEAL_TYPE || 'any'; // breakfast | lunch | dinner | dessert | any
 const AUTO_POST_PINTEREST = process.env.AUTO_POST_PINTEREST === 'true';
 const MEAL_PLANNER_BOOST_MULTIPLIER = (() => {
-  const raw = parseInt(process.env.MEAL_PLANNER_BOOST_MULTIPLIER || '3', 10);
-  if (!Number.isFinite(raw)) return 3;
+  const raw = parseInt(process.env.MEAL_PLANNER_BOOST_MULTIPLIER || '1', 10);
+  if (!Number.isFinite(raw)) return 1;
   return Math.min(6, Math.max(1, raw));
 })();
 const WEEKLY_QUOTA_WINDOW = (() => {
@@ -471,6 +471,14 @@ const WEEKLY_MEAL_PLANNER_MIN = (() => {
   const raw = parseInt(process.env.WEEKLY_MEAL_PLANNER_MIN || '2', 10);
   if (!Number.isFinite(raw)) return 2;
   return Math.min(7, Math.max(0, raw));
+})();
+// Ceiling on meal-prep recipes within the quota window. Once the recent feed
+// already has this many, meal-prep keywords are filtered out so they can't
+// pile up (the feed had ~27% meal prep, nearly all sofrito rice + beans).
+const WEEKLY_MEAL_PLANNER_MAX = (() => {
+  const raw = parseInt(process.env.WEEKLY_MEAL_PLANNER_MAX || '2', 10);
+  if (!Number.isFinite(raw)) return 2;
+  return Math.min(7, Math.max(1, raw));
 })();
 const WEEKLY_SOUP_SALAD_MIN = (() => {
   const raw = parseInt(process.env.WEEKLY_SOUP_SALAD_MIN || '2', 10);
@@ -1009,6 +1017,24 @@ function applyWeeklyContentQuotas(candidates, recipes) {
   return quotaFiltered.length > 0 ? quotaFiltered : candidates;
 }
 
+// Ceiling counterpart to applyWeeklyContentQuotas: if the recent feed already
+// has WEEKLY_MEAL_PLANNER_MAX meal-prep recipes, drop meal-prep keywords from
+// the candidate list so we stop clustering the same make-ahead rice bowls.
+function applyMealPlannerCap(candidates, recipes) {
+  if (!Array.isArray(candidates) || candidates.length === 0) return candidates;
+  if (MEAL_TYPE === 'dessert') return candidates;
+  if (!Array.isArray(recipes) || recipes.length === 0) return candidates;
+
+  const recent = recipes.slice(0, WEEKLY_QUOTA_WINDOW);
+  const mealPlannerCount = recent.filter((r) =>
+    isMealPlannerKeyword(`${r.title || ''} ${r.keyword || ''} ${r.slug || ''}`),
+  ).length;
+  if (mealPlannerCount < WEEKLY_MEAL_PLANNER_MAX) return candidates;
+
+  const withoutPlanner = candidates.filter((k) => !isMealPlannerKeyword(k));
+  return withoutPlanner.length > 0 ? withoutPlanner : candidates;
+}
+
 function applyMealPlannerBoost(keywords) {
   if (!Array.isArray(keywords) || keywords.length === 0) return keywords;
   if (MEAL_TYPE === 'dessert') return keywords;
@@ -1023,7 +1049,8 @@ function applyMealPlannerBoost(keywords) {
 
 // Pinterest interest-driven weighting from audience affinity signals.
 const PINTEREST_INTEREST_PATTERNS = [
-  { regex: /\bmeal prep\b|make ahead|batch cooking|freezer|weekly prep|for the week|work lunch|no reheat lunch/, weight: 2 },
+  // Meal prep is intentionally NOT boosted here — it already has a dedicated
+  // weekly-quota floor (and cap), and double-boosting made it dominate the feed.
   { regex: /\bsalad\b|slaw|grain bowl|cucumber tomato avocado/, weight: 3 },
   { regex: /\bsoup\b|chowder|broth|bisque|caldo|stew/, weight: 3 },
   { regex: /\bseafood\b|\bshrimp\b|\bsalmon\b|\bcod\b|\btilapia\b|\btuna\b|\bclam\b|\bcrab\b|\bfish\b/, weight: 3 },
@@ -1701,6 +1728,7 @@ function getNextKeyword() {
     // back-to-back "grilled burgers" / "potato salad" pile-ups seen in long windows).
     candidates = applyHolidayDishCooldown(candidates, existingRecipes);
     candidates = applyWeeklyContentQuotas(candidates, existingRecipes);
+    candidates = applyMealPlannerCap(candidates, existingRecipes);
     const weightedCandidates = applyPinterestInterestBoost(applyMealPlannerBoost(candidates));
     const keyword = weightedCandidates[Math.floor(Math.random() * weightedCandidates.length)];
     used.push(keyword);
@@ -1725,7 +1753,8 @@ function getNextKeyword() {
     fs.writeFileSync(usedPath, JSON.stringify([], null, 2));
     const afterReset = filterKeywordsByExistingTopics(pool, blockedIds);
     const pickFromRaw = afterReset.length > 0 ? afterReset : pool;
-    const pickFrom = applyWeeklyContentQuotas(pickFromRaw, existingRecipes);
+    const pickFromQuota = applyWeeklyContentQuotas(pickFromRaw, existingRecipes);
+    const pickFrom = applyMealPlannerCap(pickFromQuota, existingRecipes);
     const weighted = applyPinterestInterestBoost(applyMealPlannerBoost(pickFrom));
     if (weighted.length > 0) {
       return weighted[Math.floor(Math.random() * weighted.length)];
@@ -1736,6 +1765,7 @@ function getNextKeyword() {
   let usable = filterKeywordsByExistingTopics(unused, blockedIds);
   if (usable.length === 0) usable = unused;
   usable = applyWeeklyContentQuotas(usable, existingRecipes);
+  usable = applyMealPlannerCap(usable, existingRecipes);
   const weightedUsable = applyPinterestInterestBoost(applyMealPlannerBoost(usable));
   const keyword = weightedUsable[Math.floor(Math.random() * weightedUsable.length)];
   used.push(keyword);
@@ -1786,8 +1816,29 @@ function httpsGet(url) {
   });
 }
 
-async function generateRecipe(keyword) {
+function buildRecentDishesBlock(recentRecipes) {
+  if (!Array.isArray(recentRecipes) || recentRecipes.length === 0) return '';
+  const titles = recentRecipes
+    .slice(0, 15)
+    .map((r) => r && r.title)
+    .filter(Boolean);
+  if (titles.length === 0) return '';
+  return `
+RECENTLY PUBLISHED (do NOT repeat these dishes):
+${titles.map((t) => `- ${t}`).join('\n')}
+
+VARIETY RULES (critical — the blog has been too repetitive):
+- Do NOT create anything that overlaps with the recent dishes above. Pick a genuinely different dish.
+- Vary the protein, cuisine, cooking method, and format from what's listed above.
+- Do NOT default to "sofrito rice and beans", "black bean rice bowls", or generic rice-and-bean meal-prep bowls unless the keyword literally demands that exact dish. Reach for a specific, distinct dish instead.
+- The Latin/Miami flair is a seasoning, not the whole menu — plenty of recipes should lean American comfort, Italian, Asian, vegetarian, seafood, etc.
+`;
+}
+
+async function generateRecipe(keyword, recentRecipes = []) {
   console.log(`Generating recipe for: "${keyword}"`);
+
+  const recentDishesBlock = buildRecentDishesBlock(recentRecipes);
 
   const response = await httpsPost(
     'api.anthropic.com',
@@ -1810,7 +1861,7 @@ All recipes should be genuinely budget-friendly and achievable for home cooks.
 
 Write a recipe that will rank on Google for: "${keyword}"
 Meal type: ${MEAL_TYPE !== 'any' ? MEAL_TYPE.toUpperCase() : 'any meal'}${MEAL_TYPE === 'breakfast' ? ' — this should be a morning meal (eggs, pancakes, waffles, oatmeal, etc.)' : MEAL_TYPE === 'lunch' ? ' — this should be a midday meal (sandwiches, salads, soups, light dishes)' : MEAL_TYPE === 'dinner' ? ' — this should be an evening main course' : MEAL_TYPE === 'dessert' ? ' — this should be a dessert or sweet treat' : ''}
-
+${recentDishesBlock}
 SEO RULES (critical):
 - Recipe title must naturally contain the keyword or a very close variation
 - First sentence of description must naturally include the keyword
@@ -2488,12 +2539,12 @@ async function main() {
     let keyword = getNextKeyword();
     console.log(`\n🎯 Target keyword: "${keyword}"\n`);
 
-    let recipe = await generateRecipe(keyword);
+    let recipe = await generateRecipe(keyword, recipes);
     for (let attempt = 0; attempt < 3 && hasDuplicateRecipeTitle(recipe.title, recipes); attempt++) {
       console.log(`⚠ Duplicate recipe title detected: "${recipe.title}"`);
       keyword = getNextKeyword();
       console.log(`🔁 Retrying with keyword: "${keyword}"`);
-      recipe = await generateRecipe(keyword);
+      recipe = await generateRecipe(keyword, recipes);
     }
     if (hasDuplicateRecipeTitle(recipe.title, recipes)) {
       throw new Error(`Generated duplicate title after retries: "${recipe.title}"`);
