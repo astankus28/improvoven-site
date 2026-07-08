@@ -2293,7 +2293,8 @@ h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-
 .related-card-body h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;line-height:1.3;margin-bottom:0.4rem;color:var(--text)}
 .related-card-body p{font-size:0.8rem;color:var(--muted);line-height:1.5}
 @media(max-width:600px){.related-grid{grid-template-columns:1fr}}
-footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.82rem;color:var(--muted);margin-top:4rem}
+.newsletter-section{background:var(--green);padding:3rem 2rem;margin-top:3rem}.newsletter-inner{max-width:540px;margin:0 auto;text-align:center}.newsletter-title{font-family:'Playfair Display',serif;font-size:1.8rem;color:#fff;margin-bottom:0.6rem}.newsletter-sub{color:rgba(255,255,255,0.85);font-size:0.95rem;margin-bottom:1.5rem;line-height:1.6}
+footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.82rem;color:var(--muted);margin-top:0}
 @media(max-width:600px){.recipe-stats{grid-template-columns:repeat(2,1fr)}.ingredients-list{grid-template-columns:1fr}.nav-links{display:none}}
 </style>
 </head>
@@ -2339,7 +2340,15 @@ footer{background:#fff;border-top:1px solid var(--border);padding:2rem;text-alig
   </div>
 </div>
 ${relatedHtml}
+<div class="newsletter-section">
+  <div class="newsletter-inner">
+    <h2 class="newsletter-title">A new recipe every day</h2>
+    <p class="newsletter-sub">Simple, budget-friendly recipes delivered to your inbox — no fluff, just food.</p>
+    <div class="ml-embedded" data-form="183156308189382424"></div>
+  </div>
+</div>
 <footer>© ${new Date().getFullYear()} Improv Oven · <a href="/">Home</a> · <a href="/recipes/">All Recipes</a> · <a href="/affiliate-disclosure/">Affiliate Disclosure</a> · <a href="/privacy/">Privacy Policy</a></footer>
+<script>(function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[]).push(arguments);},l=d.createElement(e),l.async=1,l.src=u,n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})(window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');ml('account','2222920');</script>
 </body>
 </html>`;
 }

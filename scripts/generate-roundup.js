@@ -251,19 +251,12 @@ footer a{color:var(--green);font-weight:700}
 <div class="signup-strip">
   <h2>A New Recipe Every Day</h2>
   <p>Get simple, budget-friendly recipes delivered to your inbox.</p>
-  <form action="https://improvoven.us5.list-manage.com/subscribe/post?u=5b750534650fb5ecc3b359db8&amp;id=4ef9909334&amp;f_id=000796e0f0" method="post" target="_blank">
-    <div class="signup-form">
-      <input class="signup-input" type="email" name="EMAIL" placeholder="Your email address" required>
-      <button class="signup-btn" type="submit">Subscribe</button>
-    </div>
-    <div aria-hidden="true" style="position:absolute;left:-5000px">
-      <input type="text" name="b_5b750534650fb5ecc3b359db8_4ef9909334" tabindex="-1" value="">
-    </div>
-  </form>
+  <div class="ml-embedded" data-form="183156308189382424"></div>
 </div>
 <footer>
   © ${year} Improv Oven · <a href="/recipes/">All Recipes</a> · <a href="/about/">About</a> · <a href="/privacy/">Privacy Policy</a>
 </footer>
+<script>(function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[]).push(arguments);},l=d.createElement(e),l.async=1,l.src=u,n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})(window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');ml('account','2222920');</script>
 </body>
 </html>`;
 }
