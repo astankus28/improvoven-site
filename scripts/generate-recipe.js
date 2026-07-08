@@ -285,6 +285,53 @@ function applyHolidayDishCooldown(candidates, recipes, lookback = HOLIDAY_DISH_C
   return filtered.length > 0 ? filtered : candidates;
 }
 
+// ============================================================
+// DISH-FAMILY COOLDOWN — recency-based (not a permanent block).
+// Broad, evergreen dish families that the generator over-produces. Each `re`
+// is tested against both the recipe blob (title+slug+keyword) to count recent
+// occurrences and against candidate keywords to cool them down. When a family
+// shows up >= DISH_FAMILY_COOLDOWN_CAP times in the recent feed, matching
+// keywords are dropped so the same dish can't stack — while still allowing it
+// to reappear once the feed moves on.
+// ============================================================
+const DISH_FAMILY_COOLDOWN = [
+  {
+    id: 'rice-and-beans',
+    re: /\b(rice and beans|beans and rice|rice & beans|black beans? and rice|congr[ií]|gallo pinto|moros y cristianos|arroz con (gandules|habichuelas)|sofrito (rice|bean|bowl))\b|\bblack beans?\b[^.]*\brice\b|\brice\b[^.]*\bblack beans?\b|\bsofrito\b[^.]*\bbowls?\b|\brice bowls?\b[^.]*\bbeans?\b|\bbeans?\b[^.]*\brice bowls?\b/i,
+  },
+];
+
+function getSaturatedDishFamilies(recipes, lookback = DISH_FAMILY_COOLDOWN_LOOKBACK, cap = DISH_FAMILY_COOLDOWN_CAP) {
+  const saturated = new Set();
+  if (!Array.isArray(recipes) || recipes.length === 0) return saturated;
+  const slice = recipes.slice(0, lookback);
+  const counts = new Map();
+  for (const r of slice) {
+    if (r && r.isRoundup) continue;
+    const blob = `${r.title || ''} ${r.slug || ''} ${r.keyword || ''}`;
+    for (const fam of DISH_FAMILY_COOLDOWN) {
+      if (fam.re.test(blob)) counts.set(fam.id, (counts.get(fam.id) || 0) + 1);
+    }
+  }
+  for (const [id, n] of counts) {
+    if (n >= cap) saturated.add(id);
+  }
+  return saturated;
+}
+
+// Drop candidate keywords whose dish family is over-represented in the recent
+// feed. Falls back to the original list if every candidate is on cooldown.
+function applyDishFamilyCooldown(candidates, recipes) {
+  if (!Array.isArray(candidates) || candidates.length === 0) return candidates;
+  const saturated = getSaturatedDishFamilies(recipes);
+  if (saturated.size === 0) return candidates;
+  const cooled = DISH_FAMILY_COOLDOWN.filter((fam) => saturated.has(fam.id));
+  const filtered = candidates.filter(
+    (k) => !cooled.some((fam) => fam.re.test(String(k))),
+  );
+  return filtered.length > 0 ? filtered : candidates;
+}
+
 // Blend fresh non-holiday dishes into a holiday candidate set so a small,
 // exhausted holiday pool can't force same-dish repeats across a long window.
 function blendHolidayBreakupKeywords(candidates, used, recipes, sampleSize = 24) {
@@ -493,6 +540,19 @@ const HOLIDAY_DISH_COOLDOWN_LOOKBACK = (() => {
   const raw = parseInt(process.env.HOLIDAY_DISH_COOLDOWN_LOOKBACK || '10', 10);
   if (!Number.isFinite(raw)) return 10;
   return Math.min(40, Math.max(3, raw));
+})();
+// Recency cooldown for broad, evergreen dish families (e.g. rice-and-beans).
+// Unlike RECIPE_TOPIC_CLUSTERS (a permanent global block), this only cools a
+// family down once it's over-represented in the most recent LOOKBACK recipes.
+const DISH_FAMILY_COOLDOWN_LOOKBACK = (() => {
+  const raw = parseInt(process.env.DISH_FAMILY_COOLDOWN_LOOKBACK || '10', 10);
+  if (!Number.isFinite(raw)) return 10;
+  return Math.min(40, Math.max(3, raw));
+})();
+const DISH_FAMILY_COOLDOWN_CAP = (() => {
+  const raw = parseInt(process.env.DISH_FAMILY_COOLDOWN_CAP || '2', 10);
+  if (!Number.isFinite(raw)) return 2;
+  return Math.min(10, Math.max(1, raw));
 })();
 const CINCO_LEAD_DAYS = (() => {
   const raw = parseInt(process.env.CINCO_LEAD_DAYS || '14', 10);
@@ -1729,6 +1789,7 @@ function getNextKeyword() {
     candidates = applyHolidayDishCooldown(candidates, existingRecipes);
     candidates = applyWeeklyContentQuotas(candidates, existingRecipes);
     candidates = applyMealPlannerCap(candidates, existingRecipes);
+    candidates = applyDishFamilyCooldown(candidates, existingRecipes);
     const weightedCandidates = applyPinterestInterestBoost(applyMealPlannerBoost(candidates));
     const keyword = weightedCandidates[Math.floor(Math.random() * weightedCandidates.length)];
     used.push(keyword);
@@ -1754,7 +1815,8 @@ function getNextKeyword() {
     const afterReset = filterKeywordsByExistingTopics(pool, blockedIds);
     const pickFromRaw = afterReset.length > 0 ? afterReset : pool;
     const pickFromQuota = applyWeeklyContentQuotas(pickFromRaw, existingRecipes);
-    const pickFrom = applyMealPlannerCap(pickFromQuota, existingRecipes);
+    const pickFromCap = applyMealPlannerCap(pickFromQuota, existingRecipes);
+    const pickFrom = applyDishFamilyCooldown(pickFromCap, existingRecipes);
     const weighted = applyPinterestInterestBoost(applyMealPlannerBoost(pickFrom));
     if (weighted.length > 0) {
       return weighted[Math.floor(Math.random() * weighted.length)];
@@ -1766,6 +1828,7 @@ function getNextKeyword() {
   if (usable.length === 0) usable = unused;
   usable = applyWeeklyContentQuotas(usable, existingRecipes);
   usable = applyMealPlannerCap(usable, existingRecipes);
+  usable = applyDishFamilyCooldown(usable, existingRecipes);
   const weightedUsable = applyPinterestInterestBoost(applyMealPlannerBoost(usable));
   const keyword = weightedUsable[Math.floor(Math.random() * weightedUsable.length)];
   used.push(keyword);
