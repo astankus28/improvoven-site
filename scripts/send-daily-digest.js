@@ -1,6 +1,6 @@
 // scripts/send-daily-digest.js
-// Sends a daily email with yesterday's 4 new recipes via MailerLite API
-// Runs every morning at 9am EST via GitHub Actions
+// Sends a weekly email with the past 7 days of new recipes via MailerLite API
+// Runs every Monday at 9am EST via GitHub Actions
 
 const https = require('https');
 const fs = require('fs');
@@ -74,7 +74,7 @@ function buildEmailHTML(recipes) {
     </table>`;
   }).join('');
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   return `<!DOCTYPE html>
 <html>
@@ -91,7 +91,7 @@ function buildEmailHTML(recipes) {
               <h1 style="margin:0;font-family:Georgia,serif;font-size:28px;color:#fff;font-weight:normal;">
                 <em>Improv Oven</em>
               </h1>
-              <p style="margin:8px 0 0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.7);">Daily Recipe Digest</p>
+              <p style="margin:8px 0 0;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.7);">Weekly Recipe Digest</p>
             </td>
           </tr>
 
@@ -99,7 +99,7 @@ function buildEmailHTML(recipes) {
           <tr>
             <td style="background:#fff;padding:24px 32px;border-bottom:1px solid #e8e0d0;">
               <p style="margin:0;font-size:15px;color:#555;line-height:1.7;">
-                Good morning! Here's what came out of the Improv Oven yesterday — <strong>${recipes.length} new recipes</strong> ready for your weekly lineup. ${today}.
+                Happy Monday! Here's what came out of the Improv Oven this week — <strong>${recipes.length} new recipes</strong> ready for your weekly lineup. Week of ${today}.
               </p>
             </td>
           </tr>
@@ -136,29 +136,30 @@ function buildEmailHTML(recipes) {
 </html>`;
 }
 
-function getYesterdaysRecipes(recipes) {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-  
-  const yesterdays = recipes.filter(r => 
-    r.date === yesterdayStr && !r.isRoundup
+function getThisWeeksRecipes(recipes) {
+  const now = new Date();
+  const cutoff = new Date(now);
+  cutoff.setDate(cutoff.getDate() - 7);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+
+  const thisWeek = recipes.filter(r =>
+    !r.isRoundup && r.date && r.date >= cutoffStr
   );
 
-  console.log(`Looking for recipes from ${yesterdayStr}`);
-  console.log(`Found ${yesterdays.length} recipes from yesterday`);
-  
-  // If none from yesterday, take the 4 most recent non-roundup recipes
-  if (yesterdays.length === 0) {
-    console.log('No recipes from yesterday — using 4 most recent');
-    return recipes.filter(r => !r.isRoundup).slice(0, 4);
+  console.log(`Looking for recipes since ${cutoffStr}`);
+  console.log(`Found ${thisWeek.length} recipes from the past 7 days`);
+
+  // Fallback: use the 6 most recent if no recipes in the past 7 days
+  if (thisWeek.length === 0) {
+    console.log('No recent recipes — using 6 most recent');
+    return recipes.filter(r => !r.isRoundup).slice(0, 6);
   }
-  
-  return yesterdays;
+
+  return thisWeek;
 }
 
 async function main() {
-  console.log('📧 Starting daily digest send...\n');
+  console.log('📧 Starting weekly digest send...\n');
 
   if (!MAILERLITE_API_KEY) {
     throw new Error('MAILERLITE_API_KEY not set');
@@ -169,7 +170,7 @@ async function main() {
     path.join(process.cwd(), 'recipes-data.json'), 'utf8'
   ));
 
-  const todayRecipes = getYesterdaysRecipes(recipes);
+  const todayRecipes = getThisWeeksRecipes(recipes);
   
   if (todayRecipes.length === 0) {
     console.log('No recipes to send — skipping');
@@ -184,12 +185,12 @@ async function main() {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const dateStr = yesterday.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-  const subject = `🍳 ${todayRecipes.length} new recipes from Improv Oven (${dateStr})`;
+  const subject = `🍳 This week's recipes from Improv Oven (${dateStr})`;
 
   // Create campaign
   console.log('\n📤 Creating MailerLite campaign...');
   const campaignRes = await mailerliteRequest('POST', '/campaigns', {
-    name: `Daily Digest ${new Date().toISOString().split('T')[0]}`,
+    name: `Weekly Digest ${new Date().toISOString().split('T')[0]}`,
     type: 'regular',
     status: 'draft',
     emails: [{

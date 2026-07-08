@@ -1,8 +1,8 @@
-name: Daily Recipe Digest Email
+name: Weekly Recipe Digest Email
 
 on:
   schedule:
-    - cron: '0 14 * * *'  # 9:00 AM EST every day
+    - cron: '0 14 * * 1'  # 9:00 AM EST every Monday
   workflow_dispatch:
 
 jobs:
@@ -18,9 +18,9 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Send daily recipe digest
+      - name: Send weekly recipe digest
         env:
           MAILERLITE_API_KEY: ${{ secrets.MAILERLITE_API_KEY }}
         run: |
-          echo "📧 Sending daily recipe digest..."
+          echo "📧 Sending weekly recipe digest..."
           node scripts/send-daily-digest.js 2>&1
