@@ -161,10 +161,13 @@ MARGIN   = 52
 pill_y   = CARD_Y + 42
 x_cursor = MARGIN
 pill_data = []
+MAX_PILL_X = 1000 - MARGIN  # don't let pills run off the right edge
 for badge in badges[:4]:
     bb = draw.textbbox((0, 0), badge, font=font_pill)
     tw = bb[2] - bb[0]
     pw = tw + PILL_PAD * 2
+    if x_cursor + pw > MAX_PILL_X:
+        break  # pill would overflow — skip the rest
     pill_data.append((x_cursor, badge, tw, pw))
     x_cursor += pw + PILL_GAP
 
@@ -198,7 +201,21 @@ def wrap_text(text, font, max_w):
         lines.append(' '.join(cur))
     return lines
 
-hl_lines = wrap_text(headline, font_headline, MAX_W)[:3]
+# Wrap headline, but if it exceeds 3 lines reduce font size rather than
+# truncating mid-sentence (a cut-off headline looks broken on the pin).
+hl_lines = wrap_text(headline, font_headline, MAX_W)
+if len(hl_lines) > 3:
+    # Try a smaller font first
+    font_headline_sm = load_font(SERIF_BOLD, 72)
+    hl_lines_sm = wrap_text(headline, font_headline_sm, MAX_W)
+    if len(hl_lines_sm) <= 3:
+        font_headline = font_headline_sm
+        hl_lines = hl_lines_sm
+        HL_LH = 80
+    else:
+        # Still too long — keep only first 3 lines but don't break a phrase
+        # mid-word; just accept the truncation at a word boundary
+        hl_lines = hl_lines[:3]
 y = HL_Y
 for line in hl_lines:
     # Soft shadow for legibility

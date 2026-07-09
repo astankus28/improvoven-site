@@ -2549,11 +2549,14 @@ function buildPinterestOverlayCopy(recipe) {
   } else if (hookVariant === 4) {
     headline = `This ${cleanTitle} Costs Almost Nothing`;
   } else {
-    headline = `You Need This ${cleanTitle} in Your Life`;
+    // Keep it short enough to fit 3 lines at large font
+    headline = cleanTitle.length <= 30
+      ? `You Need This ${cleanTitle} in Your Life`
+      : `You Need This ${cleanTitle}`;
   }
 
-  // Cap headline at ~55 chars to keep it large and readable on the card
-  if (headline.length > 58) {
+  // Cap headline at ~62 chars — beyond this the 88px font needs >3 lines
+  if (headline.length > 62) {
     headline = cleanTitle;
   }
 

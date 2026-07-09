@@ -56,9 +56,11 @@ function buildPinterestOverlayCopy(recipe) {
   } else if (hookVariant === 4) {
     headline = `This ${cleanTitle} Costs Almost Nothing`;
   } else {
-    headline = `You Need This ${cleanTitle} in Your Life`;
+    headline = cleanTitle.length <= 30
+      ? `You Need This ${cleanTitle} in Your Life`
+      : `You Need This ${cleanTitle}`;
   }
-  if (headline.length > 58) headline = cleanTitle;
+  if (headline.length > 62) headline = cleanTitle;
 
   const badges = [];
   if (Number.isFinite(totalMins) && totalMins > 0) badges.push(`${totalMins} MIN`);
