@@ -8,7 +8,9 @@
     "indexnow:sitemap": "node scripts/submit-indexnow-sitemap.js",
     "ga4": "node scripts/ga4-report.js",
     "trends": "node scripts/research-trends.js",
-    "trends:inject": "node scripts/research-trends.js --inject-top=5"
+    "trends:inject": "node scripts/research-trends.js --inject-top=5",
+    "backfill:pinterest": "node scripts/backfill-pinterest-images.js",
+    "backfill:pinterest:force": "node scripts/backfill-pinterest-images.js --force"
   },
   "dependencies": {
     "dotenv": "^17.4.0"

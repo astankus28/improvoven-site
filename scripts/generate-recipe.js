@@ -2002,7 +2002,7 @@ Return ONLY valid JSON, no markdown, no backticks:
   "tips": "One genuinely useful tip in Improv Oven's voice",
   "nutrition": { "calories": "320", "protein": "18g", "carbs": "34g", "fat": "12g", "fiber": "5g", "sugar": "6g", "sodium": "480mg" },
   "targetKeyword": "${keyword}",
-  "imagePrompt": "Professional food photography of [dish], warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing"
+  "imagePrompt": "Vertical portrait-orientation food photography of [dish], centered subject, warm golden-hour lighting from the side, shallow depth of field, clean negative space at top and bottom for text overlay, rustic wooden table or dark slate surface, beautifully plated, vibrant and appetizing, professional food blog style"
 }
 
 The "nutrition" values must be realistic per-serving estimates for THIS recipe (not the example numbers). Calories is a plain number; the rest include their unit as shown.`
@@ -2095,7 +2095,7 @@ async function geminiGenerateImage(prompt, slug) {
 async function getImage(recipe, slug) {
   console.log('Generating food photo...');
 
-  const prompt = recipe.imagePrompt || `Professional food photography of ${recipe.title}, warm golden lighting, shallow depth of field, rustic wooden table, beautifully plated, vibrant and appetizing`;
+  const prompt = recipe.imagePrompt || `Vertical portrait-orientation food photography of ${recipe.title}, centered subject, warm golden-hour lighting from the side, shallow depth of field, clean negative space at top and bottom, rustic wooden table or dark slate surface, beautifully plated, vibrant and appetizing, professional food blog style`;
 
   // Try Replicate first, with a re-submit retry for transient stuck/empty predictions.
   if (REPLICATE_API_TOKEN) {
@@ -2516,39 +2516,108 @@ search.addEventListener('input', () => {
 function buildPinterestOverlayCopy(recipe) {
   const rawTitle = String((recipe && recipe.title) || (recipe && recipe.targetKeyword) || 'Easy Weeknight Recipe');
   const totalMins = parseInt(String((recipe && recipe.totalTime) || '').replace(/\D/g, ''), 10);
-  const servings = String((recipe && recipe.servings) || '').trim();
-  const cleaned = rawTitle
+  const servings = parseInt(String((recipe && recipe.servings) || '').replace(/\D/g, ''), 10);
+  const ingredients = Array.isArray(recipe && recipe.ingredients) ? recipe.ingredients.length : 0;
+  const category = String((recipe && recipe.category) || '').toLowerCase();
+  const keyword = String((recipe && recipe.targetKeyword) || '').toLowerCase();
+
+  // Clean title down to its core noun phrase
+  const cleanTitle = rawTitle
     .replace(/\([^)]*\)/g, ' ')
-    .replace(/\b(easy|simple|homemade|authentic|budget|recipe)\b/gi, ' ')
+    .replace(/\b(easy|simple|homemade|authentic|best|perfect|recipe)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  const words = cleaned.split(' ').filter(Boolean);
-  const headline = (words.length > 8 ? words.slice(0, 8) : words).join(' ') || 'Easy Weeknight Recipe';
 
-  let subtitle = 'Practical, Flavor-Packed Weeknight Recipe';
-  if (Number.isFinite(totalMins) && totalMins > 0 && totalMins <= 35) {
-    subtitle = `Weeknight-Friendly • Ready In ${totalMins} Minutes`;
-  } else if (Number.isFinite(totalMins) && totalMins > 35) {
-    subtitle = `Practical Step-By-Step Recipe • About ${totalMins} Minutes`;
-  } else if (servings) {
-    subtitle = `Practical ${servings}-Serving Recipe For Real Life`;
+  // Pick a hook style based on what data is available
+  // Goal: curiosity-gap or benefit-first framing that stops the scroll
+  let headline;
+  const minsStr = Number.isFinite(totalMins) && totalMins > 0 ? `${totalMins}` : null;
+  const ingStr = ingredients >= 3 && ingredients <= 7 ? `${ingredients}` : null;
+
+  // Curiosity/hook patterns (cycle through based on slug hash for variety)
+  const slugHash = rawTitle.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0);
+  const hookVariant = Math.abs(slugHash) % 6;
+
+  if (hookVariant === 0 && minsStr) {
+    headline = `Ready in ${minsStr} Minutes — ${cleanTitle}`;
+  } else if (hookVariant === 1 && ingStr) {
+    headline = `Only ${ingStr} Ingredients: ${cleanTitle}`;
+  } else if (hookVariant === 2) {
+    headline = `The Budget ${cleanTitle} You'll Make Every Week`;
+  } else if (hookVariant === 3 && minsStr && parseInt(minsStr) <= 25) {
+    headline = `${minsStr}-Minute ${cleanTitle} That Tastes Like a Restaurant`;
+  } else if (hookVariant === 4) {
+    headline = `This ${cleanTitle} Costs Almost Nothing`;
+  } else {
+    headline = `You Need This ${cleanTitle} in Your Life`;
   }
 
-  return { headline, subtitle };
+  // Cap headline at ~55 chars to keep it large and readable on the card
+  if (headline.length > 58) {
+    headline = cleanTitle;
+  }
+
+  // Badge pills row — short stat chips displayed as visual pills on the image
+  const badges = [];
+  if (Number.isFinite(totalMins) && totalMins > 0) badges.push(`${totalMins} MIN`);
+  if (Number.isFinite(servings) && servings > 0) badges.push(`SERVES ${servings}`);
+  if (ingredients > 0) badges.push(`${ingredients} INGREDIENTS`);
+  if (keyword.includes('budget') || keyword.includes('cheap') || keyword.includes('affordable')) {
+    badges.push('BUDGET-FRIENDLY');
+  } else if (category === 'dessert') {
+    badges.push('NO FUSS DESSERT');
+  } else {
+    badges.push('EASY WEEKNIGHT');
+  }
+
+  // Bottom-card subtitle: category/cuisine context
+  const cuisine = String((recipe && recipe.cuisine) || '').trim();
+  let subtitle = cuisine && cuisine.toLowerCase() !== 'american'
+    ? `${cuisine} · Improv Oven`
+    : 'Budget Cooking · Improv Oven';
+
+  return { headline, badges, subtitle };
 }
 
+// ---------------------------------------------------------------------------
+// Pinterest image — bottom-card layout
+//
+// Layout (1000 × 1500):
+//   ┌────────────────────────────────┐
+//   │                                │  ← food photo fills top ~65%
+//   │      (clean photo zone)        │    light gradient fade into card
+//   │                                │
+//   ├────────────────────────────────┤
+//   │  [30 MIN]  [6 INGR]  [EASY]   │  ← badge pills row
+//   │                                │
+//   │  Hook headline (2–3 lines)     │  ← large bold white text
+//   │                                │
+//   │  Cuisine · Improv Oven         │  ← small attribution
+//   │  ─────────────────────────     │
+//   │  ImprovOven.com                │  ← brand foot
+//   └────────────────────────────────┘
+//
+// The dark card fills the bottom ~40% so the food photo is fully visible
+// without heavy overlays obscuring it — which kills engagement.
+// ---------------------------------------------------------------------------
 async function makePinterestImage(heroPath, recipe, outputPath) {
   const { spawnSync } = require('child_process');
-  const { headline, subtitle } = buildPinterestOverlayCopy(recipe);
+  const { headline, badges, subtitle } = buildPinterestOverlayCopy(recipe);
+  const badgeStr = badges.join('|');
+
   const script = `
-from PIL import Image, ImageDraw, ImageFont
-import sys
+import sys, json, textwrap
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-hero_path = sys.argv[1]
-headline = sys.argv[2].strip().upper()
-subtitle = sys.argv[3].strip()
-output_path = sys.argv[4]
+hero_path  = sys.argv[1]
+headline   = sys.argv[2].strip()
+badge_str  = sys.argv[3].strip()
+subtitle   = sys.argv[4].strip()
+output_path= sys.argv[5]
 
+badges = [b.strip() for b in badge_str.split('|') if b.strip()]
+
+# ── 1. Load + crop to 2:3 ────────────────────────────────────────────────
 img = Image.open(hero_path).convert('RGB')
 w, h = img.size
 target_w = min(w, int(h * 2/3))
@@ -2558,97 +2627,148 @@ if w > target_w:
     img = img.crop((left, 0, left + target_w, min(h, target_h)))
 img = img.resize((1000, 1500), Image.LANCZOS)
 
-top_overlay = Image.new('RGBA', (1000, 1500), (0, 0, 0, 0))
-ov_top = ImageDraw.Draw(top_overlay)
-for i in range(620):
-    alpha = int(200 - (i / 620) * 180)
-    alpha = max(18, min(210, alpha))
-    ov_top.rectangle([(0, i), (1000, i + 1)], fill=(20, 24, 28, alpha))
+# ── 2. Dark bottom card ──────────────────────────────────────────────────
+CARD_Y = 920          # card starts here
+CARD_COLOR = (22, 27, 34)   # very dark navy-charcoal
+ACCENT   = (255, 183, 77)   # warm amber accent (badges + divider)
+TEXT_PRI = (255, 255, 255)  # white  (headline)
+TEXT_SEC = (200, 205, 210)  # light grey (subtitle / brand)
+PILL_TXT = (22, 27, 34)     # dark text on amber pill
 
-bottom_overlay = Image.new('RGBA', (1000, 1500), (0, 0, 0, 0))
-ov_bottom = ImageDraw.Draw(bottom_overlay)
-for i in range(420):
-    alpha = int((i / 420) * 185)
-    ov_bottom.rectangle([(0, 1500 - i), (1000, 1500 - i + 1)], fill=(15, 22, 28, alpha))
-
+card = Image.new('RGBA', (1000, 1500 - CARD_Y), CARD_COLOR + (255,))
 img = img.convert('RGBA')
-img = Image.alpha_composite(img, top_overlay)
-img = Image.alpha_composite(img, bottom_overlay)
+
+# Soft feathered transition: gradient strip above card
+grad_h = 160
+gradient = Image.new('RGBA', (1000, grad_h), (0,0,0,0))
+gd = ImageDraw.Draw(gradient)
+for i in range(grad_h):
+    alpha = int((i / grad_h) ** 1.4 * 240)
+    gd.rectangle([(0, i), (1000, i+1)], fill=CARD_COLOR + (alpha,))
+img.paste(gradient, (0, CARD_Y - grad_h), gradient)
+img.paste(card, (0, CARD_Y), card)
 img = img.convert('RGB')
+
 draw = ImageDraw.Draw(img)
 
-try:
-    font_title = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf', 116)
-    font_sub = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 62)
-    font_brand = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 32)
-except:
-    font_title = font_sub = font_brand = ImageFont.load_default()
+# ── 3. Fonts ─────────────────────────────────────────────────────────────
+FONT_PATHS = [
+    '/System/Library/Fonts/Supplemental/Georgia Bold.ttf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf',
+    '/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf',
+    '/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf',
+    '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf',
+]
+SANS_PATHS = [
+    '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+    '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+    '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf',
+    '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf',
+]
+SANS_REG_PATHS = [
+    '/System/Library/Fonts/Supplemental/Arial.ttf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+]
 
-def wrap_text(text, font, max_width):
+def load_font(paths, size):
+    for p in paths:
+        try:
+            return ImageFont.truetype(p, size)
+        except:
+            pass
+    return ImageFont.load_default()
+
+font_headline = load_font(FONT_PATHS, 88)
+font_pill     = load_font(SANS_PATHS, 30)
+font_sub      = load_font(SANS_REG_PATHS, 36)
+font_brand    = load_font(SANS_PATHS, 32)
+
+# ── 4. Badge pills ───────────────────────────────────────────────────────
+PILL_H    = 46
+PILL_PAD  = 22
+PILL_R    = 10
+PILL_GAP  = 14
+LEFT_MARGIN = 52
+
+pill_y = CARD_Y + 42
+x_cursor = LEFT_MARGIN
+pill_coords = []  # store for drawing
+for badge in badges[:4]:
+    bbox = draw.textbbox((0,0), badge, font=font_pill)
+    tw = bbox[2] - bbox[0]
+    pw = tw + PILL_PAD * 2
+    pill_coords.append((x_cursor, badge, tw, pw))
+    x_cursor += pw + PILL_GAP
+
+for (px, badge, tw, pw) in pill_coords:
+    draw.rounded_rectangle(
+        [(px, pill_y), (px + pw, pill_y + PILL_H)],
+        radius=PILL_R, fill=ACCENT
+    )
+    tx = px + PILL_PAD
+    ty = pill_y + (PILL_H - (draw.textbbox((0,0), badge, font=font_pill)[3])) // 2
+    draw.text((tx, ty), badge, fill=PILL_TXT, font=font_pill)
+
+# ── 5. Headline ──────────────────────────────────────────────────────────
+MAX_W  = 920
+HL_Y   = pill_y + PILL_H + 28
+HL_LH  = 96    # line height for headline
+
+def wrap_text(text, font, max_w):
     words = text.split()
-    lines = []
-    current = []
+    lines, cur = [], []
     for word in words:
-        trial = ' '.join(current + [word])
-        bbox = draw.textbbox((0, 0), trial, font=font)
-        if bbox[2] - bbox[0] > max_width and current:
-            lines.append(' '.join(current))
-            current = [word]
+        trial = ' '.join(cur + [word])
+        if draw.textbbox((0,0), trial, font=font)[2] > max_w and cur:
+            lines.append(' '.join(cur))
+            cur = [word]
         else:
-            current.append(word)
-    if current:
-        lines.append(' '.join(current))
+            cur.append(word)
+    if cur:
+        lines.append(' '.join(cur))
     return lines
 
-title_lines = wrap_text(headline, font_title, 920)
-if len(title_lines) > 4:
-    title_lines = title_lines[:4]
-sub_lines = wrap_text(subtitle, font_sub, 900)
-if len(sub_lines) > 2:
-    sub_lines = sub_lines[:2]
+hl_lines = wrap_text(headline, font_headline, MAX_W)[:3]
 
-line_height = 112
-sub_height = 72
-y_start = 58
+y = HL_Y
+for line in hl_lines:
+    # Subtle shadow for legibility
+    draw.text((LEFT_MARGIN + 2, y + 2), line, fill=(0,0,0,160), font=font_headline)
+    draw.text((LEFT_MARGIN, y), line, fill=TEXT_PRI, font=font_headline)
+    y += HL_LH
 
-for line in title_lines:
-    bbox = draw.textbbox((0, 0), line, font=font_title)
-    text_w = bbox[2] - bbox[0]
-    x = (1000 - text_w) // 2
-    draw.text((x + 4, y_start + 4), line, fill=(0, 0, 0, 190), font=font_title)
-    draw.text((x, y_start), line, fill=(248, 244, 234), font=font_title)
-    y_start += line_height
+# ── 6. Subtitle ──────────────────────────────────────────────────────────
+sub_y = y + 20
+draw.text((LEFT_MARGIN, sub_y), subtitle, fill=TEXT_SEC, font=font_sub)
 
-y_start += 10
-for line in sub_lines:
-    bbox = draw.textbbox((0, 0), line, font=font_sub)
-    text_w = bbox[2] - bbox[0]
-    x = (1000 - text_w) // 2
-    draw.text((x + 3, y_start + 3), line, fill=(0, 0, 0, 190), font=font_sub)
-    draw.text((x, y_start), line, fill=(248, 244, 234), font=font_sub)
-    y_start += sub_height
+# ── 7. Divider + brand foot ──────────────────────────────────────────────
+div_y  = sub_y + 56
+draw.rectangle([(LEFT_MARGIN, div_y), (1000 - LEFT_MARGIN, div_y + 2)], fill=(60, 70, 80))
 
-draw.rectangle([(60, 1500-55), (940, 1500-50)], fill=(82, 183, 136))
-brand = 'IMPROVOVEN'
-bbox = draw.textbbox((0, 0), brand, font=font_brand)
-bw = bbox[2] - bbox[0]
-draw.text(((1000 - bw)//2, 1500-42), brand, fill=(82, 183, 136), font=font_brand)
+brand_y = div_y + 16
+brand   = 'ImprovOven.com'
+draw.text((LEFT_MARGIN, brand_y), brand, fill=ACCENT, font=font_brand)
+save_hint = 'Save this recipe \u2193'
+bw = draw.textbbox((0,0), save_hint, font=font_brand)[2]
+draw.text((1000 - LEFT_MARGIN - bw, brand_y), save_hint, fill=TEXT_SEC, font=font_brand)
 
-img.save(output_path, 'JPEG', quality=92)
+img.save(output_path, 'JPEG', quality=93)
 `;
-  
+
   try {
     const run = spawnSync(
       'python3',
-      ['-c', script, heroPath, headline, subtitle, outputPath],
+      ['-c', script, heroPath, headline, badgeStr, subtitle, outputPath],
       { stdio: 'pipe' },
     );
     if (run.status !== 0) {
-      throw new Error((run.stderr || Buffer.from('')).toString('utf8').slice(0, 200));
+      throw new Error((run.stderr || Buffer.from('')).toString('utf8').slice(0, 300));
     }
-    console.log('✓ Pinterest image created');
+    console.log('✓ Pinterest image created (bottom-card layout)');
   } catch(e) {
-    console.log('⚠ Pinterest image generation skipped:', e.message.slice(0, 100));
+    console.log('⚠ Pinterest image generation skipped:', e.message.slice(0, 120));
   }
 }
 
