@@ -1743,9 +1743,42 @@ function getSeasonalKeywords() {
   return null;
 }
 
+// Priority queue: time-sensitive/viral keywords that should run before the
+// normal pool. Add entries to priority-keywords.json (array of strings).
+// Each keyword is consumed once — the file is updated after each pick.
+function checkPriorityQueue(existingRecipes) {
+  const queuePath = path.join(process.cwd(), 'priority-keywords.json');
+  if (!fs.existsSync(queuePath)) return null;
+  let queue;
+  try { queue = JSON.parse(fs.readFileSync(queuePath, 'utf8')); } catch (_) { return null; }
+  if (!Array.isArray(queue) || queue.length === 0) return null;
+
+  // Skip keywords already published
+  const usedExact = new Set(
+    (Array.isArray(existingRecipes) ? existingRecipes : [])
+      .map(r => normalizeKeywordForDedupe(r.keyword)).filter(Boolean)
+  );
+  const idx = queue.findIndex(k => !usedExact.has(normalizeKeywordForDedupe(k)));
+  if (idx === -1) {
+    // All priority keywords already published — clear the queue
+    fs.writeFileSync(queuePath, JSON.stringify([], null, 2));
+    return null;
+  }
+
+  const keyword = queue[idx];
+  queue.splice(idx, 1);
+  fs.writeFileSync(queuePath, JSON.stringify(queue, null, 2));
+  console.log(`🔥 Priority keyword: ${keyword} (${queue.length} remaining in queue)`);
+  return keyword;
+}
+
 function getNextKeyword() {
   const existingRecipes = loadRecipesDataForDedupe();
   const blockedIds = getBlockedTopicIdsFromRecipes(existingRecipes);
+
+  // Priority queue takes precedence over everything else
+  const priorityKeyword = checkPriorityQueue(existingRecipes);
+  if (priorityKeyword) return priorityKeyword;
 
   // Check for holiday season first
   const holidayKeywords = getSeasonalKeywords();

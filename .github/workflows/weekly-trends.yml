@@ -1,0 +1,46 @@
+name: Weekly Trend Research
+
+on:
+  # Every Sunday at 6 AM EST (10 AM UTC) — runs before Monday recipe gen
+  schedule:
+    - cron: '0 10 * * 0'
+  workflow_dispatch:
+    inputs:
+      inject_top:
+        description: 'Number of top gap keywords to inject into priority queue'
+        default: '3'
+        required: false
+      days:
+        description: 'Days to look back'
+        default: '7'
+        required: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run trend research
+        run: |
+          INJECT=${inject_top:-3}
+          DAYS=${days:-7}
+          node scripts/research-trends.js --days=$DAYS --inject-top=$INJECT
+        env:
+          inject_top: ${{ github.event.inputs.inject_top }}
+          days: ${{ github.event.inputs.days }}
+
+      - name: Commit updated priority queue and report
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "ImprovOven Bot"
+          git add priority-keywords.json trend-report.json || true
+          git diff --cached --quiet || git commit -m "chore: weekly trend research — $(date '+%Y-%m-%d')"
+          git push

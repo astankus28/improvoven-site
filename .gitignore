@@ -8,3 +8,7 @@
 
 # dependencies (installed via npm; not vendored)
 node_modules/
+
+# Auto-generated trend report (committed by the weekly-trends workflow)
+# Ignore locally so you don't accidentally commit a stale version
+trend-report.json
