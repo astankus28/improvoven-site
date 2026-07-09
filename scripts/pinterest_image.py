@@ -30,12 +30,24 @@ def smart_crop_rect(img):
     """
     Returns (left, top, crop_w, crop_h) of the most visually interesting
     2:3 rectangle inside img.  Falls back to centre-crop if analysis fails.
+
+    New recipe images are generated at 2:3 natively by Replicate, so for
+    those the saliency analysis is skipped (scale ≈ 1, no crop loss).
     """
     iw, ih = img.size
     out_w, out_h = 1000, 1500
     scale = min(iw / out_w, ih / out_h)
     cw = max(1, int(out_w * scale))
     ch = max(1, int(out_h * scale))
+
+    # If the image is already very close to 2:3 (within 5%), skip saliency
+    # and just do a simple centre-crop — nothing meaningful to gain.
+    actual_ratio = iw / ih
+    target_ratio = out_w / out_h  # 0.6667
+    if abs(actual_ratio - target_ratio) / target_ratio < 0.05:
+        left = max(0, (iw - cw) // 2)
+        top  = max(0, (ih - ch) // 2)
+        return left, top, cw, ch
 
     # Analyse a tiny thumbnail for speed
     aw = 60

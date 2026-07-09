@@ -2002,7 +2002,7 @@ Return ONLY valid JSON, no markdown, no backticks:
   "tips": "One genuinely useful tip in Improv Oven's voice",
   "nutrition": { "calories": "320", "protein": "18g", "carbs": "34g", "fat": "12g", "fiber": "5g", "sugar": "6g", "sodium": "480mg" },
   "targetKeyword": "${keyword}",
-  "imagePrompt": "Vertical portrait-orientation food photography of [dish], centered subject, warm golden-hour lighting from the side, shallow depth of field, clean negative space at top and bottom for text overlay, rustic wooden table or dark slate surface, beautifully plated, vibrant and appetizing, professional food blog style"
+  "imagePrompt": "Vertical portrait food photography of [dish], subject fills the frame, warm golden-hour side lighting, shallow depth of field, rustic wooden table or dark slate surface, beautifully plated, vibrant colors, appetizing, professional food blog style, shot from slight overhead angle"
 }
 
 The "nutrition" values must be realistic per-serving estimates for THIS recipe (not the example numbers). Calories is a plain number; the rest include their unit as shown.`
@@ -2041,7 +2041,7 @@ async function replicatePredictImage(prompt) {
     'api.replicate.com',
     '/v1/models/black-forest-labs/flux-schnell/predictions',
     { 'Content-Type': 'application/json', 'Authorization': `Token ${REPLICATE_API_TOKEN}` },
-    { input: { prompt, num_outputs: 1, aspect_ratio: '16:9', output_format: 'jpg', output_quality: 90 } }
+    { input: { prompt, num_outputs: 1, aspect_ratio: '2:3', output_format: 'jpg', output_quality: 90 } }
   );
 
   if (!prediction.urls?.get) throw new Error('Replicate error: ' + JSON.stringify(prediction));
@@ -2095,7 +2095,7 @@ async function geminiGenerateImage(prompt, slug) {
 async function getImage(recipe, slug) {
   console.log('Generating food photo...');
 
-  const prompt = recipe.imagePrompt || `Vertical portrait-orientation food photography of ${recipe.title}, centered subject, warm golden-hour lighting from the side, shallow depth of field, clean negative space at top and bottom, rustic wooden table or dark slate surface, beautifully plated, vibrant and appetizing, professional food blog style`;
+  const prompt = recipe.imagePrompt || `Vertical portrait food photography of ${recipe.title}, subject fills the frame, warm golden-hour side lighting, shallow depth of field, rustic wooden table or dark slate surface, beautifully plated, vibrant colors, appetizing, professional food blog style, shot from slight overhead angle`;
 
   // Try Replicate first, with a re-submit retry for transient stuck/empty predictions.
   if (REPLICATE_API_TOKEN) {
