@@ -67,28 +67,6 @@ const STOP_WORDS = new Set([
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-function fetchJson(url) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      headers: {
-        'User-Agent': 'ImprovOven-TrendBot/1.0 (+https://improvoven.com)',
-        'Accept': 'application/json',
-      },
-    };
-    https.get(url, options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode !== 200) {
-          return reject(new Error(`HTTP ${res.statusCode} for ${url}`));
-        }
-        try { resolve(JSON.parse(data)); }
-        catch (e) { reject(new Error(`JSON parse error for ${url}: ${e.message}`)); }
-      });
-    }).on('error', reject);
-  });
-}
-
 function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
@@ -148,19 +126,59 @@ function coverageScore(phrase, catalogIndex) {
 }
 
 // ---------------------------------------------------------------------------
-// Fetch Reddit
+// Fetch Reddit via RSS (no auth required; JSON API now requires OAuth)
 // ---------------------------------------------------------------------------
+function fetchRaw(url) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      headers: {
+        'User-Agent': 'ImprovOven-TrendBot/1.0 (+https://improvoven.com)',
+        'Accept': 'application/rss+xml, text/xml, */*',
+      },
+    };
+    https.get(url, options, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        // Follow one redirect
+        return fetchRaw(res.headers.location).then(resolve).catch(reject);
+      }
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+        resolve(data);
+      });
+    }).on('error', reject);
+  });
+}
+
 async function fetchSubreddit(subreddit, days) {
   const timeFilter = days <= 7 ? 'week' : 'month';
-  const url = `https://www.reddit.com/r/${subreddit}/top.json?t=${timeFilter}&limit=50`;
+  const url = `https://www.reddit.com/r/${subreddit}/top.rss?t=${timeFilter}&limit=50`;
   try {
-    const data = await fetchJson(url);
-    const posts = data?.data?.children ?? [];
-    return posts.map(p => ({
-      title: p.data?.title ?? '',
-      score: p.data?.score ?? 0,
-      subreddit,
-    }));
+    const xml = await fetchRaw(url);
+
+    // Parse RSS XML — extract <title> and score from <ups> inside each <entry>/<item>
+    const posts = [];
+    // Atom feed format Reddit uses
+    const entryRe = /<entry>([\s\S]*?)<\/entry>/g;
+    const titleRe = /<title[^>]*>([\s\S]*?)<\/title>/;
+    const scoreRe = /<score>([\s\S]*?)<\/score>|<ups>([\s\S]*?)<\/ups>/;
+    let m;
+    while ((m = entryRe.exec(xml)) !== null) {
+      const entry = m[1];
+      const titleMatch = titleRe.exec(entry);
+      const scoreMatch = scoreRe.exec(entry);
+      const rawTitle = titleMatch?.[1] ?? '';
+      // Strip CDATA and HTML entities
+      const title = rawTitle
+        .replace(/<!\[CDATA\[(.*?)\]\]>/s, '$1')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/<[^>]+>/g, '')
+        .trim();
+      const score = parseInt(scoreMatch?.[1] ?? scoreMatch?.[2] ?? '1', 10) || 1;
+      if (title) posts.push({ title, score, subreddit });
+    }
+    return posts;
   } catch (err) {
     console.error(`  ⚠ Could not fetch r/${subreddit}: ${err.message}`);
     return [];
@@ -168,41 +186,62 @@ async function fetchSubreddit(subreddit, days) {
 }
 
 // ---------------------------------------------------------------------------
-// Fetch Google Trends (Daily Trending Searches RSS → JSON via Trends API)
-// The unofficial endpoint returns a JSON object with trending topics.
+// Fetch Google Trends daily RSS feed
 // ---------------------------------------------------------------------------
 async function fetchGoogleTrends() {
   const url = 'https://trends.google.com/trends/trendingsearches/daily/rss?geo=US';
-  return new Promise((resolve) => {
-    const options = {
-      headers: { 'User-Agent': 'ImprovOven-TrendBot/1.0' },
-    };
-    https.get(url, options, (res) => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => {
-        // Parse RSS XML minimally — extract <title> tags from <item> blocks
-        const titles = [];
-        const itemRe = /<item>([\s\S]*?)<\/item>/g;
-        const titleRe = /<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/;
-        let m;
-        while ((m = itemRe.exec(data)) !== null) {
-          const t = titleRe.exec(m[1]);
-          if (t) titles.push(t[1] ?? t[2] ?? '');
-        }
-        resolve(titles.slice(0, 20));
-      });
-    }).on('error', () => resolve([]));
-  });
+  try {
+    const xml = await fetchRaw(url);
+    const titles = [];
+    const itemRe = /<item>([\s\S]*?)<\/item>/g;
+    const titleRe = /<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/;
+    let m;
+    while ((m = itemRe.exec(xml)) !== null) {
+      const t = titleRe.exec(m[1]);
+      if (t) titles.push((t[1] ?? t[2] ?? '').trim());
+    }
+    return titles.slice(0, 20);
+  } catch (_) {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------------------
+// Food-relevant signal words — phrase must contain at least one
+const FOOD_SIGNALS = new Set([
+  'chicken','beef','pork','fish','shrimp','salmon','tuna','turkey','lamb','tofu',
+  'pasta','rice','bean','beans','lentil','lentils','soup','stew','chili','curry',
+  'salad','sandwich','wrap','taco','burrito','pizza','burger','noodle','noodles',
+  'bread','cake','cookie','muffin','pie','brownie','biscuit','scone','waffle',
+  'pancake','egg','eggs','omelette','frittata','quiche','casserole','skillet',
+  'stir','fry','bake','roast','grill','bbq','smoked','slow','instant','crockpot',
+  'sauce','gravy','dressing','marinade','broth','stock','dip','hummus','salsa',
+  'smoothie','lemonade','cocktail','mocktail','spritz','drink','juice','coffee',
+  'cheese','butter','cream','milk','yogurt','avocado','tomato','potato','onion',
+  'garlic','pepper','mushroom','spinach','kale','broccoli','carrot','corn','zucchini',
+  'sweet','spicy','crispy','creamy','cheesy','crunchy','tender','juicy','fresh',
+  'pickles','pickle','sauerkraut','kimchi','miso','tahini','pesto',
+  'bowl','plate','meal','dinner','lunch','breakfast','snack','dessert','appetizer',
+  'budget','cheap','frugal','affordable','pantry','leftovers','freezer','batch',
+  'vegetarian','vegan','gluten','keto','paleo','mediterranean','protein','fiber',
+  'chinese','mexican','italian','thai','indian','japanese','korean','greek',
+  'cumin','coriander','turmeric','paprika','cayenne','oregano','basil','thyme',
+  'mash','instant','canned','frozen','dried','smoked','pickled','fermented',
+  'spiked','viral','trending','tiktok','air','fryer','pressure',
+]);
+
 // Score and rank discovered phrases
 // ---------------------------------------------------------------------------
 function rankPhrases(phraseMap, catalogIndex) {
   const results = [];
   for (const [phrase, score] of phraseMap.entries()) {
     if (phrase.split(' ').length < 2) continue; // skip unigrams in final ranking
+
+    // Require at least one food-relevant word (keeps results actionable)
+    const words = normalize(phrase).split(' ');
+    const hasFoodWord = words.some(w => FOOD_SIGNALS.has(w));
+    if (!hasFoodWord) continue;
+
     const coverage = coverageScore(phrase, catalogIndex);
     if (coverage >= 0.8) continue; // already well-covered
 
@@ -242,7 +281,7 @@ async function main() {
         phraseMap.set(phrase, prev + (post.score * weight));
       }
     }
-    await sleep(800); // be polite to Reddit
+    await sleep(1500); // be polite to Reddit (avoid 429)
   }
 
   // Collect Google Trends
