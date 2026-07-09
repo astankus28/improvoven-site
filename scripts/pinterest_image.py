@@ -143,7 +143,11 @@ def load_font(paths, size):
             return ImageFont.truetype(p, size)
         except Exception:
             pass
-    return ImageFont.load_default()
+    print(f"⚠ No font found at any of {paths} — falling back to default (text may be tiny)")
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        return ImageFont.load_default()
 
 font_headline = load_font(SERIF_BOLD, 88)
 font_pill     = load_font(SANS_BOLD,  30)

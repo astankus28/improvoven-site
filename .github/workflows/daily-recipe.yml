@@ -39,8 +39,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Pillow (for pinterest.jpg)
-        run: pip install Pillow --break-system-packages
+      - name: Install Pillow + fonts (for pinterest.jpg)
+        run: |
+          pip install Pillow --break-system-packages
+          sudo apt-get install -y fonts-dejavu-core fonts-liberation 2>/dev/null || true
 
       - name: Determine meal type
         id: meal
