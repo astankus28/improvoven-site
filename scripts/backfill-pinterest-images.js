@@ -80,123 +80,8 @@ function buildPinterestOverlayCopy(recipe) {
   return { headline, badges, subtitle };
 }
 
-// ── Copy of the Python script from makePinterestImage ────────────────────
-const PYTHON_SCRIPT = `
-import sys, json
-from PIL import Image, ImageDraw, ImageFont
-
-hero_path   = sys.argv[1]
-headline    = sys.argv[2].strip()
-badge_str   = sys.argv[3].strip()
-subtitle    = sys.argv[4].strip()
-output_path = sys.argv[5]
-
-badges = [b.strip() for b in badge_str.split('|') if b.strip()]
-
-img = Image.open(hero_path).convert('RGB')
-w, h = img.size
-target_w = min(w, int(h * 2/3))
-target_h = int(target_w * 3/2)
-if w > target_w:
-    left = (w - target_w) // 2
-    img = img.crop((left, 0, left + target_w, min(h, target_h)))
-img = img.resize((1000, 1500), Image.LANCZOS)
-
-CARD_Y    = 920
-CARD_COLOR= (22, 27, 34)
-ACCENT    = (255, 183, 77)
-TEXT_PRI  = (255, 255, 255)
-TEXT_SEC  = (200, 205, 210)
-PILL_TXT  = (22, 27, 34)
-
-card = Image.new('RGBA', (1000, 1500 - CARD_Y), CARD_COLOR + (255,))
-img  = img.convert('RGBA')
-grad_h = 160
-gradient = Image.new('RGBA', (1000, grad_h), (0,0,0,0))
-gd = ImageDraw.Draw(gradient)
-for i in range(grad_h):
-    alpha = int((i / grad_h) ** 1.4 * 240)
-    gd.rectangle([(0, i), (1000, i+1)], fill=CARD_COLOR + (alpha,))
-img.paste(gradient, (0, CARD_Y - grad_h), gradient)
-img.paste(card, (0, CARD_Y), card)
-img = img.convert('RGB')
-draw = ImageDraw.Draw(img)
-
-FONT_PATHS   = ['/System/Library/Fonts/Supplemental/Georgia Bold.ttf',
-                '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf',
-                '/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf',
-                '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf']
-SANS_PATHS   = ['/System/Library/Fonts/Supplemental/Arial Bold.ttf',
-                '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-                '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
-                '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf']
-SANS_REG     = ['/System/Library/Fonts/Supplemental/Arial.ttf',
-                '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-                '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf']
-
-def load_font(paths, size):
-    for p in paths:
-        try: return ImageFont.truetype(p, size)
-        except: pass
-    return ImageFont.load_default()
-
-font_headline = load_font(FONT_PATHS, 88)
-font_pill     = load_font(SANS_PATHS, 30)
-font_sub      = load_font(SANS_REG,   36)
-font_brand    = load_font(SANS_PATHS, 32)
-
-PILL_H=46; PILL_PAD=22; PILL_R=10; PILL_GAP=14; LEFT_MARGIN=52
-pill_y = CARD_Y + 42
-x_cursor = LEFT_MARGIN
-pill_coords = []
-for badge in badges[:4]:
-    bbox = draw.textbbox((0,0), badge, font=font_pill)
-    tw = bbox[2] - bbox[0]
-    pw = tw + PILL_PAD * 2
-    pill_coords.append((x_cursor, badge, tw, pw))
-    x_cursor += pw + PILL_GAP
-
-for (px, badge, tw, pw) in pill_coords:
-    draw.rounded_rectangle([(px, pill_y),(px+pw, pill_y+PILL_H)], radius=PILL_R, fill=ACCENT)
-    tx = px + PILL_PAD
-    ty = pill_y + (PILL_H - draw.textbbox((0,0), badge, font=font_pill)[3]) // 2
-    draw.text((tx, ty), badge, fill=PILL_TXT, font=font_pill)
-
-MAX_W=920; HL_Y=pill_y+PILL_H+28; HL_LH=96
-
-def wrap_text(text, font, max_w):
-    words = text.split()
-    lines, cur = [], []
-    for word in words:
-        trial = ' '.join(cur + [word])
-        if draw.textbbox((0,0), trial, font=font)[2] > max_w and cur:
-            lines.append(' '.join(cur)); cur=[word]
-        else:
-            cur.append(word)
-    if cur: lines.append(' '.join(cur))
-    return lines
-
-hl_lines = wrap_text(headline, font_headline, MAX_W)[:3]
-y = HL_Y
-for line in hl_lines:
-    draw.text((LEFT_MARGIN+2, y+2), line, fill=(0,0,0,160), font=font_headline)
-    draw.text((LEFT_MARGIN, y),     line, fill=TEXT_PRI,    font=font_headline)
-    y += HL_LH
-
-sub_y = y + 20
-draw.text((LEFT_MARGIN, sub_y), subtitle, fill=TEXT_SEC, font=font_sub)
-
-div_y = sub_y + 56
-draw.rectangle([(LEFT_MARGIN, div_y),(1000-LEFT_MARGIN, div_y+2)], fill=(60,70,80))
-
-brand_y = div_y + 16
-draw.text((LEFT_MARGIN, brand_y), 'ImprovOven.com', fill=ACCENT, font=font_brand)
-save_hint = 'Save this recipe \u2193'
-bw = draw.textbbox((0,0), save_hint, font=font_brand)[2]
-draw.text((1000-LEFT_MARGIN-bw, brand_y), save_hint, fill=TEXT_SEC, font=font_brand)
-
-img.save(output_path, 'JPEG', quality=93)
-`;
+// Delegate to the canonical Python script (saliency-based smart crop)
+const PYTHON_SCRIPT_PATH = path.join(__dirname, 'pinterest_image.py');
 
 // ── CLI args ──────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -258,7 +143,7 @@ function main() {
 
     const run = spawnSync(
       'python3',
-      ['-c', PYTHON_SCRIPT, heroPath, headline, badgeStr, subtitle, outPath],
+      [PYTHON_SCRIPT_PATH, heroPath, headline, badgeStr, subtitle, outPath],
       { stdio: 'pipe' },
     );
 
