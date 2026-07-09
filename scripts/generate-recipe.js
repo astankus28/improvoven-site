@@ -2534,56 +2534,90 @@ function buildPinterestOverlayCopy(recipe) {
   const ingStr  = ingredients >= 3 && ingredients <= 8 ? `${ingredients}` : null;
   const stepsStr = instructions >= 3 && instructions <= 7 ? `${instructions}` : null;
 
-  // Detect recipe characteristics for more specific hooks
   const isHighProtein = /chicken|beef|turkey|pork|fish|shrimp|salmon|tuna|egg|bean|lentil/i.test(rawTitle + keyword);
   const isBudget = /budget|cheap|affordable|under \$|pantry|canned|frugal/i.test(keyword);
-  const isOneP = /one.pan|one.pot|sheet.pan|skillet|single.pan/i.test(keyword + rawTitle);
-  const isQuick = Number.isFinite(totalMins) && totalMins <= 25;
+  const isOneP   = /one.pan|one.pot|sheet.pan|skillet|single.pan/i.test(keyword + rawTitle);
+  const isQuick  = Number.isFinite(totalMins) && totalMins <= 25;
 
-  // Hash-based variant for visual freshness across different recipes
+  // Deterministic theme index (0/1/2) shared with pinterest_image.py
+  // so the copy style always matches the visual/font theme
   const slugHash = rawTitle.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0);
-  const variant  = Math.abs(slugHash) % 8;
+  const themeIdx = Math.abs(slugHash) % 3;
 
   let headline;
 
-  // Specific, number-driven hooks — research shows these get highest save rates
-  if (variant === 0 && minsStr) {
-    headline = `${minsStr}-Minute ${cleanTitle}`;
-  } else if (variant === 1 && ingStr) {
-    headline = `${ingStr} Ingredients: ${cleanTitle}`;
-  } else if (variant === 2 && isOneP) {
-    headline = `One Pan ${cleanTitle} — Ready Fast`;
-  } else if (variant === 3 && isHighProtein && minsStr) {
-    headline = `High-Protein ${cleanTitle} in ${minsStr} Minutes`;
-  } else if (variant === 4 && isBudget && minsStr) {
-    headline = `${minsStr}-Minute ${cleanTitle} Under $10`;
-  } else if (variant === 5 && stepsStr) {
-    headline = `${stepsStr} Steps to the Best ${cleanTitle}`;
-  } else if (variant === 6 && isQuick) {
-    headline = `The ${cleanTitle} That Saves Weeknight Dinner`;
-  } else {
-    // Fallback: concrete time or ingredient count, never vague
-    if (minsStr) {
+  if (themeIdx === 0) {
+    // ── Theme A: Warm Editorial (Georgia serif) ──────────────────────────
+    // Tone: warm, confident, magazine-style. Mixed case. Benefit-forward.
+    if (minsStr && isHighProtein) {
+      headline = `${minsStr}-Minute ${cleanTitle} That Actually Delivers`;
+    } else if (minsStr && isOneP) {
+      headline = `One-Pan ${cleanTitle} Ready in ${minsStr} Minutes`;
+    } else if (minsStr && cleanTitle.length <= 28) {
       headline = `${cleanTitle} — Done in ${minsStr} Minutes`;
+    } else if (isHighProtein) {
+      headline = `The High-Protein ${cleanTitle} Worth Bookmarking`;
+    } else if (minsStr) {
+      headline = `${cleanTitle} in ${minsStr} Minutes Flat`;
     } else if (ingStr) {
-      headline = `${ingStr}-Ingredient ${cleanTitle}`;
+      headline = `The ${ingStr}-Ingredient ${cleanTitle} You'll Make on Repeat`;
     } else {
-      headline = cleanTitle;
+      headline = `The ${cleanTitle} Worth Making Tonight`;
     }
+    if (headline.length > 58) headline = minsStr ? `${cleanTitle} — ${minsStr} Minutes` : cleanTitle;
+
+  } else if (themeIdx === 1) {
+    // ── Theme B: Bold Graphic (heavy sans, ALL-CAPS) ──────────────────────
+    // Tone: short, punchy, intense. Reads at a glance on mobile.
+    const up = cleanTitle.toUpperCase();
+    if (minsStr && isHighProtein) {
+      headline = `HIGH-PROTEIN ${up} IN ${minsStr} MIN`;
+    } else if (minsStr && isOneP) {
+      headline = `ONE PAN. ${minsStr} MINUTES. DONE.`;
+    } else if (minsStr && isQuick) {
+      headline = `${up} — ${minsStr} MIN`;
+    } else if (ingStr && isHighProtein) {
+      headline = `${ingStr}-INGREDIENT HIGH-PROTEIN ${up}`;
+    } else if (minsStr) {
+      headline = `${up} IN ${minsStr} MINUTES`;
+    } else if (ingStr) {
+      headline = `${ingStr} INGREDIENTS. ONE GREAT MEAL.`;
+    } else {
+      headline = `THE ONLY ${up} RECIPE YOU NEED`;
+    }
+    // Tighter cap — ALL-CAPS at large size fills width fast
+    if (headline.length > 42) headline = minsStr ? `${up} — ${minsStr} MIN` : up;
+    if (headline.length > 42) headline = up.slice(0, 38).trimEnd() + '...';
+
+  } else {
+    // ── Theme C: Lifestyle Blog (friendly sans) ───────────────────────────
+    // Tone: conversational "you" framing, curiosity, question-hook.
+    if (isQuick && minsStr) {
+      headline = `Need Dinner in ${minsStr} Minutes? Try This ${cleanTitle}.`;
+    } else if (isHighProtein && minsStr) {
+      headline = `Why This ${minsStr}-Min ${cleanTitle} Is on Constant Repeat`;
+    } else if (ingStr && parseInt(ingStr) <= 6) {
+      headline = `The ${ingStr}-Ingredient ${cleanTitle} Everyone's Saving`;
+    } else if (isOneP) {
+      headline = `One Pan, Zero Stress: ${cleanTitle}`;
+    } else if (minsStr) {
+      const mealWord = /cookie|cake|brownie|dessert|pie|muffin|waffle|pancake|drink|cocktail|smoothie/i.test(rawTitle + keyword)
+        ? 'Recipe'
+        : 'Dinner';
+      headline = `${cleanTitle} — ${mealWord} Done in ${minsStr} Minutes`;
+    } else {
+      headline = `Why Everyone's Making This ${cleanTitle} Right Now`;
+    }
+    if (headline.length > 62) headline = minsStr ? `${cleanTitle} in ${minsStr} Minutes` : cleanTitle;
   }
 
-  // Keep under ~52 chars so 88px font fits 2 lines max
-  if (headline.length > 54) {
-    headline = minsStr ? `${minsStr}-Minute ${cleanTitle}` : cleanTitle;
-  }
-  if (headline.length > 54) headline = cleanTitle;
+  if (headline.length > 62) headline = cleanTitle;
 
-  // Badge pills — prioritise specificity over vagueness
+  // Badge pills — specific over vague
   const badges = [];
   if (Number.isFinite(totalMins) && totalMins > 0) badges.push(`${totalMins} MIN`);
   if (Number.isFinite(servings)  && servings  > 0) badges.push(`SERVES ${servings}`);
 
-  // Dietary / benefit callout — more specific than "BUDGET-FRIENDLY"
   if (isHighProtein) {
     badges.push('HIGH-PROTEIN');
   } else if (category === 'dessert') {
@@ -2598,15 +2632,13 @@ function buildPinterestOverlayCopy(recipe) {
     badges.push('WEEKNIGHT EASY');
   }
 
-  // Ingredient count pill — only show when it signals ease (≤8)
-  if (ingStr && badges.length < 4) badges.push(`${ingStr} INGREDIENTS`);
+  if (ingStr && badges.length < 4) badges.push(`${ingStr} INGR`);
 
-  // Subtitle line: cuisine + brand
   const sub = cuisine && cuisine.toLowerCase() !== 'american'
     ? `${cuisine} · ImprovOven.com`
     : 'Budget Cooking · ImprovOven.com';
 
-  return { headline, badges, subtitle: sub };
+  return { headline, badges, subtitle: sub, themeIdx };
 }
 
 // ---------------------------------------------------------------------------
@@ -2616,14 +2648,14 @@ function buildPinterestOverlayCopy(recipe) {
 // ---------------------------------------------------------------------------
 async function makePinterestImage(heroPath, recipe, outputPath) {
   const { spawnSync } = require('child_process');
-  const { headline, badges, subtitle } = buildPinterestOverlayCopy(recipe);
+  const { headline, badges, subtitle, themeIdx } = buildPinterestOverlayCopy(recipe);
   const badgeStr = badges.join('|');
   const scriptPath = path.join(__dirname, 'pinterest_image.py');
 
   try {
     const run = spawnSync(
       'python3',
-      [scriptPath, heroPath, headline, badgeStr, subtitle, outputPath],
+      [scriptPath, heroPath, headline, badgeStr, subtitle, outputPath, String(themeIdx)],
       { stdio: 'pipe' },
     );
     if (run.status !== 0) {
