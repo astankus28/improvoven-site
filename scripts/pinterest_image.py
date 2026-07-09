@@ -1,15 +1,34 @@
 #!/usr/bin/env python3
 """
-pinterest_image.py
+pinterest_image.py  —  ImprovOven Pinterest pin generator
 
-Generates a 1000×1500 Pinterest pin from a recipe's hero image.
-Uses saliency-based smart-crop so the food subject is always centred —
-even when it sits at the bottom/corner of the original photo.
+Layout (1000 × 1500):
+  ┌────────────────────────────────┐
+  │  Brand tag                     │  ← small, top of header
+  │                                │
+  │  Hook headline (1–2 lines)     │  ← large bold text
+  │                                │
+  │  [30 MIN]  [SERVES 4]  [...]   │  ← badge pills
+  │                                │
+  │  Cuisine · ImprovOven.com      │  ← small subtitle
+  ├━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┤  ← 10px accent stripe
+  │                                │
+  │       food photo (fills        │
+  │       the bottom ~72%)         │
+  │                                │
+  └────────────────────────────────┘
+
+Research-backed design decisions:
+  • Text at TOP, photo at bottom — matches top-performing food pins
+  • Light header background + dark text — outperforms dark/white on mobile
+  • 3 rotating style themes (by slug hash) — satisfies Pinterest's 2026
+    "freshness" requirement (different font/colour scheme = new content)
+  • Headline font 80–90pt, readable at 200px thumbnail width
+  • Specific hook copy with numbers, dietary callouts, time claims
 
 Usage:
-  python3 scripts/pinterest_image.py <hero_path> <headline> <badge_str> <subtitle> <output_path>
-
-  badge_str: pipe-separated pill labels, e.g. "30 MIN|SERVES 4|BUDGET-FRIENDLY"
+  python3 scripts/pinterest_image.py <hero> <headline> <badge_str> <subtitle> <output>
+  badge_str: pipe-separated, e.g. "30 MIN|SERVES 4|HIGH-PROTEIN"
 """
 
 import sys
@@ -24,114 +43,69 @@ output_path = sys.argv[5]
 
 badges = [b.strip() for b in badge_str.split('|') if b.strip()]
 
+# ── Canvas ────────────────────────────────────────────────────────────────────
+W, H         = 1000, 1500
+HEADER_H     = 430   # header block height (top ~28.7%)
+STRIPE_H     = 10    # accent stripe between header and photo
+PHOTO_Y      = HEADER_H + STRIPE_H   # = 440
+PHOTO_H      = H - PHOTO_Y           # = 1060
+MARGIN       = 52
 
-# ── Saliency-based smart crop ─────────────────────────────────────────────────
-def smart_crop_rect(img):
-    """
-    Returns (left, top, crop_w, crop_h) of the most visually interesting
-    2:3 rectangle inside img.  Falls back to centre-crop if analysis fails.
+# ── 3 rotating style themes ───────────────────────────────────────────────────
+# Rotated by hash of the headline so each recipe gets a consistent style
+# but neighbouring recipes in a board look visually distinct.
+THEMES = [
+    {   # A — Warm Editorial: cream header, dark brown text, amber accent
+        'header_bg':  (250, 246, 238),
+        'text':       (30, 16, 8),
+        'accent':     (220, 155, 40),
+        'pill_bg':    (220, 155, 40),
+        'pill_text':  (30, 16, 8),
+        'brand':      (140, 100, 45),
+        'serif':      True,
+        'hl_size':    84,
+    },
+    {   # B — Fresh Green: white header, deep-green text, green accent
+        'header_bg':  (255, 255, 255),
+        'text':       (20, 58, 40),
+        'accent':     (52, 168, 110),
+        'pill_bg':    (20, 58, 40),
+        'pill_text':  (255, 255, 255),
+        'brand':      (80, 130, 100),
+        'serif':      False,
+        'hl_size':    88,
+    },
+    {   # C — Modern Linen: warm off-white, near-black text, burnt-amber accent
+        'header_bg':  (243, 238, 228),
+        'text':       (25, 23, 20),
+        'accent':     (196, 112, 20),
+        'pill_bg':    (196, 112, 20),
+        'pill_text':  (255, 255, 255),
+        'brand':      (110, 90, 60),
+        'serif':      True,
+        'hl_size':    82,
+    },
+]
 
-    New recipe images are generated at 2:3 natively by Replicate, so for
-    those the saliency analysis is skipped (scale ≈ 1, no crop loss).
-    """
-    iw, ih = img.size
-    out_w, out_h = 1000, 1500
-    scale = min(iw / out_w, ih / out_h)
-    cw = max(1, int(out_w * scale))
-    ch = max(1, int(out_h * scale))
+# Pick theme deterministically from headline text
+_hash = sum(ord(c) * (i + 1) for i, c in enumerate(headline)) % len(THEMES)
+T = THEMES[_hash]
 
-    # If the image is already very close to 2:3 (within 5%), skip saliency
-    # and just do a simple centre-crop — nothing meaningful to gain.
-    actual_ratio = iw / ih
-    target_ratio = out_w / out_h  # 0.6667
-    if abs(actual_ratio - target_ratio) / target_ratio < 0.05:
-        left = max(0, (iw - cw) // 2)
-        top  = max(0, (ih - ch) // 2)
-        return left, top, cw, ch
-
-    # Analyse a tiny thumbnail for speed
-    aw = 60
-    ah = max(1, int(ih * aw / iw))
-    small = img.convert('L').resize((aw, ah), Image.LANCZOS)
-    sw, sh = small.size
-    px = list(small.getdata())
-
-    def gp(x, y):
-        return px[max(0, min(y, sh - 1)) * sw + max(0, min(x, sw - 1))]
-
-    # Laplacian-like edge density per pixel → saliency
-    sal = []
-    for y in range(sh):
-        row = []
-        for x in range(sw):
-            lap = abs(4 * gp(x, y)
-                      - gp(x - 1, y) - gp(x + 1, y)
-                      - gp(x, y - 1) - gp(x, y + 1))
-            row.append(float(lap))
-        sal.append(row)
-
-    total = sum(v for row in sal for v in row) or 1.0
-
-    # Centre of mass (scaled back to original image coords)
-    cy_s = sum(y * sum(sal[y]) for y in range(sh)) / total
-    cx_s = sum(x * sal[y][x] for y in range(sh) for x in range(sw)) / total
-
-    cx = int(cx_s * iw / sw)
-    cy = int(cy_s * ih / sh)
-
-    # Clamp so the crop stays inside the image
-    left = max(0, min(cx - cw // 2, iw - cw))
-    top  = max(0, min(cy - ch // 2, ih - ch))
-
-    return left, top, cw, ch
-
-
-# ── 1. Load + smart-crop to 2:3 ──────────────────────────────────────────────
-img = Image.open(hero_path).convert('RGB')
-left, top, cw, ch = smart_crop_rect(img)
-img = img.crop((left, top, left + cw, top + ch))
-img = img.resize((1000, 1500), Image.LANCZOS)
-
-
-# ── 2. Dark bottom card ───────────────────────────────────────────────────────
-CARD_Y     = 920
-CARD_COLOR = (22, 27, 34)
-ACCENT     = (255, 183, 77)    # warm amber — pills + brand
-TEXT_PRI   = (255, 255, 255)   # white headline
-TEXT_SEC   = (200, 205, 210)   # light-grey subtitle / save hint
-PILL_TXT   = (22, 27, 34)      # dark text on amber pill
-
-card = Image.new('RGBA', (1000, 1500 - CARD_Y), CARD_COLOR + (255,))
-img  = img.convert('RGBA')
-
-# Feathered gradient above card so photo blends in cleanly
-grad_h   = 160
-gradient = Image.new('RGBA', (1000, grad_h), (0, 0, 0, 0))
-gd       = ImageDraw.Draw(gradient)
-for i in range(grad_h):
-    alpha = int((i / grad_h) ** 1.4 * 240)
-    gd.rectangle([(0, i), (1000, i + 1)], fill=CARD_COLOR + (alpha,))
-
-img.paste(gradient, (0, CARD_Y - grad_h), gradient)
-img.paste(card, (0, CARD_Y), card)
-img  = img.convert('RGB')
-draw = ImageDraw.Draw(img)
-
-
-# ── 3. Fonts (macOS + Linux paths) ──────────────────────────────────────────
+# ── Font loading ──────────────────────────────────────────────────────────────
 SERIF_BOLD = [
     '/System/Library/Fonts/Supplemental/Georgia Bold.ttf',
     '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf',
     '/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf',
-    '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf',
+    '/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf',
 ]
-SANS_BOLD  = [
+SANS_BOLD = [
     '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
+    '/System/Library/Fonts/Supplemental/Trebuchet MS Bold.ttf',
     '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
     '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
-    '/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf',
+    '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf',
 ]
-SANS_REG   = [
+SANS_REG = [
     '/System/Library/Fonts/Supplemental/Arial.ttf',
     '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
     '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
@@ -143,107 +117,143 @@ def load_font(paths, size):
             return ImageFont.truetype(p, size)
         except Exception:
             pass
-    print(f"⚠ No font found at any of {paths} — falling back to default (text may be tiny)")
+    print(f'⚠ Font fallback for size {size} (none of {[p.split("/")[-1] for p in paths]} found)')
     try:
         return ImageFont.load_default(size=size)
     except TypeError:
         return ImageFont.load_default()
 
-font_headline = load_font(SERIF_BOLD, 88)
-font_pill     = load_font(SANS_BOLD,  30)
-font_sub      = load_font(SANS_REG,   36)
-font_brand    = load_font(SANS_BOLD,  32)
+HEADLINE_PATHS = SERIF_BOLD if T['serif'] else SANS_BOLD
+font_hl    = load_font(HEADLINE_PATHS, T['hl_size'])
+font_pill  = load_font(SANS_BOLD, 30)
+font_sub   = load_font(SANS_REG, 34)
+font_brand = load_font(SANS_BOLD, 26)
 
+# ── Photo: scale + smart-crop to fill photo area ──────────────────────────────
+def find_saliency_center(img, out_w, out_h):
+    """Laplacian edge density → centre of visual mass."""
+    aw = 50
+    ah = max(1, int(img.height * aw / img.width))
+    small = img.convert('L').resize((aw, ah), Image.LANCZOS)
+    px = list(small.getdata())
 
-# ── 4. Badge pills ────────────────────────────────────────────────────────────
-PILL_H   = 46
-PILL_PAD = 22
-PILL_R   = 10
-PILL_GAP = 14
-MARGIN   = 52
+    def gp(x, y):
+        return px[max(0, min(y, ah-1)) * aw + max(0, min(x, aw-1))]
 
-pill_y   = CARD_Y + 42
-x_cursor = MARGIN
-pill_data = []
-MAX_PILL_X = 1000 - MARGIN  # don't let pills run off the right edge
-for badge in badges[:4]:
-    bb = draw.textbbox((0, 0), badge, font=font_pill)
-    tw = bb[2] - bb[0]
-    pw = tw + PILL_PAD * 2
-    if x_cursor + pw > MAX_PILL_X:
-        break  # pill would overflow — skip the rest
-    pill_data.append((x_cursor, badge, tw, pw))
-    x_cursor += pw + PILL_GAP
+    sal = []
+    for y in range(ah):
+        row = []
+        for x in range(aw):
+            lap = abs(4*gp(x,y) - gp(x-1,y) - gp(x+1,y) - gp(x,y-1) - gp(x,y+1))
+            row.append(float(lap))
+        sal.append(row)
 
-for (px, badge, tw, pw) in pill_data:
-    draw.rounded_rectangle(
-        [(px, pill_y), (px + pw, pill_y + PILL_H)],
-        radius=PILL_R, fill=ACCENT
-    )
-    tx = px + PILL_PAD
-    bh = draw.textbbox((0, 0), badge, font=font_pill)[3]
-    ty = pill_y + (PILL_H - bh) // 2
-    draw.text((tx, ty), badge, fill=PILL_TXT, font=font_pill)
+    total = sum(v for r in sal for v in r) or 1.0
+    cy_s = sum(y * sum(sal[y]) for y in range(ah)) / total
+    cx_s = sum(x * sal[y][x] for y in range(ah) for x in range(aw)) / total
 
+    scale_x = img.width  / aw
+    scale_y = img.height / ah
+    cx = int(cx_s * scale_x)
+    cy = int(cy_s * scale_y)
 
-# ── 5. Headline ───────────────────────────────────────────────────────────────
-MAX_W  = 920
-HL_Y   = pill_y + PILL_H + 28
-HL_LH  = 96
+    left = max(0, min(cx - out_w // 2, img.width  - out_w))
+    top  = max(0, min(cy - out_h // 2, img.height - out_h))
+    return left, top
 
-def wrap_text(text, font, max_w):
+raw = Image.open(hero_path).convert('RGB')
+iw, ih = raw.size
+scale = max(W / iw, PHOTO_H / ih)
+sw = max(1, int(iw * scale))
+sh = max(1, int(ih * scale))
+scaled = raw.resize((sw, sh), Image.LANCZOS)
+
+if sw == W and sh == PHOTO_H:
+    photo = scaled
+else:
+    left, top = find_saliency_center(scaled, W, PHOTO_H)
+    photo = scaled.crop((left, top, left + W, top + PHOTO_H))
+
+# ── Canvas assembly ───────────────────────────────────────────────────────────
+canvas = Image.new('RGB', (W, H), T['header_bg'])
+canvas.paste(photo, (0, PHOTO_Y))
+
+# Accent stripe
+stripe = Image.new('RGB', (W, STRIPE_H), T['accent'])
+canvas.paste(stripe, (0, HEADER_H))
+
+draw = ImageDraw.Draw(canvas)
+
+# ── Header content ────────────────────────────────────────────────────────────
+
+# 1. Brand tag (top-left)
+brand_text = 'IMPROV OVEN  ·  ImprovOven.com'
+draw.text((MARGIN, 22), brand_text, fill=T['brand'], font=font_brand)
+
+# 2. Headline (wraps to max 2 lines; shrink font if needed)
+MAX_HL_W   = W - MARGIN * 2
+HL_LINE_H  = int(T['hl_size'] * 1.15)
+HL_Y_START = 72
+
+def wrap(text, font, max_w):
     words = text.split()
     lines, cur = [], []
-    for word in words:
-        trial = ' '.join(cur + [word])
-        if draw.textbbox((0, 0), trial, font=font)[2] > max_w and cur:
-            lines.append(' '.join(cur))
-            cur = [word]
+    for w in words:
+        trial = ' '.join(cur + [w])
+        if draw.textbbox((0,0), trial, font=font)[2] > max_w and cur:
+            lines.append(' '.join(cur)); cur = [w]
         else:
-            cur.append(word)
+            cur.append(w)
     if cur:
         lines.append(' '.join(cur))
     return lines
 
-# Wrap headline, but if it exceeds 3 lines reduce font size rather than
-# truncating mid-sentence (a cut-off headline looks broken on the pin).
-hl_lines = wrap_text(headline, font_headline, MAX_W)
-if len(hl_lines) > 3:
-    # Try a smaller font first
-    font_headline_sm = load_font(SERIF_BOLD, 72)
-    hl_lines_sm = wrap_text(headline, font_headline_sm, MAX_W)
-    if len(hl_lines_sm) <= 3:
-        font_headline = font_headline_sm
-        hl_lines = hl_lines_sm
-        HL_LH = 80
+hl_lines = wrap(headline, font_hl, MAX_HL_W)
+if len(hl_lines) > 2:
+    # Try 15% smaller before hard-wrapping to 2 lines
+    font_hl_sm = load_font(HEADLINE_PATHS, int(T['hl_size'] * 0.84))
+    hl_sm = wrap(headline, font_hl_sm, MAX_HL_W)
+    if len(hl_sm) <= 2:
+        font_hl   = font_hl_sm
+        hl_lines  = hl_sm
+        HL_LINE_H = int(T['hl_size'] * 0.84 * 1.15)
     else:
-        # Still too long — keep only first 3 lines but don't break a phrase
-        # mid-word; just accept the truncation at a word boundary
-        hl_lines = hl_lines[:3]
-y = HL_Y
+        hl_lines = hl_lines[:2]
+
+y = HL_Y_START
 for line in hl_lines:
-    # Soft shadow for legibility
-    draw.text((MARGIN + 2, y + 2), line, fill=(0, 0, 0, 160), font=font_headline)
-    draw.text((MARGIN, y),         line, fill=TEXT_PRI,        font=font_headline)
-    y += HL_LH
+    draw.text((MARGIN, y), line, fill=T['text'], font=font_hl)
+    y += HL_LINE_H
 
+# 3. Badge pills
+PILL_H   = 44
+PILL_PAD = 20
+PILL_R   = 8
+PILL_GAP = 12
+PILLS_Y  = y + 28
+MAX_PILL_X = W - MARGIN
 
-# ── 6. Subtitle ───────────────────────────────────────────────────────────────
-sub_y = y + 20
-draw.text((MARGIN, sub_y), subtitle, fill=TEXT_SEC, font=font_sub)
+x = MARGIN
+pill_data = []
+for badge in badges[:4]:
+    bb = draw.textbbox((0,0), badge, font=font_pill)
+    tw = bb[2] - bb[0]
+    pw = tw + PILL_PAD * 2
+    if x + pw > MAX_PILL_X:
+        break
+    pill_data.append((x, badge, tw, pw))
+    x += pw + PILL_GAP
 
+for (px, badge, tw, pw) in pill_data:
+    draw.rounded_rectangle([(px, PILLS_Y), (px+pw, PILLS_Y+PILL_H)],
+                            radius=PILL_R, fill=T['pill_bg'])
+    bh = draw.textbbox((0,0), badge, font=font_pill)[3]
+    ty = PILLS_Y + (PILL_H - bh) // 2
+    draw.text((px + PILL_PAD, ty), badge, fill=T['pill_text'], font=font_pill)
 
-# ── 7. Divider + brand foot ───────────────────────────────────────────────────
-div_y   = sub_y + 56
-draw.rectangle([(MARGIN, div_y), (1000 - MARGIN, div_y + 2)], fill=(60, 70, 80))
+# 4. Subtitle line
+sub_y = PILLS_Y + PILL_H + 18
+draw.text((MARGIN, sub_y), subtitle, fill=T['brand'], font=font_sub)
 
-brand_y   = div_y + 16
-brand_txt = 'ImprovOven.com'
-save_txt  = 'Save this recipe \u2193'
-draw.text((MARGIN, brand_y), brand_txt, fill=ACCENT, font=font_brand)
-save_w = draw.textbbox((0, 0), save_txt, font=font_brand)[2]
-draw.text((1000 - MARGIN - save_w, brand_y), save_txt, fill=TEXT_SEC, font=font_brand)
-
-
-# ── 8. Save ───────────────────────────────────────────────────────────────────
-img.save(output_path, 'JPEG', quality=93)
+# ── Save ──────────────────────────────────────────────────────────────────────
+canvas.save(output_path, 'JPEG', quality=93)

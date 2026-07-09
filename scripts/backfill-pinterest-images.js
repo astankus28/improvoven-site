@@ -23,63 +23,90 @@ const { spawnSync } = require('child_process');
 // Inline the overlay functions from generate-recipe.js so this script
 // is self-contained and can run standalone.
 
-// ── Copy of buildPinterestOverlayCopy ────────────────────────────────────
+// ── Copy of buildPinterestOverlayCopy (keep in sync with generate-recipe.js) ──
 function buildPinterestOverlayCopy(recipe) {
   const rawTitle = String((recipe && recipe.title) || (recipe && recipe.targetKeyword) || 'Easy Weeknight Recipe');
   const totalMins = parseInt(String((recipe && recipe.totalTime) || '').replace(/\D/g, ''), 10);
   const servings = parseInt(String((recipe && recipe.servings) || '').replace(/\D/g, ''), 10);
   const ingredients = Array.isArray(recipe && recipe.ingredients) ? recipe.ingredients.length : 0;
   const category = String((recipe && recipe.category) || '').toLowerCase();
-  const keyword = String((recipe && recipe.targetKeyword) || '').toLowerCase();
+  const keyword = String((recipe && recipe.targetKeyword) || (recipe && recipe.keyword) || '').toLowerCase();
+  const cuisine = String((recipe && recipe.cuisine) || '').trim();
+  const instructions = Array.isArray(recipe && recipe.instructions) ? recipe.instructions.length : 0;
 
   const cleanTitle = rawTitle
     .replace(/\([^)]*\)/g, ' ')
-    .replace(/\b(easy|simple|homemade|authentic|best|perfect|recipe)\b/gi, ' ')
+    .replace(/\b(easy|simple|homemade|authentic|best|perfect|classic|quick|budget)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
-  const minsStr = Number.isFinite(totalMins) && totalMins > 0 ? `${totalMins}` : null;
-  const ingStr = ingredients >= 3 && ingredients <= 7 ? `${ingredients}` : null;
+  const minsStr  = Number.isFinite(totalMins)    && totalMins    > 0 ? `${totalMins}`    : null;
+  const ingStr   = ingredients >= 3 && ingredients <= 8 ? `${ingredients}` : null;
+  const stepsStr = instructions >= 3 && instructions <= 7 ? `${instructions}` : null;
+
+  const isHighProtein = /chicken|beef|turkey|pork|fish|shrimp|salmon|tuna|egg|bean|lentil/i.test(rawTitle + keyword);
+  const isBudget = /budget|cheap|affordable|under \$|pantry|canned|frugal/i.test(keyword);
+  const isOneP   = /one.pan|one.pot|sheet.pan|skillet|single.pan/i.test(keyword + rawTitle);
+  const isQuick  = Number.isFinite(totalMins) && totalMins <= 25;
 
   const slugHash = rawTitle.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0);
-  const hookVariant = Math.abs(slugHash) % 6;
+  const variant  = Math.abs(slugHash) % 8;
 
   let headline;
-  if (hookVariant === 0 && minsStr) {
-    headline = `Ready in ${minsStr} Minutes — ${cleanTitle}`;
-  } else if (hookVariant === 1 && ingStr) {
-    headline = `Only ${ingStr} Ingredients: ${cleanTitle}`;
-  } else if (hookVariant === 2) {
-    headline = `The Budget ${cleanTitle} You'll Make Every Week`;
-  } else if (hookVariant === 3 && minsStr && parseInt(minsStr) <= 25) {
-    headline = `${minsStr}-Minute ${cleanTitle} That Tastes Like a Restaurant`;
-  } else if (hookVariant === 4) {
-    headline = `This ${cleanTitle} Costs Almost Nothing`;
+  if (variant === 0 && minsStr) {
+    headline = `${minsStr}-Minute ${cleanTitle}`;
+  } else if (variant === 1 && ingStr) {
+    headline = `${ingStr} Ingredients: ${cleanTitle}`;
+  } else if (variant === 2 && isOneP) {
+    headline = `One Pan ${cleanTitle} — Ready Fast`;
+  } else if (variant === 3 && isHighProtein && minsStr) {
+    headline = `High-Protein ${cleanTitle} in ${minsStr} Minutes`;
+  } else if (variant === 4 && isBudget && minsStr) {
+    headline = `${minsStr}-Minute ${cleanTitle} Under $10`;
+  } else if (variant === 5 && stepsStr) {
+    headline = `${stepsStr} Steps to the Best ${cleanTitle}`;
+  } else if (variant === 6 && isQuick) {
+    headline = `The ${cleanTitle} That Saves Weeknight Dinner`;
   } else {
-    headline = cleanTitle.length <= 30
-      ? `You Need This ${cleanTitle} in Your Life`
-      : `You Need This ${cleanTitle}`;
+    if (minsStr) {
+      headline = `${cleanTitle} — Done in ${minsStr} Minutes`;
+    } else if (ingStr) {
+      headline = `${ingStr}-Ingredient ${cleanTitle}`;
+    } else {
+      headline = cleanTitle;
+    }
   }
-  if (headline.length > 62) headline = cleanTitle;
+
+  if (headline.length > 54) {
+    headline = minsStr ? `${minsStr}-Minute ${cleanTitle}` : cleanTitle;
+  }
+  if (headline.length > 54) headline = cleanTitle;
 
   const badges = [];
   if (Number.isFinite(totalMins) && totalMins > 0) badges.push(`${totalMins} MIN`);
-  if (Number.isFinite(servings) && servings > 0) badges.push(`SERVES ${servings}`);
-  if (ingredients > 0) badges.push(`${ingredients} INGREDIENTS`);
-  if (keyword.includes('budget') || keyword.includes('cheap') || keyword.includes('affordable')) {
-    badges.push('BUDGET-FRIENDLY');
+  if (Number.isFinite(servings)  && servings  > 0) badges.push(`SERVES ${servings}`);
+
+  if (isHighProtein) {
+    badges.push('HIGH-PROTEIN');
   } else if (category === 'dessert') {
-    badges.push('NO FUSS DESSERT');
+    badges.push('NO-BAKE DESSERT');
+  } else if (isOneP) {
+    badges.push('ONE PAN');
+  } else if (isBudget) {
+    badges.push('BUDGET MEAL');
+  } else if (category === 'breakfast') {
+    badges.push('BREAKFAST WIN');
   } else {
-    badges.push('EASY WEEKNIGHT');
+    badges.push('WEEKNIGHT EASY');
   }
 
-  const cuisine = String((recipe && recipe.cuisine) || '').trim();
-  const subtitle = cuisine && cuisine.toLowerCase() !== 'american'
-    ? `${cuisine} · Improv Oven`
-    : 'Budget Cooking · Improv Oven';
+  if (ingStr && badges.length < 4) badges.push(`${ingStr} INGREDIENTS`);
 
-  return { headline, badges, subtitle };
+  const sub = cuisine && cuisine.toLowerCase() !== 'american'
+    ? `${cuisine} · ImprovOven.com`
+    : 'Budget Cooking · ImprovOven.com';
+
+  return { headline, badges, subtitle: sub };
 }
 
 // Delegate to the canonical Python script (saliency-based smart crop)

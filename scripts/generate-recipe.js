@@ -2519,67 +2519,94 @@ function buildPinterestOverlayCopy(recipe) {
   const servings = parseInt(String((recipe && recipe.servings) || '').replace(/\D/g, ''), 10);
   const ingredients = Array.isArray(recipe && recipe.ingredients) ? recipe.ingredients.length : 0;
   const category = String((recipe && recipe.category) || '').toLowerCase();
-  const keyword = String((recipe && recipe.targetKeyword) || '').toLowerCase();
+  const keyword = String((recipe && recipe.targetKeyword) || (recipe && recipe.keyword) || '').toLowerCase();
+  const cuisine = String((recipe && recipe.cuisine) || '').trim();
+  const instructions = Array.isArray(recipe && recipe.instructions) ? recipe.instructions.length : 0;
 
-  // Clean title down to its core noun phrase
+  // Core noun phrase — strip adjectives so the headline hook can lead
   const cleanTitle = rawTitle
     .replace(/\([^)]*\)/g, ' ')
-    .replace(/\b(easy|simple|homemade|authentic|best|perfect|recipe)\b/gi, ' ')
+    .replace(/\b(easy|simple|homemade|authentic|best|perfect|classic|quick|budget)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
-  // Pick a hook style based on what data is available
-  // Goal: curiosity-gap or benefit-first framing that stops the scroll
-  let headline;
   const minsStr = Number.isFinite(totalMins) && totalMins > 0 ? `${totalMins}` : null;
-  const ingStr = ingredients >= 3 && ingredients <= 7 ? `${ingredients}` : null;
+  const ingStr  = ingredients >= 3 && ingredients <= 8 ? `${ingredients}` : null;
+  const stepsStr = instructions >= 3 && instructions <= 7 ? `${instructions}` : null;
 
-  // Curiosity/hook patterns (cycle through based on slug hash for variety)
+  // Detect recipe characteristics for more specific hooks
+  const isHighProtein = /chicken|beef|turkey|pork|fish|shrimp|salmon|tuna|egg|bean|lentil/i.test(rawTitle + keyword);
+  const isBudget = /budget|cheap|affordable|under \$|pantry|canned|frugal/i.test(keyword);
+  const isOneP = /one.pan|one.pot|sheet.pan|skillet|single.pan/i.test(keyword + rawTitle);
+  const isQuick = Number.isFinite(totalMins) && totalMins <= 25;
+
+  // Hash-based variant for visual freshness across different recipes
   const slugHash = rawTitle.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0);
-  const hookVariant = Math.abs(slugHash) % 6;
+  const variant  = Math.abs(slugHash) % 8;
 
-  if (hookVariant === 0 && minsStr) {
-    headline = `Ready in ${minsStr} Minutes — ${cleanTitle}`;
-  } else if (hookVariant === 1 && ingStr) {
-    headline = `Only ${ingStr} Ingredients: ${cleanTitle}`;
-  } else if (hookVariant === 2) {
-    headline = `The Budget ${cleanTitle} You'll Make Every Week`;
-  } else if (hookVariant === 3 && minsStr && parseInt(minsStr) <= 25) {
-    headline = `${minsStr}-Minute ${cleanTitle} That Tastes Like a Restaurant`;
-  } else if (hookVariant === 4) {
-    headline = `This ${cleanTitle} Costs Almost Nothing`;
+  let headline;
+
+  // Specific, number-driven hooks — research shows these get highest save rates
+  if (variant === 0 && minsStr) {
+    headline = `${minsStr}-Minute ${cleanTitle}`;
+  } else if (variant === 1 && ingStr) {
+    headline = `${ingStr} Ingredients: ${cleanTitle}`;
+  } else if (variant === 2 && isOneP) {
+    headline = `One Pan ${cleanTitle} — Ready Fast`;
+  } else if (variant === 3 && isHighProtein && minsStr) {
+    headline = `High-Protein ${cleanTitle} in ${minsStr} Minutes`;
+  } else if (variant === 4 && isBudget && minsStr) {
+    headline = `${minsStr}-Minute ${cleanTitle} Under $10`;
+  } else if (variant === 5 && stepsStr) {
+    headline = `${stepsStr} Steps to the Best ${cleanTitle}`;
+  } else if (variant === 6 && isQuick) {
+    headline = `The ${cleanTitle} That Saves Weeknight Dinner`;
   } else {
-    // Keep it short enough to fit 3 lines at large font
-    headline = cleanTitle.length <= 30
-      ? `You Need This ${cleanTitle} in Your Life`
-      : `You Need This ${cleanTitle}`;
+    // Fallback: concrete time or ingredient count, never vague
+    if (minsStr) {
+      headline = `${cleanTitle} — Done in ${minsStr} Minutes`;
+    } else if (ingStr) {
+      headline = `${ingStr}-Ingredient ${cleanTitle}`;
+    } else {
+      headline = cleanTitle;
+    }
   }
 
-  // Cap headline at ~62 chars — beyond this the 88px font needs >3 lines
-  if (headline.length > 62) {
-    headline = cleanTitle;
+  // Keep under ~52 chars so 88px font fits 2 lines max
+  if (headline.length > 54) {
+    headline = minsStr ? `${minsStr}-Minute ${cleanTitle}` : cleanTitle;
   }
+  if (headline.length > 54) headline = cleanTitle;
 
-  // Badge pills row — short stat chips displayed as visual pills on the image
+  // Badge pills — prioritise specificity over vagueness
   const badges = [];
   if (Number.isFinite(totalMins) && totalMins > 0) badges.push(`${totalMins} MIN`);
-  if (Number.isFinite(servings) && servings > 0) badges.push(`SERVES ${servings}`);
-  if (ingredients > 0) badges.push(`${ingredients} INGREDIENTS`);
-  if (keyword.includes('budget') || keyword.includes('cheap') || keyword.includes('affordable')) {
-    badges.push('BUDGET-FRIENDLY');
+  if (Number.isFinite(servings)  && servings  > 0) badges.push(`SERVES ${servings}`);
+
+  // Dietary / benefit callout — more specific than "BUDGET-FRIENDLY"
+  if (isHighProtein) {
+    badges.push('HIGH-PROTEIN');
   } else if (category === 'dessert') {
-    badges.push('NO FUSS DESSERT');
+    badges.push('NO-BAKE DESSERT');
+  } else if (isOneP) {
+    badges.push('ONE PAN');
+  } else if (isBudget) {
+    badges.push('BUDGET MEAL');
+  } else if (category === 'breakfast') {
+    badges.push('BREAKFAST WIN');
   } else {
-    badges.push('EASY WEEKNIGHT');
+    badges.push('WEEKNIGHT EASY');
   }
 
-  // Bottom-card subtitle: category/cuisine context
-  const cuisine = String((recipe && recipe.cuisine) || '').trim();
-  let subtitle = cuisine && cuisine.toLowerCase() !== 'american'
-    ? `${cuisine} · Improv Oven`
-    : 'Budget Cooking · Improv Oven';
+  // Ingredient count pill — only show when it signals ease (≤8)
+  if (ingStr && badges.length < 4) badges.push(`${ingStr} INGREDIENTS`);
 
-  return { headline, badges, subtitle };
+  // Subtitle line: cuisine + brand
+  const sub = cuisine && cuisine.toLowerCase() !== 'american'
+    ? `${cuisine} · ImprovOven.com`
+    : 'Budget Cooking · ImprovOven.com';
+
+  return { headline, badges, subtitle: sub };
 }
 
 // ---------------------------------------------------------------------------
