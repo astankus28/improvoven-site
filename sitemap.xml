@@ -151,7 +151,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+<<<<<<< Updated upstream
     <loc>https://www.improvoven.com/recipes/easy-vegetable-curry-recipe-healthy-creamy-and-ready-in-30-minutes/</loc>
+=======
+    <loc>https://www.improvoven.com/recipes/budget-miami-cuban-toast-recipe-crispy-buttery-and-ready-in-15-minutes/</loc>
+>>>>>>> Stashed changes
     <lastmod>2026-08-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
