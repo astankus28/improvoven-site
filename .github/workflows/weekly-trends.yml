@@ -8,7 +8,7 @@ on:
     inputs:
       inject_top:
         description: 'Number of top gap keywords to inject into priority queue'
-        default: '3'
+        default: '5'
         required: false
       days:
         description: 'Days to look back'
@@ -30,7 +30,7 @@ jobs:
 
       - name: Run trend research
         run: |
-          INJECT=${inject_top:-3}
+          INJECT=${inject_top:-5}
           DAYS=${days:-7}
           node scripts/research-trends.js --days=$DAYS --inject-top=$INJECT
         env:
