@@ -2019,10 +2019,28 @@ The "nutrition" values must be realistic per-serving estimates for THIS recipe (
 
 function downloadBinary(url, destPath) {
   return new Promise((resolve, reject) => {
+    const normalized = normalizeImageUrl(url);
+    if (!normalized) {
+      reject(new Error(`Invalid URL: ${JSON.stringify(url)?.slice(0, 120)}`));
+      return;
+    }
     const follow = (u) => {
-      const urlObj = new URL(u);
-      const req = https.request({ hostname: urlObj.hostname, path: urlObj.pathname + urlObj.search, method: 'GET' }, (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302) { return follow(res.headers.location); }
+      let urlObj;
+      try {
+        urlObj = new URL(u);
+      } catch (e) {
+        reject(new Error(`Invalid URL: ${String(u).slice(0, 120)}`));
+        return;
+      }
+      const lib = urlObj.protocol === 'http:' ? require('http') : https;
+      const req = lib.request({ hostname: urlObj.hostname, path: urlObj.pathname + urlObj.search, method: 'GET' }, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          return follow(res.headers.location);
+        }
+        if (res.statusCode && res.statusCode >= 400) {
+          reject(new Error(`HTTP ${res.statusCode} downloading image`));
+          return;
+        }
         const chunks = [];
         res.on('data', d => chunks.push(d));
         res.on('end', () => { fs.writeFileSync(destPath, Buffer.concat(chunks)); resolve(destPath); });
@@ -2030,12 +2048,52 @@ function downloadBinary(url, destPath) {
       req.on('error', reject);
       req.end();
     };
-    follow(url);
+    follow(normalized);
   });
 }
 
+// Replicate output can be a URL string, array of strings, or objects with url/uri.
+function normalizeImageUrl(value) {
+  if (value == null) return null;
+  if (typeof value === 'string') {
+    const s = value.trim();
+    if (!s) return null;
+    if (/^https?:\/\//i.test(s)) return s;
+    if (s.startsWith('//')) return `https:${s}`;
+    return null;
+  }
+  if (typeof value === 'object') {
+    return normalizeImageUrl(value.url || value.uri || value.href || value.path);
+  }
+  return null;
+}
+
+function extractReplicateImageUrl(result) {
+  const out = result?.output;
+  if (out == null) return null;
+  if (Array.isArray(out)) {
+    for (const item of out) {
+      const u = normalizeImageUrl(item);
+      if (u) return u;
+    }
+    return null;
+  }
+  return normalizeImageUrl(out);
+}
+
+function saveDataUriImage(dataUri, destPath) {
+  const m = String(dataUri).match(/^data:(image\/[^;]+);base64,(.+)$/);
+  if (!m) return false;
+  fs.writeFileSync(destPath, Buffer.from(m[2], 'base64'));
+  return true;
+}
+
+async function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
 // One Replicate attempt: create a prediction and poll it to completion.
-// Returns the output image URL, or null if it didn't finish/produce output.
+// Returns the full prediction result object, or throws on hard failure.
 async function replicatePredictImage(prompt) {
   const prediction = await httpsPost(
     'api.replicate.com',
@@ -2047,25 +2105,24 @@ async function replicatePredictImage(prompt) {
   if (!prediction.urls?.get) throw new Error('Replicate error: ' + JSON.stringify(prediction));
 
   let result;
-  // Poll up to ~2.5 min. flux-schnell is fast, but cold starts can sit in "starting" a while.
   for (let i = 0; i < 50; i++) {
-    await new Promise(r => setTimeout(r, 3000));
+    await sleep(3000);
     result = await httpsGet(prediction.urls.get);
     console.log(`Image: ${result.status}`);
-    if (result.status === 'succeeded') break;
+    if (result.status === 'succeeded') return result;
     if (result.status === 'failed' || result.status === 'canceled') {
       throw new Error(`Replicate image ${result.status}` + (result.error ? `: ${result.error}` : ''));
     }
   }
 
-  return result?.output?.[0] || null;
+  throw new Error('Replicate image timed out');
 }
 
 // Fallback image generator using Gemini native image generation (free tier).
 // Writes the image directly and returns the public path, or null on failure.
-async function geminiGenerateImage(prompt, slug) {
+async function geminiGenerateImage(prompt, slug, attempt = 1) {
   if (!GEMINI_API_KEY) return null;
-  console.log('Falling back to Gemini image generation...');
+  if (attempt === 1) console.log('Falling back to Gemini image generation...');
 
   const response = await httpsPost(
     'generativelanguage.googleapis.com',
@@ -2076,6 +2133,13 @@ async function geminiGenerateImage(prompt, slug) {
       generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
     }
   );
+
+  if (response?.error?.code === 429 && attempt < 4) {
+    const waitMs = attempt * 15000;
+    console.log(`Gemini rate limited — retrying in ${waitMs / 1000}s (attempt ${attempt}/3)...`);
+    await sleep(waitMs);
+    return geminiGenerateImage(prompt, slug, attempt + 1);
+  }
 
   const parts = response?.candidates?.[0]?.content?.parts || [];
   const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
@@ -2092,6 +2156,47 @@ async function geminiGenerateImage(prompt, slug) {
   return `/recipes/${slug}/images/hero.jpg`;
 }
 
+function createPlaceholderHero(slug, recipe) {
+  const { spawnSync } = require('child_process');
+  const scriptPath = path.join(__dirname, 'placeholder_hero.py');
+  const title = String(recipe.title || 'Improv Oven Recipe').slice(0, 100);
+  const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
+  fs.mkdirSync(imgDir, { recursive: true });
+  const imgPath = path.join(imgDir, 'hero.jpg');
+  const run = spawnSync('python3', [scriptPath, title, imgPath], { stdio: 'pipe' });
+  if (run.status === 0 && fs.existsSync(imgPath)) {
+    console.log('✓ Placeholder hero saved (image APIs unavailable — recipe will still publish)');
+    return `/recipes/${slug}/images/hero.jpg`;
+  }
+  const err = (run.stderr || Buffer.from('')).toString('utf8').slice(0, 200);
+  console.log('⚠ Placeholder hero failed:', err || 'unknown error');
+  return null;
+}
+
+async function saveReplicateOutputToHero(result, slug) {
+  const out = result?.output;
+  const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
+  fs.mkdirSync(imgDir, { recursive: true });
+  const imgPath = path.join(imgDir, 'hero.jpg');
+
+  // Direct base64 / data-uri in output (some models return this)
+  const raw = Array.isArray(out) ? out[0] : out;
+  if (typeof raw === 'string' && raw.startsWith('data:image') && saveDataUriImage(raw, imgPath)) {
+    console.log('✓ Image saved (Replicate data URI)');
+    return `/recipes/${slug}/images/hero.jpg`;
+  }
+
+  const outputUrl = extractReplicateImageUrl(result);
+  if (!outputUrl) {
+    console.log('⚠ Replicate succeeded but output was not a URL:', JSON.stringify(out)?.slice(0, 200));
+    return null;
+  }
+
+  await downloadBinary(outputUrl, imgPath);
+  console.log('✓ Image saved');
+  return `/recipes/${slug}/images/hero.jpg`;
+}
+
 async function getImage(recipe, slug) {
   console.log('Generating food photo...');
 
@@ -2101,16 +2206,10 @@ async function getImage(recipe, slug) {
   if (REPLICATE_API_TOKEN) {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        const outputUrl = await replicatePredictImage(prompt);
-        if (outputUrl) {
-          const imgDir = path.join(process.cwd(), 'recipes', slug, 'images');
-          fs.mkdirSync(imgDir, { recursive: true });
-          const imgPath = path.join(imgDir, 'hero.jpg');
-          await downloadBinary(outputUrl, imgPath);
-          console.log('✓ Image saved');
-          return `/recipes/${slug}/images/hero.jpg`;
-        }
-        console.log(`⚠ Replicate produced no image (attempt ${attempt}/2)`);
+        const result = await replicatePredictImage(prompt);
+        const saved = await saveReplicateOutputToHero(result, slug);
+        if (saved) return saved;
+        console.log(`⚠ Replicate produced no usable image (attempt ${attempt}/2)`);
       } catch (e) {
         console.log(`⚠ Replicate attempt ${attempt}/2 failed: ${e.message}`);
       }
@@ -2123,7 +2222,11 @@ async function getImage(recipe, slug) {
   const geminiPath = await geminiGenerateImage(prompt, slug);
   if (geminiPath) return geminiPath;
 
-  throw new Error('No image output from Replicate or Gemini');
+  // Last resort: local placeholder so the recipe still publishes.
+  const placeholderPath = createPlaceholderHero(slug, recipe);
+  if (placeholderPath) return placeholderPath;
+
+  throw new Error('No image output from Replicate, Gemini, or placeholder');
 }
 
 function slugify(title) {
