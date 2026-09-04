@@ -30,11 +30,21 @@ const ROUNDUP_THEMES = [
   { theme: 'One-Pan Recipes', category: 'any', keywords: ['one pan', 'sheet pan', 'one pot', 'skillet'] },
 ];
 
+function textFromClaude(parsed) {
+  if (!parsed?.content) {
+    throw new Error('Claude API error: ' + (parsed?.error?.message || JSON.stringify(parsed).slice(0, 300)));
+  }
+  const text = parsed.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+  if (!text) throw new Error('Claude API returned no text');
+  return text;
+}
+
 function callClaude(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5',
       max_tokens: 1000,
+      thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -53,8 +63,7 @@ function callClaude(prompt) {
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
-          const parsed = JSON.parse(data);
-          resolve(parsed.content[0].text);
+          resolve(textFromClaude(JSON.parse(data)));
         } catch (e) {
           reject(e);
         }

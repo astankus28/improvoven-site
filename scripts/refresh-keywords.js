@@ -11,8 +11,10 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 function callClaude(messages, useWebSearch = false) {
   return new Promise((resolve, reject) => {
     const body = {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
+      model: 'claude-sonnet-5',
+      max_tokens: 8000,
+      thinking: { type: 'adaptive' },
+      output_config: { effort: 'high' },
       messages,
       ...(useWebSearch ? {
         tools: [{
@@ -31,7 +33,6 @@ function callClaude(messages, useWebSearch = false) {
         'Content-Type': 'application/json',
         'x-api-key': ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'interleaved-thinking-2025-05-14',
         'Content-Length': Buffer.byteLength(data)
       }
     }, res => {
@@ -40,7 +41,11 @@ function callClaude(messages, useWebSearch = false) {
       res.on('end', () => {
         try {
           const parsed = JSON.parse(response);
-          // Extract text from content blocks
+          if (!parsed.content) {
+            reject(new Error('Claude API error: ' + (parsed.error?.message || response.slice(0, 200))));
+            return;
+          }
+          // Extract text from content blocks (thinking blocks may precede text)
           const text = parsed.content
             .filter(b => b.type === 'text')
             .map(b => b.text)

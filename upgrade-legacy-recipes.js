@@ -136,14 +136,19 @@ Write the following. Return ONLY valid JSON, no markdown, no explanation:
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5',
       max_tokens: 1000,
+      thinking: { type: 'disabled' },
       messages: [{ role: 'user', content: prompt }],
     }),
   });
 
   const data = await response.json();
-  const text = data.content?.[0]?.text || '';
+  if (!data.content) {
+    console.error(`  ⚠ Claude API error for ${slug}:`, data.error?.message || JSON.stringify(data).slice(0, 200));
+    return null;
+  }
+  const text = data.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
 
   try {
     const clean = text.replace(/```json|```/g, '').trim();
