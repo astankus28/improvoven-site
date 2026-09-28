@@ -12,7 +12,7 @@ const path             = require('path');
 const https            = require('https');
 const FormData         = require('form-data');
 
-const { generateHashtags } = require(path.join(__dirname, 'pinterest-post.js'));
+const { generateHashtags, truncatePinterestText } = require(path.join(__dirname, 'pinterest-post.js'));
 
 const ACCESS_TOKEN = process.env.PINTEREST_ACCESS_TOKEN;
 const SITE_URL     = 'https://www.improvoven.com';
@@ -471,13 +471,13 @@ async function createVideoPin(recipe, slug, boardId, mediaId, coverImageUrl) {
   const reserved    = hashtags.length + creditTail.length + 4;
   const body1       = `${desc} 📌 Save & cook tonight — full recipe at the link.`;
   const trimmedBody = body1.length > 500 - reserved
-    ? body1.slice(0, 500 - reserved - 1).trimEnd() + '…'
+    ? truncatePinterestText(body1, 500 - reserved - 1) + '…'
     : body1;
-  const description = `${trimmedBody} ${hashtags}${creditTail}`.slice(0, 500);
+  const description = truncatePinterestText(`${trimmedBody} ${hashtags}${creditTail}`, 500);
 
   const body = {
     board_id: boardId,
-    title: recipe.title.substring(0, 100),
+    title: truncatePinterestText(recipe.title, 100),
     description,
     link: recipeUrl,
     media_source: {

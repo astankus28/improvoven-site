@@ -165,7 +165,10 @@ jobs:
                   const token = JSON.parse(data);
                   if (token.access_token) {
                     console.log('✅ Token refreshed successfully');
-                    // Write new access token to GITHUB_OUTPUT so next steps can use it
+                    // Mask before the value is written to step output. Step outputs
+                    // are printed in later steps and are not secret-masked on their own.
+                    console.log('::add-mask::' + token.access_token);
+                    if (token.refresh_token) console.log('::add-mask::' + token.refresh_token);
                     const fs = require('fs');
                     fs.appendFileSync(process.env.GITHUB_OUTPUT, 'access_token=' + token.access_token + '\n');
 

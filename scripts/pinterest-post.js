@@ -236,6 +236,71 @@ function generatePinVariations(recipe) {
   return variations.slice(0, 2);
 }
 
+// Pinterest rejects a description that contains a lone UTF-16 surrogate
+// ("invalid encoding (non utf-8)"). JS string length counts code units, so a
+// naive substring(0, 500) can slice an emoji in half.
+function sanitizePinterestText(value) {
+  const str = String(value || '').normalize('NFC');
+  let out = '';
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code >= 0xD800 && code <= 0xDBFF) {
+      const next = str.charCodeAt(i + 1);
+      if (next >= 0xDC00 && next <= 0xDFFF) {
+        out += str[i] + str[i + 1];
+        i++;
+      }
+      continue;
+    }
+    if (code >= 0xDC00 && code <= 0xDFFF) continue;
+    if ((code <= 0x1F && code !== 0x09 && code !== 0x0A && code !== 0x0D) || code === 0x7F) continue;
+    if (code >= 0x80 && code <= 0x9F) continue;
+    out += str[i];
+  }
+  return out;
+}
+
+function truncatePinterestText(value, maxLen) {
+  const clean = sanitizePinterestText(value);
+  if (clean.length <= maxLen) return clean;
+  let end = maxLen;
+  const code = clean.charCodeAt(end - 1);
+  if (code >= 0xD800 && code <= 0xDBFF) end -= 1;
+  return clean.slice(0, end).trimEnd();
+}
+
+function fitPinterestDescription({ story, tail, hashtags, limit = 500 }) {
+  const storyText = sanitizePinterestText(story);
+  const tailText = sanitizePinterestText(tail);
+  const tagsText = sanitizePinterestText(hashtags);
+
+  const full = [storyText, tailText, tagsText].filter(Boolean).join(' ');
+  if (full.length <= limit) return full;
+
+  const withTail = [storyText, tailText].filter(Boolean).join(' ');
+  if (withTail.length <= limit) return withTail;
+
+  const room = tailText ? limit - tailText.length - 1 : limit;
+  if (tailText && room >= 40) {
+    let fitted = truncatePinterestText(storyText, room);
+    const sentenceEnd = Math.max(
+      fitted.lastIndexOf('. '),
+      fitted.lastIndexOf('! '),
+      fitted.lastIndexOf('? '),
+      /[.!?]$/.test(fitted) ? fitted.length - 1 : -1
+    );
+    if (sentenceEnd > Math.floor(room * 0.6)) {
+      fitted = fitted.slice(0, sentenceEnd + 1).trimEnd();
+    } else {
+      const lastSpace = fitted.lastIndexOf(' ');
+      if (lastSpace > Math.floor(room * 0.6)) fitted = fitted.slice(0, lastSpace).trimEnd();
+    }
+    return `${fitted} ${tailText}`.trim();
+  }
+
+  return truncatePinterestText(full, limit);
+}
+
 function buildScannablePinTitle(recipe) {
   const raw = String((recipe && recipe.title) || '').trim();
   if (!raw) return 'Easy Weeknight Recipe';
@@ -252,43 +317,46 @@ function buildScannablePinTitle(recipe) {
 }
 
 function generateDescription(recipe, style = 'standard') {
-  const desc = recipe.description || '';
-  const time = recipe.totalTime ? `Ready in ${recipe.totalTime}.` : '';
-  const servings = recipe.servings ? `Serves ${recipe.servings}.` : '';
+  const desc = sanitizePinterestText(recipe.description || '');
+  const time = recipe.totalTime ? `Ready in ${sanitizePinterestText(recipe.totalTime)}.` : '';
+  const servings = recipe.servings ? `Serves ${sanitizePinterestText(recipe.servings)}.` : '';
   const hashtags = generateHashtags(recipe).join(' ');
-  
-  let body = '';
-  
+  const cta = '📌 Save this recipe! Full instructions at the link.';
+
+  let story = desc;
+  let tail = [time, servings, cta].filter(Boolean).join(' ');
+
   switch (style) {
     case 'time_focused':
-      body = `Need dinner FAST? ${desc} ${time}`;
+      story = `Need dinner FAST? ${desc}`;
+      tail = [time, cta].filter(Boolean).join(' ');
       break;
-    case 'seasonal':
+    case 'seasonal': {
       const season = getCurrentSeason();
-      if (season === 'cinco_de_mayo') {
-        body = `🎉 Perfect for your Cinco de Mayo fiesta! ${desc} ${time}`;
-      } else if (season === 'easter') {
-        body = `🐣 A beautiful addition to your Easter table. ${desc} ${time}`;
-      } else if (season === 'thanksgiving') {
-        body = `🦃 Your Thanksgiving guests will love this! ${desc} ${time}`;
-      } else if (season === 'christmas') {
-        body = `🎄 Holiday perfection! ${desc} ${time}`;
-      } else {
-        body = `${desc} ${time}`;
-      }
+      const prefix = season === 'cinco_de_mayo'
+        ? '🎉 Perfect for your Cinco de Mayo fiesta!'
+        : season === 'easter'
+          ? '🐣 A beautiful addition to your Easter table.'
+          : season === 'thanksgiving'
+            ? '🦃 Your Thanksgiving guests will love this!'
+            : season === 'christmas'
+              ? '🎄 Holiday perfection!'
+              : '';
+      story = [prefix, desc].filter(Boolean).join(' ');
+      tail = [time, cta].filter(Boolean).join(' ');
       break;
+    }
     case 'enthusiastic':
-      body = `You HAVE to try this! ${desc} ${time}`;
+      story = `You HAVE to try this! ${desc}`;
+      tail = [time, cta].filter(Boolean).join(' ');
       break;
     default:
-      body = `${desc} ${time} ${servings}`;
+      break;
   }
-  
-  const cta = '📌 Save this recipe! Full instructions at the link.';
-  
-  // Pinterest description limit is 500 chars
-  const fullDesc = `${body.trim()} ${cta} ${hashtags}`.trim();
-  return fullDesc.substring(0, 500);
+
+  // Keep the time/servings line and the CTA. Drop hashtags, then shorten the
+  // story, before a 500-char cut can split an emoji.
+  return fitPinterestDescription({ story, tail, hashtags, limit: 500 });
 }
 
 // ============================================================
@@ -454,7 +522,7 @@ async function postSinglePin(recipe, slug, variation, boardVariant = 'primary') 
 
   const pinData = {
     board_id: boardId,
-    title: variation.title.substring(0, 100), // Pinterest title limit
+    title: truncatePinterestText(variation.title, 100),
     description,
     link: recipeUrl,
     media_source: {
@@ -544,4 +612,10 @@ if (require.main === module) {
     .catch(e => { console.error(e); process.exit(1); });
 }
 
-module.exports = { postToPinterest, generateHashtags, generatePinVariations };
+module.exports = {
+  postToPinterest,
+  generateHashtags,
+  generatePinVariations,
+  generateDescription,
+  truncatePinterestText,
+};
